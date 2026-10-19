@@ -22,5 +22,8 @@ public final class DrImprovementMod {
         context.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
             () -> new ConfigScreenHandler.ConfigScreenFactory((mc, parent) -> new DrConfigScreen(parent)));
         ClientEvents.register();
+        if (SelfTest.enabled()) {
+            SelfTest.register();
+        }
     }
 }

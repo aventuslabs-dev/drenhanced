@@ -28,6 +28,16 @@ jobs:
           set -o pipefail
           ./gradlew build --no-configuration-cache --console=plain 2>&1 | tee build.log
 
+      - name: Smoke-test in a real client (headless)
+        if: success()
+        timeout-minutes: 20
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils libgl1-mesa-dri > /dev/null
+          export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.5
+          set -o pipefail
+          xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient -Pselftest --no-configuration-cache --console=plain 2>&1 | tee selftest.log
+          grep -q "DRIM SELFTEST PASS" selftest.log
+
       - uses: actions/upload-artifact@v4
         if: success()
         with:
@@ -40,6 +50,8 @@ jobs:
         run: |
           mkdir -p /tmp/out
           cp build.log /tmp/out/ 2>/dev/null || true
+          grep -E 'DRIM|Mixin|mixin|ERROR|Exception|Caused by' selftest.log > /tmp/out/selftest-summary.log 2>/dev/null || true
+          tail -n 300 selftest.log > /tmp/out/selftest-tail.log 2>/dev/null || true
           cp build/libs/*.jar /tmp/out/ 2>/dev/null || true
           echo "${{ github.sha }} ${{ job.status }}" > /tmp/out/STATUS
           cd /tmp/out

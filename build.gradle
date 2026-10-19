@@ -20,7 +20,11 @@ minecraft {
             // Mixin needs the config on the command line in dev; the jar manifest covers production.
             args "--mixin.config=${mod_id}.mixins.json"
         }
-        register('client')
+        register('client') {
+            if (providers.gradleProperty('selftest').isPresent()) {
+                systemProperty 'drim.selftest', 'true'
+            }
+        }
     }
 }
 
