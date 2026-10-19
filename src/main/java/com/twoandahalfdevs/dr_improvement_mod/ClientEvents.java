@@ -15,7 +15,6 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.core.component.DataComponents;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
-import net.minecraftforge.client.event.RenderGuiEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
@@ -36,8 +35,6 @@ public final class ClientEvents {
 
     public static void register() {
         MinecraftForge.EVENT_BUS.addListener(ClientEvents::onClientTick);
-        MinecraftForge.EVENT_BUS.addListener(ClientEvents::onRenderGuiPre);
-        MinecraftForge.EVENT_BUS.addListener(ClientEvents::onRenderGuiPost);
         MinecraftForge.EVENT_BUS.addListener(ClientEvents::onBossBar);
         MinecraftForge.EVENT_BUS.addListener(ClientEvents::onTooltip);
         MinecraftForge.EVENT_BUS.addListener(ClientEvents::onCrit);
@@ -74,20 +71,22 @@ public final class ClientEvents {
         }
     }
 
-    private static void onRenderGuiPre(RenderGuiEvent.Pre event) {
+    /** Called from GuiMixin before the vanilla HUD layers. */
+    public static void renderHudBelow() {
         if (DrConfig.customBars()) {
             OverlayRenderer.draw();
         }
     }
 
-    private static void onRenderGuiPost(RenderGuiEvent.Post event) {
+    /** Called from GuiMixin after the vanilla HUD layers. */
+    public static void renderHudAbove(GuiGraphics g) {
         Minecraft mc = Minecraft.getInstance();
         GuiAccessor gui = (GuiAccessor) mc.gui;
         Component msg = gui.drim$getOverlayMessage();
         DrState.onActionBar(msg == null ? null : msg.getString(), gui.drim$getOverlayTime());
 
         if (DrConfig.usefulInfo()) {
-            HudRenderer.draw(event.getGuiGraphics());
+            HudRenderer.draw(g);
         }
     }
 

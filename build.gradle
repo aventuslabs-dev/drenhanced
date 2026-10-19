@@ -33,7 +33,6 @@ repositories {
 
 dependencies {
     implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
-    annotationProcessor 'org.spongepowered:mixin:0.8.7:processor'
 }
 
 tasks.withType(JavaCompile).configureEach {

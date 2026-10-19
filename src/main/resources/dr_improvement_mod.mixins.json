@@ -8,6 +8,7 @@
     "ClientPacketListenerMixin",
     "EntityMixin",
     "GuiAccessor",
+    "GuiMixin",
     "ItemInHandRendererMixin",
     "LivingEntityAccessor",
     "LocalPlayerMixin",
