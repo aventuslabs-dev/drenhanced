@@ -1,0 +1,37 @@
+package com.twoandahalfdevs.dr_improvement_mod.mixin;
+
+import com.twoandahalfdevs.dr_improvement_mod.DrConfig;
+import net.minecraft.client.multiplayer.MultiPlayerGameMode;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.BlockHitResult;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+@Mixin(MultiPlayerGameMode.class)
+public abstract class MultiPlayerGameModeMixin {
+
+    /**
+     * Ability heads must never be placed as blocks. PASS (instead of the old CONSUME) skips the
+     * block placement but still falls through to a plain item use, so right-clicking a block with
+     * an ability head activates the ability instead of doing nothing.
+     */
+    @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
+    private void drim$noHeadPlacement(LocalPlayer player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
+        if (player.getItemInHand(hand).is(Items.PLAYER_HEAD)) {
+            cir.setReturnValue(InteractionResult.PASS);
+        }
+    }
+
+    /** No 10-tick delay after swinging at air (1.8 behaviour). */
+    @Inject(method = "hasMissTime", at = @At("HEAD"), cancellable = true)
+    private void drim$noMissTime(CallbackInfoReturnable<Boolean> cir) {
+        if (DrConfig.legacyCombat()) {
+            cir.setReturnValue(false);
+        }
+    }
+}

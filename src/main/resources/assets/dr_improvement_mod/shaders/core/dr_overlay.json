@@ -1,0 +1,11 @@
+{
+  "vertex": "dr_improvement_mod:core/dr_overlay",
+  "fragment": "dr_improvement_mod:core/dr_overlay",
+  "samplers": [],
+  "uniforms": [
+    { "name": "energyPercent", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "healthPercent", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "manaPercent",   "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "aspectRatio",   "type": "float", "count": 1, "values": [ 1.7777 ] }
+  ]
+}

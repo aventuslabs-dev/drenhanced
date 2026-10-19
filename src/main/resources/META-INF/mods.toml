@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[54,)"
+license="All Rights Reserved"
+# Client-only: lets you join servers (DR runs Spigot + ViaVersion) without the server having this mod.
+clientSideOnly=true
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="DR Improvement Mod"
+authors="Aris (original Fabric 1.19.4 mod), Forge port"
+description='''QoL client mod for DungeonRealms: shader energy/mana/HP bars, real HP on nameplates, ability & potion cooldowns, combat timer, 1.8 combat feel, guild nametags.'''
+
+[[dependencies.${mod_id}]]
+    modId="forge"
+    mandatory=true
+    versionRange="[54,)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.21.4,1.21.5)"
+    ordering="NONE"
+    side="CLIENT"

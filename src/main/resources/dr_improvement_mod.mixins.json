@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.twoandahalfdevs.dr_improvement_mod.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ConnectionMixin",
+    "ClientPacketListenerMixin",
+    "EntityMixin",
+    "GuiAccessor",
+    "ItemInHandRendererMixin",
+    "LivingEntityAccessor",
+    "LocalPlayerMixin",
+    "MultiPlayerGameModeMixin",
+    "PlayerTeamMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
