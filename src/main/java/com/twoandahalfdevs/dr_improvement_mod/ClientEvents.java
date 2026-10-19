@@ -1,12 +1,15 @@
 package com.twoandahalfdevs.dr_improvement_mod;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.twoandahalfdevs.dr_improvement_mod.mixin.GuiAccessor;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
@@ -22,6 +25,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.lwjgl.glfw.GLFW;
+
 /** Fabric API side of the mod (everything that doesn't need a mixin). */
 public final class ClientEvents {
     private ClientEvents() {}
@@ -31,7 +36,12 @@ public final class ClientEvents {
     private static int lastSelectedSlot = -1;
     private static boolean openConfigNextTick;
 
+    /** Opens the settings screen. Default K; rebind under Options > Controls > DR Improvement Mod. */
+    private static final KeyMapping OPEN_CONFIG = new KeyMapping(
+        "key.dr_improvement_mod.config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, "key.categories.dr_improvement_mod");
+
     public static void register() {
+        KeyBindingHelper.registerKeyBinding(OPEN_CONFIG);
         ClientTickEvents.START_CLIENT_TICK.register(ClientEvents::onClientTick);
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> addOrigin(stack, lines));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
@@ -48,7 +58,11 @@ public final class ClientEvents {
     }
 
     private static void onClientTick(Minecraft mc) {
-        if (openConfigNextTick) {
+        boolean keyPressed = false;
+        while (OPEN_CONFIG.consumeClick()) {
+            keyPressed = true;
+        }
+        if (openConfigNextTick || (keyPressed && mc.screen == null)) {
             openConfigNextTick = false;
             mc.setScreen(new DrConfigScreen(null));
         }

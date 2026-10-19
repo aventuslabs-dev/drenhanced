@@ -8,7 +8,7 @@ A Forge 1.21.4 version lives on the `forge-1.21.4` branch.
 
 ## Install
 Fabric Loader 0.16+ and **Fabric API** for 1.21.4, then drop the jar into `.minecraft/mods/`.
-Settings: Mods menu → DR Improvement Mod (needs [ModMenu](https://modrinth.com/mod/modmenu)), or type `/drconfig`.
+Settings: press **K** (rebind in Options → Controls), type `/drconfig`, or use the Mods menu with [ModMenu](https://modrinth.com/mod/modmenu).
 Saved to `config/dr_improvement_mod.json`.
 
 ## Features
