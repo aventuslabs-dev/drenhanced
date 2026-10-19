@@ -1,48 +1,53 @@
 package com.twoandahalfdevs.dr_improvement_mod;
 
 import com.twoandahalfdevs.dr_improvement_mod.mixin.GuiAccessor;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.core.component.DataComponents;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
-import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.CriticalHitEvent;
-import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import net.minecraftforge.eventbus.api.Event;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Forge-event side of the mod (everything that doesn't need a mixin). */
+/** Fabric API side of the mod (everything that doesn't need a mixin). */
 public final class ClientEvents {
     private ClientEvents() {}
 
     private static final Pattern ORIGIN = Pattern.compile("(.*) \\((.*)/.*\\)");
-    private static final int BOSS_BAR_EXTRA_SPACING = 14;
 
     private static int lastSelectedSlot = -1;
 
     public static void register() {
-        MinecraftForge.EVENT_BUS.addListener(ClientEvents::onClientTick);
-        MinecraftForge.EVENT_BUS.addListener(ClientEvents::onBossBar);
-        MinecraftForge.EVENT_BUS.addListener(ClientEvents::onTooltip);
-        MinecraftForge.EVENT_BUS.addListener(ClientEvents::onCrit);
-        MinecraftForge.EVENT_BUS.addListener(ClientEvents::onLogout);
+        ClientTickEvents.START_CLIENT_TICK.register(ClientEvents::onClientTick);
+        ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> addOrigin(stack, lines));
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+            lastSelectedSlot = -1;
+            DrState.reset();
+        });
+        // /drconfig opens the settings screen (handy without ModMenu).
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
+            dispatcher.register(ClientCommandManager.literal("drconfig").executes(ctx -> {
+                Minecraft mc = Minecraft.getInstance();
+                // Queue it so the chat screen closing doesn't immediately replace it.
+                mc.tell(() -> mc.setScreen(new DrConfigScreen(null)));
+                return 1;
+            })));
     }
 
-    private static void onClientTick(TickEvent.ClientTickEvent.Pre event) {
-        Minecraft mc = Minecraft.getInstance();
+    private static void onClientTick(Minecraft mc) {
         if (mc.level == null || mc.player == null) {
             lastSelectedSlot = -1;
             return;
@@ -90,51 +95,18 @@ public final class ClientEvents {
         }
     }
 
-    /** The "<Class> Lv X - HP a/b" boss bar: record the class, hide the bar but keep its text. */
-    private static void onBossBar(CustomizeGuiOverlayEvent.BossEventProgress event) {
-        if (!DrConfig.customBars()) return;
-
-        Component name = event.getBossEvent().getName();
-        String plain = name.getString();
-        if (plain.contains("Lv ") && plain.contains(" - HP ")) {
-            int dash = plain.indexOf('-');
-            if (dash > 0) {
-                DrState.setPlayerClass(plain.substring(0, dash).trim());
-            }
-            event.setCanceled(true);
-            GuiGraphics g = event.getGuiGraphics();
-            Font font = Minecraft.getInstance().font;
-            int x = g.guiWidth() / 2 - font.width(name) / 2;
-            g.drawString(font, name, x, event.getY() - 9, 0xFFFFFF);
-        }
-        // Push every bar down to make room for the shader HP bar.
-        event.setIncrement(event.getIncrement() + BOSS_BAR_EXTRA_SPACING);
-    }
-
     /** Shows where an item came from (DR stores "Type (Player/...)" in its custom data). */
-    private static void onTooltip(ItemTooltipEvent event) {
-        CustomData data = event.getItemStack().get(DataComponents.CUSTOM_DATA);
+    private static void addOrigin(ItemStack stack, List<Component> lines) {
+        CustomData data = stack.get(DataComponents.CUSTOM_DATA);
         if (data == null) return;
         CompoundTag tag = data.copyTag();
         if (!tag.contains("origin")) return;
 
         Matcher m = ORIGIN.matcher(tag.getString("origin"));
         if (m.find()) {
-            event.getToolTip().add(Component.empty());
-            event.getToolTip().add(Component.literal("Origin: " + m.group(1) + " - ").withStyle(ChatFormatting.GRAY)
+            lines.add(Component.empty());
+            lines.add(Component.literal("Origin: " + m.group(1) + " - ").withStyle(ChatFormatting.GRAY)
                 .append(Component.literal(m.group(2)).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
         }
-    }
-
-    /** No client-side crit sound/particles (the server decides crits). Never touches singleplayer's server side. */
-    private static void onCrit(CriticalHitEvent event) {
-        if (DrConfig.legacyCombat() && event.getEntity().level().isClientSide()) {
-            event.setResult(Event.Result.DENY);
-        }
-    }
-
-    private static void onLogout(ClientPlayerNetworkEvent.LoggingOut event) {
-        lastSelectedSlot = -1;
-        DrState.reset();
     }
 }

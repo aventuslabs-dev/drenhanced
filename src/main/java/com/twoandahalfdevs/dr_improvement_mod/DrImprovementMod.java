@@ -1,26 +1,16 @@
 package com.twoandahalfdevs.dr_improvement_mod;
 
-import com.mojang.logging.LogUtils;
-import net.minecraftforge.client.ConfigScreenHandler;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.fabricmc.api.ClientModInitializer;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Mod(DrImprovementMod.MOD_ID)
-public final class DrImprovementMod {
+public final class DrImprovementMod implements ClientModInitializer {
     public static final String MOD_ID = "dr_improvement_mod";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public DrImprovementMod(FMLJavaModLoadingContext context) {
-        if (!FMLEnvironment.dist.isClient()) {
-            LOGGER.warn("DR Improvement Mod is client-only; doing nothing on a dedicated server.");
-            return;
-        }
-        context.registerConfig(ModConfig.Type.CLIENT, DrConfig.SPEC);
-        context.registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
-            () -> new ConfigScreenHandler.ConfigScreenFactory((mc, parent) -> new DrConfigScreen(parent)));
+    @Override
+    public void onInitializeClient() {
+        DrConfig.load();
         ClientEvents.register();
         if (SelfTest.enabled()) {
             SelfTest.register();

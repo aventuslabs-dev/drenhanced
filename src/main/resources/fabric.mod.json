@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "dr_improvement_mod",
+  "version": "${version}",
+  "name": "DR Improvement Mod",
+  "description": "QoL client mod for DungeonRealms: shader energy/mana/HP bars, real HP on nameplates, ability & potion cooldowns, combat timer, 1.8 combat feel, guild nametags.",
+  "authors": ["Aris (original 1.19.4 mod)", "1.21.4 port"],
+  "license": "All-Rights-Reserved",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.twoandahalfdevs.dr_improvement_mod.DrImprovementMod"],
+    "modmenu": ["com.twoandahalfdevs.dr_improvement_mod.ModMenuIntegration"]
+  },
+  "mixins": ["dr_improvement_mod.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "1.21.4",
+    "java": ">=21"
+  },
+  "suggests": {
+    "modmenu": "*"
+  }
+}

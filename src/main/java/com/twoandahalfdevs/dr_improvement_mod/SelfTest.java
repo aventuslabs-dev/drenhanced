@@ -1,8 +1,7 @@
 package com.twoandahalfdevs.dr_improvement_mod;
 
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.TickEvent;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +24,8 @@ final class SelfTest {
         "net.minecraft.client.player.LocalPlayer",
         "net.minecraft.client.multiplayer.MultiPlayerGameMode",
         "net.minecraft.world.scores.PlayerTeam",
+        "net.minecraft.client.gui.components.BossHealthOverlay",
+        "net.minecraft.world.entity.player.Player",
     };
 
     private static final List<String> failures = new ArrayList<>();
@@ -36,11 +37,10 @@ final class SelfTest {
     }
 
     static void register() {
-        MinecraftForge.EVENT_BUS.addListener(SelfTest::onTick);
+        ClientTickEvents.END_CLIENT_TICK.register(SelfTest::onTick);
     }
 
-    private static void onTick(TickEvent.ClientTickEvent.Post event) {
-        Minecraft mc = Minecraft.getInstance();
+    private static void onTick(Minecraft mc) {
         if (mc.getOverlay() != null || mc.screen == null) return; // still loading
         try {
             switch (stage) {

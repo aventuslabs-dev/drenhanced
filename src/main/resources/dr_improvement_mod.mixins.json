@@ -4,8 +4,9 @@
   "package": "com.twoandahalfdevs.dr_improvement_mod.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ConnectionMixin",
+    "BossHealthOverlayMixin",
     "ClientPacketListenerMixin",
+    "ConnectionMixin",
     "EntityMixin",
     "GuiAccessor",
     "GuiMixin",
@@ -13,6 +14,7 @@
     "LivingEntityAccessor",
     "LocalPlayerMixin",
     "MultiPlayerGameModeMixin",
+    "PlayerMixin",
     "PlayerTeamMixin"
   ],
   "injectors": {

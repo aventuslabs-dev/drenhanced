@@ -41,7 +41,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: dr_improvement_mod-forge-1.21.4
+          name: dr_improvement_mod-fabric-1.21.4
           path: build/libs/*.jar
 
       # Publish the log (and jar) to a branch so they can be fetched with plain git.

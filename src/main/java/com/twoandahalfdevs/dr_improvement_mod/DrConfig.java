@@ -1,87 +1,78 @@
 package com.twoandahalfdevs.dr_improvement_mod;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import net.fabricmc.loader.api.FabricLoader;
+
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
- * Client config, stored in config/dr_improvement_mod-client.toml.
- * Defaults here are the single source of truth (the old ModMenu screen disagreed with them).
+ * Client settings, stored in config/dr_improvement_mod.json.
+ * The defaults below are the single source of truth (the old ModMenu screen disagreed with them).
  */
 public final class DrConfig {
-    public static final ForgeConfigSpec SPEC;
-
-    public static final ForgeConfigSpec.BooleanValue CUSTOM_BARS;
-    public static final ForgeConfigSpec.BooleanValue USEFUL_INFO;
-    public static final ForgeConfigSpec.BooleanValue GUILD_NAMETAGS;
-    public static final ForgeConfigSpec.BooleanValue COLOR_BLIND;
-    public static final ForgeConfigSpec.BooleanValue HOTBAR_ABILITIES;
-    public static final ForgeConfigSpec.BooleanValue THROTTLE_PACKETS;
-    public static final ForgeConfigSpec.BooleanValue LEGACY_COMBAT;
-    public static final ForgeConfigSpec.IntValue SHADOWMELD_POINTS;
-    public static final ForgeConfigSpec.IntValue JUST_MY_NATURE_POINTS;
-
-    static {
-        ForgeConfigSpec.Builder b = new ForgeConfigSpec.Builder();
-
-        b.push("hud");
-        CUSTOM_BARS = b.comment("Shader energy arcs, mana bar and top HP bar; hides the HP boss bar.")
-            .define("customBars", true);
-        USEFUL_INFO = b.comment("Ability cooldown, potion count/cooldown and combat timer text around the crosshair.")
-            .define("usefulInfo", true);
-        b.pop();
-
-        b.push("visuals");
-        GUILD_NAMETAGS = b.comment("Light green nametags for members of your guild.")
-            .define("guildNametags", true);
-        COLOR_BLIND = b.comment("Colour-blind friendly item rarity glow colours.")
-            .define("colorBlindGlow", false);
-        b.pop();
-
-        b.push("gameplay");
-        HOTBAR_ABILITIES = b.comment("Scrolling/pressing onto an ability head right-clicks it and returns to your previous slot.",
-                "Check the server's rules before enabling this.")
-            .define("hotbarAbilities", true);
-        THROTTLE_PACKETS = b.comment("Debounce client-settings (1/s) and tab-completion (2/s) packets to avoid spam kicks.")
-            .define("throttlePackets", true);
-        LEGACY_COMBAT = b.comment("1.8 feel: no double-tap sprint, no miss-swing delay, no client crit effects, no re-equip bob, no swing on drop.")
-            .define("legacyCombat", true);
-        b.pop();
-
-        b.push("rogue");
-        SHADOWMELD_POINTS = b.comment("Points in the Rogue 'Shadowmeld' node (-3.5% combat time per point).")
-            .defineInRange("shadowmeldPoints", 0, 0, 10);
-        JUST_MY_NATURE_POINTS = b.comment("Points in the Rogue 'It's Just My Nature' node (+0.5s bonus window per point).")
-            .defineInRange("justMyNaturePoints", 0, 0, 5);
-        b.pop();
-
-        SPEC = b.build();
-    }
-
     private DrConfig() {}
 
-    /** Safe read: mixins can run before the config file is loaded. */
-    public static boolean on(ForgeConfigSpec.BooleanValue v, boolean fallback) {
-        try {
-            return v.get();
-        } catch (IllegalStateException e) {
-            return fallback;
+    /** The JSON shape. Missing keys keep their defaults, so old/partial files still load. */
+    public static final class Data {
+        public boolean customBars = true;
+        public boolean usefulInfo = true;
+        public boolean guildNametags = true;
+        public boolean colorBlindGlow = false;
+        public boolean hotbarAbilities = true;
+        public boolean throttlePackets = true;
+        public boolean legacyCombat = true;
+        public int shadowmeldPoints = 0;      // 0-10
+        public int justMyNaturePoints = 0;    // 0-5
+
+        void clamp() {
+            shadowmeldPoints = Math.max(0, Math.min(10, shadowmeldPoints));
+            justMyNaturePoints = Math.max(0, Math.min(5, justMyNaturePoints));
         }
     }
 
-    public static int num(ForgeConfigSpec.IntValue v, int fallback) {
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("dr_improvement_mod.json");
+
+    public static Data data = new Data();
+
+    public static void load() {
         try {
-            return v.get();
-        } catch (IllegalStateException e) {
-            return fallback;
+            if (Files.exists(FILE)) {
+                try (Reader r = Files.newBufferedReader(FILE)) {
+                    Data loaded = GSON.fromJson(r, Data.class);
+                    if (loaded != null) data = loaded;
+                }
+            }
+        } catch (Exception e) {
+            DrImprovementMod.LOGGER.warn("Couldn't read {}, using defaults", FILE, e);
+            data = new Data();
+        }
+        data.clamp();
+        save(); // writes defaults for new keys
+    }
+
+    public static void save() {
+        try {
+            Files.createDirectories(FILE.getParent());
+            try (Writer w = Files.newBufferedWriter(FILE)) {
+                GSON.toJson(data, w);
+            }
+        } catch (Exception e) {
+            DrImprovementMod.LOGGER.warn("Couldn't save {}", FILE, e);
         }
     }
 
-    public static boolean customBars() { return on(CUSTOM_BARS, true); }
-    public static boolean usefulInfo() { return on(USEFUL_INFO, true); }
-    public static boolean guildNametags() { return on(GUILD_NAMETAGS, true); }
-    public static boolean colorBlind() { return on(COLOR_BLIND, false); }
-    public static boolean hotbarAbilities() { return on(HOTBAR_ABILITIES, true); }
-    public static boolean throttlePackets() { return on(THROTTLE_PACKETS, true); }
-    public static boolean legacyCombat() { return on(LEGACY_COMBAT, true); }
-    public static int shadowmeldPoints() { return num(SHADOWMELD_POINTS, 0); }
-    public static int justMyNaturePoints() { return num(JUST_MY_NATURE_POINTS, 0); }
+    public static boolean customBars() { return data.customBars; }
+    public static boolean usefulInfo() { return data.usefulInfo; }
+    public static boolean guildNametags() { return data.guildNametags; }
+    public static boolean colorBlind() { return data.colorBlindGlow; }
+    public static boolean hotbarAbilities() { return data.hotbarAbilities; }
+    public static boolean throttlePackets() { return data.throttlePackets; }
+    public static boolean legacyCombat() { return data.legacyCombat; }
+    public static int shadowmeldPoints() { return data.shadowmeldPoints; }
+    public static int justMyNaturePoints() { return data.justMyNaturePoints; }
 }
