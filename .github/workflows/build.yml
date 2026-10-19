@@ -2,16 +2,20 @@ name: Build
 
 on:
   push:
+    branches-ignore: [ci-output]
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -21,9 +25,27 @@ jobs:
       - name: Build mod jar
         run: |
           chmod +x gradlew
-          ./gradlew build --no-configuration-cache
+          set -o pipefail
+          ./gradlew build --no-configuration-cache --console=plain 2>&1 | tee build.log
 
       - uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: dr_improvement_mod-forge-1.21.4
           path: build/libs/*.jar
+
+      # Publish the log (and jar) to a branch so they can be fetched with plain git.
+      - name: Publish build output to ci-output branch
+        if: always()
+        run: |
+          mkdir -p /tmp/out
+          cp build.log /tmp/out/ 2>/dev/null || true
+          cp build/libs/*.jar /tmp/out/ 2>/dev/null || true
+          echo "${{ github.sha }} ${{ job.status }}" > /tmp/out/STATUS
+          cd /tmp/out
+          git init -q -b ci-output
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "CI output for ${{ github.sha }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-output
