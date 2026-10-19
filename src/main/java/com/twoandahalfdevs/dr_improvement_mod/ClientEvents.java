@@ -29,6 +29,7 @@ public final class ClientEvents {
     private static final Pattern ORIGIN = Pattern.compile("(.*) \\((.*)/.*\\)");
 
     private static int lastSelectedSlot = -1;
+    private static boolean openConfigNextTick;
 
     public static void register() {
         ClientTickEvents.START_CLIENT_TICK.register(ClientEvents::onClientTick);
@@ -40,14 +41,17 @@ public final class ClientEvents {
         // /drconfig opens the settings screen (handy without ModMenu).
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
             dispatcher.register(ClientCommandManager.literal("drconfig").executes(ctx -> {
-                Minecraft mc = Minecraft.getInstance();
-                // Queue it so the chat screen closing doesn't immediately replace it.
-                mc.tell(() -> mc.setScreen(new DrConfigScreen(null)));
+                // Opened on the next tick so the chat screen closing doesn't replace it.
+                openConfigNextTick = true;
                 return 1;
             })));
     }
 
     private static void onClientTick(Minecraft mc) {
+        if (openConfigNextTick) {
+            openConfigNextTick = false;
+            mc.setScreen(new DrConfigScreen(null));
+        }
         if (mc.level == null || mc.player == null) {
             lastSelectedSlot = -1;
             return;
