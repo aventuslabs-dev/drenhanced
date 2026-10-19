@@ -20,7 +20,7 @@ Saved to `config/dr_improvement_mod.json`.
 - Guild nametags (light green), colour-blind glow, item origin in tooltips, packet debounce.
 
 ## Build
-JDK 21: `./gradlew build` → `build/libs/dr_improvement_mod-<version>.jar`.
+JDK 25 (Fabric Loom requirement; the mod targets Java 21): `./gradlew build` → `build/libs/dr_improvement_mod-<version>.jar`.
 CI builds every push, launches a headless client to verify every mixin applies and the shader compiles, then publishes the jar to the `ci-output` branch.
 
 ## Changes vs. the 1.19.4 original
