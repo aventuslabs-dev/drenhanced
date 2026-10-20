@@ -221,8 +221,6 @@ public final class MobHp {
     static final int BORDER = 0xF0000000;
     static final int BACK = 0xC0181818;
     static final int TRAIL = 0xFFF2C14E;
-    static final int SHINE = 0x38FFFFFF;
-    static final int SHADE = 0x40000000;
 
     public static int fillColor(float f) {
         if ("HEALTH".equals(DrConfig.data.enemyHpColor)) {
@@ -290,6 +288,8 @@ public final class MobHp {
             Matrix4f tm = pose.last().pose();
             var seq = Component.literal(d.numbers()).getVisualOrderText();
             float tx = -font.width(seq) / 2f;
+            // see-through copy keeps the numbers readable when the mob is behind blocks (like the bar itself)
+            font.drawInBatch(seq, tx, -4f, 0xD0FFFFFF, false, tm, buffers, Font.DisplayMode.SEE_THROUGH, 0, bright);
             font.drawInBatch8xOutline(seq, tx, -4f, 0xFFFFFFFF, 0xFF000000, tm, buffers, bright);
             pose.popPose();
         }
