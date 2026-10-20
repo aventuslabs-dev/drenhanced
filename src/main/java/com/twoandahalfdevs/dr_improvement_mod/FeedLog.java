@@ -271,7 +271,8 @@ public final class FeedLog {
         return Math.max(6, (int) Math.round(10 * scale));
     }
 
-    private record Line(FormattedCharSequence seq, Entry e, float alpha, boolean first) {}
+    /** One drawn row; dim = right-aligned secondary text when it fits on the same row. */
+    private record Line(FormattedCharSequence seq, FormattedCharSequence dim, Entry e, float alpha, boolean first) {}
 
     public static void render(GuiGraphics g, boolean focused, int mouseX, int mouseY) {
         Minecraft mc = Minecraft.getInstance();
@@ -293,7 +294,7 @@ public final class FeedLog {
         float bg = (float) box.background;
         int a = (int) (presence * 255);
         // frame: dark body, gold hairline, header strip
-        g.fill(x0, y0, x1, y1, argb((int) (a * Math.max(0.35f, bg)), 0x0B0D12));
+        g.fill(x0, y0, x1, y1, argb((int) (a * Math.max(0.62f, bg)), 0x0B0D12));
         g.fill(x0, y0, x1, y0 + HEADER, argb((int) (a * 0.9f), 0x1A1712));
         g.fill(x0, y0 + HEADER, x1, y0 + HEADER + 1, argb(a, GOLD_DIM));
         outline(g, x0, y0, x1, y1, argb(a, GOLD));
@@ -325,8 +326,15 @@ public final class FeedLog {
             if (!tab.shows(e.cat)) continue;
             float alpha = focused ? 1f : (float) Mth.clamp(1.0 - (now - e.time - 8000) / 2000.0, 0, 1);
             if (alpha <= 0.02f && !focused) continue;
-            List<FormattedCharSequence> wrapped = font.split(compose(e), innerW);
-            for (int k = wrapped.size() - 1; k >= 0; k--) lines.add(new Line(wrapped.get(k), e, alpha, k == 0));
+            Component left = compose(e, false);
+            Component dim = e.dim == null || e.dim.isEmpty() ? null
+                : Component.literal(e.dim).withStyle(Style.EMPTY.withColor(0x6B7280));
+            if (dim != null && font.width(left) + 8 + font.width(dim) <= innerW) {
+                lines.add(new Line(left.getVisualOrderText(), dim.getVisualOrderText(), e, alpha, true));
+            } else {
+                List<FormattedCharSequence> wrapped = font.split(compose(e, true), innerW);
+                for (int k = wrapped.size() - 1; k >= 0; k--) lines.add(new Line(wrapped.get(k), null, e, alpha, k == 0));
+            }
         }
         int visible = Math.max(1, (y1 - (y0 + HEADER + 3) - 2) / lh);
         scroll = Mth.clamp(scroll, 0, Math.max(0, lines.size() - visible));
@@ -341,12 +349,15 @@ public final class FeedLog {
                 continue;
             }
             if (ln.first && ln.e.cat == Cat.HIT && ln.e.main.getString().contains("CRIT")) { // crit rows glow
-                g.fill(x0 + 2, y - 1, x1 - 2, y + lh - 1, argb((int) (la * 0.18f), 0xFF8A1F));
+                g.fill(x0 + 2, y - 1, x1 - 2, y + lh - 1, argb((int) (la * 0.20f), 0xFF8A1F));
+            } else if (((i - start) & 1) == 1) { // subtle striping
+                g.fill(x0 + 1, y - 1, x1 - 1, y + lh - 1, argb((int) (la * 0.05f), 0xFFFFFF));
             }
             g.pose().pushPose();
             g.pose().translate(x0 + 4, y, 0);
             g.pose().scale((float) scale, (float) scale, 1f);
             g.drawString(font, ln.seq, 0, 0, argb(la, 0xFFFFFF), true);
+            if (ln.dim != null) g.drawString(font, ln.dim, innerW - font.width(ln.dim), 0, argb(la, 0xFFFFFF), true);
             g.pose().popPose();
             if (focused && mouseX >= x0 && mouseX <= x1 && mouseY >= y && mouseY < y + lh) {
                 hoverStyle = font.getSplitter().componentStyleAtWidth(ln.seq, (int) ((mouseX - x0 - 4) / scale));
@@ -367,6 +378,10 @@ public final class FeedLog {
 
     /** "16:45 ⚔ 1,105 → Fiendish Skeleton   6,238 HP" */
     private static Component compose(Entry e) {
+        return compose(e, true);
+    }
+
+    private static Component compose(Entry e, boolean withDim) {
         MutableComponent c = Component.empty();
         if (DrConfig.data.feedTimestamps) {
             c.append(Component.literal(LocalTime.ofInstant(java.time.Instant.ofEpochMilli(e.time), java.time.ZoneId.systemDefault())
@@ -375,7 +390,7 @@ public final class FeedLog {
         c.append(Component.literal(e.cat.icon + " ").withStyle(Style.EMPTY.withColor(e.cat.color & 0xFFFFFF)));
         c.append(e.main);
         if (e.count > 1) c.append(Component.literal(" ×" + e.count).withStyle(Style.EMPTY.withColor(0xC8A040)));
-        if (e.dim != null && !e.dim.isEmpty()) c.append(Component.literal("  " + e.dim).withStyle(Style.EMPTY.withColor(0x6B7280)));
+        if (withDim && e.dim != null && !e.dim.isEmpty()) c.append(Component.literal("  " + e.dim).withStyle(Style.EMPTY.withColor(0x6B7280)));
         return c;
     }
 
