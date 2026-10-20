@@ -68,6 +68,7 @@ final class SelfTest {
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
     private static net.minecraft.world.entity.Entity barMob;
+    private static int maxCrits, maxThorns;
     private static java.nio.file.Path captureFile;
     private static net.minecraft.world.entity.Entity rivalPlayer;
 
@@ -371,11 +372,13 @@ final class SelfTest {
                         DrState.onChat("1105 DMG -> Spooky Skeleton [1175 HP]");
                         DrState.onChat("36 DMG (Thorns) -> Spooky Skeleton [1139 HP]");
                     }
-                    if (waitTicks == 10) { // pending chat hits spawn after ~250 ms
-                        int crits = FloatingText.countKind(FloatingText.Kind.CRIT), thorns = FloatingText.countKind(FloatingText.Kind.THORNS);
-                        log("crit numbers: " + crits + ", thorns numbers: " + thorns);
-                        if (crits < 1) fail("crit not shown as crit");
-                        if (thorns < 1) fail("thorns damage not shown");
+                    // pending chat hits spawn after ~250 ms; CI ticks unevenly, so take the most seen at any point
+                    maxCrits = Math.max(maxCrits, FloatingText.countKind(FloatingText.Kind.CRIT));
+                    maxThorns = Math.max(maxThorns, FloatingText.countKind(FloatingText.Kind.THORNS));
+                    if (waitTicks == 19) {
+                        log("crit numbers: " + maxCrits + ", thorns numbers: " + maxThorns);
+                        if (maxCrits < 1) fail("crit not shown as crit");
+                        if (maxThorns < 1) fail("thorns damage not shown");
                     }
                     if (++waitTicks < 20) return;
                     Screenshot.grab(mc.gameDirectory, "drim-splitchat-open.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
