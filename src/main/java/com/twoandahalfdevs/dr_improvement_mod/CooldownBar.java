@@ -38,7 +38,7 @@ public final class CooldownBar {
 
     private static final int GOLD = 0xFFFFD100;
     private static final int GREEN = 0xFF3DDC3D;
-    private static final int SWEEP = 0xB0000000;
+    private static final int SWEEP = 0x99000000;
 
     public static void draw(GuiGraphics g) {
         Minecraft mc = Minecraft.getInstance();
@@ -145,10 +145,13 @@ public final class CooldownBar {
         int x = sw / 2 - total / 2 + c.cdX;
         int y = sh - c.cdY - size;
         long now = System.currentTimeMillis();
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 400); // above the chat boxes and the rest of the HUD
         for (Slot s : slots) {
             drawSlot(g, font, s, x, y, size, now);
             x += size + gap;
         }
+        g.pose().popPose();
     }
 
     private static void drawSlot(GuiGraphics g, Font font, Slot s, int x, int y, int size, long now) {
@@ -169,7 +172,7 @@ public final class CooldownBar {
             double frac = Math.min(1.0, s.remaining() / s.max());
             g.pose().pushPose();
             g.pose().translate(0, 0, 200); // above the item
-            sweep(g, x, y, size, frac, s.active() ? 0x9020A020 : SWEEP);
+            sweep(g, x, y, size, frac, s.active() ? 0x8020A020 : SWEEP);
             g.pose().popPose();
         }
 
