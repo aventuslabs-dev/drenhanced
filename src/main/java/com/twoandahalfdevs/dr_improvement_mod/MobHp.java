@@ -72,6 +72,7 @@ public final class MobHp {
         long hpAt;
         int max = -1;
         boolean maxExact;
+        double maxLo = -1, maxHi = -1; // max HP window learned from exact HP vs DR's |||| bar (HP varies per mob)
         long hitAt;
         Vec3 pos = Vec3.ZERO;
         float height = 2f;
@@ -83,7 +84,6 @@ public final class MobHp {
 
     private static final Map<Integer, Track> tracks = new HashMap<>();
     /** Max HP last seen for "name|level", used as an estimate for other mobs of the same kind. */
-    private static final Map<String, Integer> maxByKind = new HashMap<>();
     /** "523 DMG -> Fiendish Skeleton [7319 HP]", also "36 DMG (Thorns) -> ..." and "(Reflect)". */
     private static final Pattern DMG = Pattern.compile("(\\d+) \\S*DMG(?: \\(([^)]*)\\))? -> (.+?) \\[(\\d+) HP]");
     private static final Pattern LEVEL = Pattern.compile("\\[Lv\\.? ?(\\d+)]");
@@ -132,6 +132,11 @@ public final class MobHp {
             return new Display(t.label, t.level, t.elite, false, "", t);
         }
         float f = (float) p.fraction();
+        // max HP for a mob we didn't see at full: pair the exact HP from the last damage line with the bar
+        // (once DR has had time to update it) and narrow the window hit by hit
+        if (!t.maxExact && t.hp > 0 && p.total() > 0 && now - t.hpAt > 250 && now - t.hpAt < 2000) {
+            learnMax(t, t.hp, p.filled(), p.total());
+        }
         if (f < 0.999f && t.firstDropAt == 0) t.firstDropAt = now;
         if (Math.abs(f - t.pipe) > 1e-4) {
             if (f < t.pipe) t.hitAt = now;
@@ -147,10 +152,6 @@ public final class MobHp {
         Component label = t.label;
         if (label == null) { // came into view already damaged: fall back to the mob type
             label = Component.literal(e.getType().getDescription().getString());
-        }
-        if (t.max < 0 && t.name != null) {
-            Integer known = maxByKind.get(kind(t));
-            if (known != null) t.max = known;
         }
         return new Display(label, t.level, t.elite, true, numbers(t, now), t);
     }
@@ -321,10 +322,6 @@ public final class MobHp {
         return new Parts(trimmed, m.group(1), elite);
     }
 
-    private static String kind(Track t) {
-        return SplitChat.strip(t.name.getString()) + "|" + t.level;
-    }
-
     private static int swingCounter;
 
     public static void onAttack(Entity e) {
@@ -364,11 +361,29 @@ public final class MobHp {
         if (wasFull && (!t.maxExact || t.max < left + dmg)) {
             t.max = left + dmg;
             t.maxExact = true;
-            if (t.name != null) maxByKind.put(kind(t), t.max);
         } else if (t.max >= 0 && left > t.max) {
             t.max = left; // regenerated or estimate was low
             t.maxExact = false;
         }
+    }
+
+    /**
+     * DR draws round(hp / max * total) pipes, give or take its rounding, so max lies in
+     * (hp * total / (filled + 1), hp * total / (filled - 1)). Each pairing narrows it; a contradiction
+     * (wrong pairing, the mob healed a lot) starts over.
+     */
+    static void learnMax(Track t, int hp, int filled, int total) {
+        double lo = Math.max(hp, hp * (double) total / (filled + 1));
+        double hi = filled > 1 ? hp * (double) total / (filled - 1) : Double.MAX_VALUE;
+        if (t.maxLo < 0 || lo > t.maxHi || hi < t.maxLo) {
+            t.maxLo = lo;
+            t.maxHi = hi;
+        } else {
+            t.maxLo = Math.max(t.maxLo, lo);
+            t.maxHi = Math.min(t.maxHi, hi);
+        }
+        double est = t.maxHi < Double.MAX_VALUE / 2 ? (t.maxLo + t.maxHi) / 2 : t.maxLo * 1.5;
+        t.max = (int) Math.round(Math.max(est, hp));
     }
 
     private static String labelText(Track t) {

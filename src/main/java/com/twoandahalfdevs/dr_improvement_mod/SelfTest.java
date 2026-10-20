@@ -67,6 +67,7 @@ final class SelfTest {
     private static int stage;
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
+    private static net.minecraft.world.entity.Entity barMob;
     private static java.nio.file.Path captureFile;
     private static net.minecraft.world.entity.Entity rivalPlayer;
 
@@ -396,6 +397,22 @@ final class SelfTest {
                         MinecraftServer srv = mc.getSingleplayerServer();
                         String cmd = "data merge entity @e[tag=drimA,limit=1] {CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}";
                         srv.execute(() -> srv.getCommands().performPrefixedCommand(srv.createCommandSourceStack(), cmd));
+                    }
+                    if (waitTicks == 0) {
+                        // a mob first seen already hurt (drimB: 14/20 pipes): max comes from the bar, not a guess
+                        for (var e : mc.level.entitiesForRendering()) {
+                            if (e.getCustomName() != null && e.getCustomName().getString().startsWith("|")) barMob = e;
+                        }
+                        if (barMob != null) {
+                            MobHp.onAttack(barMob);
+                            DrState.onChat("50 DMG -> Rotting Thing [1400 HP]");
+                        }
+                    }
+                    if (waitTicks == 9) {
+                        MobHp.Track bt = barMob == null ? null : MobHp.trackOf(barMob);
+                        log("max from bar: " + (bt == null ? "no track" : MobHp.hpOf(bt) + " / " + MobHp.maxOf(bt) + (MobHp.maxExact(bt) ? " exact" : " est")));
+                        if (bt == null || MobHp.hpOf(bt) != 1400 || MobHp.maxOf(bt) < 1866 || MobHp.maxOf(bt) > 2154 || MobHp.maxExact(bt))
+                            fail("max HP not learned from the bar");
                     }
                     if (waitTicks == 9 && hpTarget != null) {
                         MobHp.Track a = MobHp.trackOf(hpTarget);
