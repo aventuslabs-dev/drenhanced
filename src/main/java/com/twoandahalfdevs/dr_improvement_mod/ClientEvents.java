@@ -114,6 +114,9 @@ public final class ClientEvents {
         if (DrConfig.usefulInfo()) {
             HudRenderer.draw(g);
         }
+        if (DrConfig.data.cooldownBar && !(mc.screen instanceof CooldownScreen)) {
+            CooldownBar.draw(g);
+        }
     }
 
     /** Shows where an item came from (DR stores "Type (Player/...)" in its custom data). */

@@ -55,6 +55,9 @@ public class DrConfigScreen extends Screen {
             .bounds(left, y, W, H).build());
         addRenderableWidget(Button.builder(Component.literal("Enemy HP bar..."), b -> this.minecraft.setScreen(new EnemyHpScreen(this)))
             .bounds(right, y, W, H).build());
+        y += GAP;
+        addRenderableWidget(Button.builder(Component.literal("Cooldown bar..."), b -> this.minecraft.setScreen(new CooldownScreen(this)))
+            .bounds(left, y, W, H).build());
 
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());

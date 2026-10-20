@@ -48,6 +48,9 @@ public final class DrState {
     /** Action-bar messages show for 60 ticks; the remaining time tells us how stale the text is. */
     private static final int ACTION_BAR_TICKS = 60;
 
+    private static final Pattern ULT_NAME = Pattern.compile("(The Fast|Berserk|Divine Protection|Deaths Grasp): \\[");
+    /** Last ultimate seen in the action bar (picks the cooldown bar icon). */
+    public static String ultName;
     public static Integer ultCd;         // seconds, null = not shown
     public static boolean ultActive;
     public static long ultCdStamp = System.currentTimeMillis();
@@ -71,6 +74,8 @@ public final class DrState {
             ultCd = minutes * 60 + seconds;
             ultActive = "a".equals(m.group(1));
             ultCdStamp = shownAt;
+            Matcher n = ULT_NAME.matcher(msg);
+            if (n.find()) ultName = n.group(1);
         } else {
             ultCd = null;
         }

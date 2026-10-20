@@ -42,12 +42,23 @@ public final class DrConfig {
         public String enemyHpText = "CURRENT_MAX";
         public int enemyHpBarLength = 12;
         public boolean enemyHpShowLevel = true;
+        /** WoW-style cooldown bar above the hotbar. */
+        public boolean cooldownBar = true;
+        public int cdIconSize = 22;
+        public int cdX = 0;          // sideways from centre
+        public int cdY = 62;         // up from the bottom of the screen
+        public boolean cdShowCombat = true;
+        public boolean cdShowItems = true;
+        public boolean cdShowLabels = false;
         /** Size, text and position of the left (player) and right (system) chat boxes. */
         public ChatBox leftChat = new ChatBox();
         public ChatBox rightChat = new ChatBox();
 
         void clamp() {
             enemyHpBarLength = Math.max(4, Math.min(40, enemyHpBarLength));
+            cdIconSize = Math.max(12, Math.min(48, cdIconSize));
+            cdX = Math.max(-1000, Math.min(1000, cdX));
+            cdY = Math.max(0, Math.min(1000, cdY));
             enemyHpBarWidth = Math.max(30, Math.min(200, enemyHpBarWidth));
             enemyHpBarHeight = Math.max(4, Math.min(24, enemyHpBarHeight));
             if (enemyHpColor == null) enemyHpColor = "REACTION";

@@ -148,6 +148,12 @@ final class SelfTest {
                     waitTicks = 0;
                 }
                 case 4 -> {
+                    if (waitTicks == 20) {
+                        // DR action bar: ultimate + potion cooldowns, and a vanilla item cooldown on a hotbar item
+                        mc.gui.setOverlayMessage(Component.literal("\u00a7cThe Fast: [32s]   \u00a7f[2/5] Potions: [5s]"), false);
+                        mc.player.getInventory().items.set(1, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ENDER_PEARL, 8));
+                        mc.player.getCooldowns().addCooldown(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ENDER_PEARL), 200);
+                    }
                     if (++waitTicks == 30) {
                         // hit the full-health "Spooky Skeleton": DR then shows the bar and a damage line
                         for (var e : mc.level.entitiesForRendering()) {
@@ -216,6 +222,15 @@ final class SelfTest {
                     if (++waitTicks < 15) return;
                     if (!(mc.screen instanceof EnemyHpScreen)) fail("enemy hp screen did not open");
                     Screenshot.grab(mc.gameDirectory, "drim-enemyhp-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    mc.setScreen(new CooldownScreen(null));
+                    stage = 9;
+                    waitTicks = 0;
+                }
+                case 9 -> {
+                    if (++waitTicks < 15) return;
+                    if (!(mc.screen instanceof CooldownScreen)) fail("cooldown screen did not open");
+                    else log("cooldown screen ok");
+                    Screenshot.grab(mc.gameDirectory, "drim-cooldown-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     DrConfig.data.leftChat = new DrConfig.ChatBox();
                     DrConfig.data.rightChat = new DrConfig.ChatBox();
                     stage = 99;
