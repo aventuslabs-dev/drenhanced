@@ -235,7 +235,9 @@ final class SelfTest {
                     if (++waitTicks == 30) {
                         // hit the full-health "Spooky Skeleton": DR then shows the bar and a damage line
                         for (var e : mc.level.entitiesForRendering()) {
-                            if (e.getCustomName() != null && e.getCustomName().getString().contains("Spooky Skeleton")) hpTarget = e;
+                            // drimA: the plain "Spooky Skeleton" summoned at ~-2 ~ ~5
+                            if (e.getCustomName() != null && e.getCustomName().getString().startsWith("Spooky Skeleton")
+                                && Math.abs(e.getX() - (mc.player.getX() - 2)) < 0.75) hpTarget = e;
                         }
                         if (hpTarget == null) fail("test mob not found");
                         else {
