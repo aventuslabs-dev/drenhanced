@@ -27,7 +27,7 @@ public final class EditorScreen extends Screen {
 
     @Override
     protected void init() {
-        int y = height - 46;
+        int y = height - 58;
         addRenderableWidget(Button.builder(Component.literal("Settings"), b -> minecraft.setScreen(new SettingsScreen(this)))
                 .bounds(width / 2 - 154, y, 100, 20).build());
         addRenderableWidget(Button.builder(Component.literal("Reset layout"), b -> {
@@ -49,11 +49,11 @@ public final class EditorScreen extends Screen {
         super.render(g, mouseX, mouseY, delta);
         placed = HudRenderer.render(g, true, selected);
         String help = "Drag: move · Scroll: resize · Right-click: next position · L: label · B: background";
-        g.drawCenteredString(font, help, width / 2, height - 20, 0xFFAAAAAA);
+        g.drawCenteredString(font, help, width / 2, height - 34, 0xFFAAAAAA);
         if (selected != null) {
             String info = "§6" + selected.name + "§7 — " + selected.location.name().toLowerCase().replace('_', ' ')
                     + ", " + Math.round(selected.scale * 100) + "%";
-            g.drawCenteredString(font, info, width / 2, height - 58, 0xFFFFFFFF);
+            g.drawCenteredString(font, info, width / 2, height - 70, 0xFFFFFFFF);
         }
     }
 

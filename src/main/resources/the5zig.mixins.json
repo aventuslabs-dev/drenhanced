@@ -4,6 +4,7 @@
   "package": "eu.the5zig.fabric.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "GuiMixin",
     "KeyboardHandlerMixin",
     "MouseHandlerMixin"
   ],

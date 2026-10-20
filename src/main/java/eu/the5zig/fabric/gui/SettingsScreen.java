@@ -66,6 +66,29 @@ public final class SettingsScreen extends Screen {
                 () -> c.showWithDebugScreen = !c.showWithDebugScreen);
         f3.setTooltip(Tooltip.create(lit("Keep the HUD visible while the F3 debug screen is open.")));
         addRenderableWidget(f3);
+        Button fx = toggle(right, y, colW, () -> "Hide vanilla effects: " + onOff(Config.get().hideVanillaEffects),
+                () -> c.hideVanillaEffects = !c.hideVanillaEffects);
+        fx.setTooltip(Tooltip.create(lit("Hide the vanilla top-right effect icons while a 5zig module shows potions.")));
+        addRenderableWidget(fx);
+        y += 32;
+
+        for (Config.Module m : c.modules) {
+            addRenderableWidget(toggle(left, y, colW, () -> trim(m.name) + ": " + onOff(m.enabled), () -> m.enabled = !m.enabled));
+            addRenderableWidget(Button.builder(lit("Items (" + m.items.size() + ")..."), b -> minecraft.setScreen(new ModuleItemsScreen(this, m)))
+                    .bounds(right, y, colW, 20).build());
+            y += 24;
+        }
+        y += 8;
+        int bw = (colW * 2 + gap - 8) / 3;
+        addRenderableWidget(Button.builder(lit(confirmReset ? "\u00a7cClick again" : "Reset all"), b -> {
+            if (confirmReset) {
+                Config.reset();
+                confirmReset = false;
+            } else {
+                confirmReset = true;
+            }
+            rebuildWidgets();
+        }).bounds(left, y, bw, 20).build());
         addRenderableWidget(Button.builder(lit("+ New module"), b -> {
             Config.Module m = new Config.Module();
             m.id = "custom" + (Config.get().modules.size() + 1);
@@ -76,26 +99,8 @@ public final class SettingsScreen extends Screen {
             Config.get().modules.add(m);
             Config.save();
             minecraft.setScreen(new ModuleItemsScreen(this, m));
-        }).bounds(right, y, colW, 20).build());
-        y += 32;
-
-        for (Config.Module m : c.modules) {
-            addRenderableWidget(toggle(left, y, colW, () -> trim(m.name) + ": " + onOff(m.enabled), () -> m.enabled = !m.enabled));
-            addRenderableWidget(Button.builder(lit("Items (" + m.items.size() + ")..."), b -> minecraft.setScreen(new ModuleItemsScreen(this, m)))
-                    .bounds(right, y, colW, 20).build());
-            y += 24;
-        }
-        y += 8;
-        addRenderableWidget(Button.builder(lit(confirmReset ? "§cClick again to reset" : "Reset everything"), b -> {
-            if (confirmReset) {
-                Config.reset();
-                confirmReset = false;
-            } else {
-                confirmReset = true;
-            }
-            rebuildWidgets();
-        }).bounds(left, y, colW, 20).build());
-        addRenderableWidget(Button.builder(lit("Done"), b -> onClose()).bounds(right, y, colW, 20).build());
+        }).bounds(left + bw + 4, y, bw, 20).build());
+        addRenderableWidget(Button.builder(lit("Done"), b -> onClose()).bounds(left + 2 * (bw + 4), y, bw, 20).build());
         contentBottom = y + 20 + scroll;
     }
 

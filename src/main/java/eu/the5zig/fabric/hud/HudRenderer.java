@@ -140,6 +140,7 @@ public final class HudRenderer {
         }
 
         List<Placed> placed = new ArrayList<>();
+        int[] sideBottom = {MARGIN, MARGIN};
         for (Config.Location loc : Config.Location.values()) {
             List<Built> group = new ArrayList<>();
             for (Built b : built) if (b.module.location == loc) group.add(b);
@@ -157,9 +158,11 @@ public final class HudRenderer {
             int total = 0;
             for (Built b : group) total += b.h() + GAP;
             total -= GAP;
+            int side = loc.right() ? 1 : 0;
             int y = switch (loc) {
-                case CENTER_LEFT, CENTER_RIGHT -> (sh - total) / 2;
-                case BOTTOM_LEFT, BOTTOM_RIGHT -> sh - MARGIN - total;
+                // never overlap the stack above on the same side (small windows / big GUI scale)
+                case CENTER_LEFT, CENTER_RIGHT -> Math.max((sh - total) / 2, sideBottom[side]);
+                case BOTTOM_LEFT, BOTTOM_RIGHT -> Math.max(sh - MARGIN - total, sideBottom[side]);
                 default -> MARGIN;
             };
             for (Built b : group) {
@@ -167,6 +170,7 @@ public final class HudRenderer {
                 placed.add(new Placed(b.module, x, y, b.w(), b.h(), loc.right()));
                 y += b.h() + GAP;
             }
+            sideBottom[side] = y;
         }
 
         for (Placed p : placed) {

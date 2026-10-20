@@ -31,6 +31,7 @@ final class SelfTest {
     private static final String[] TARGETS = {
         "net.minecraft.client.MouseHandler",
         "net.minecraft.client.KeyboardHandler",
+        "net.minecraft.client.gui.Gui",
     };
 
     private static final List<String> failures = new ArrayList<>();
@@ -163,6 +164,12 @@ final class SelfTest {
                         if (t.value(mc, null, false) == null) fail("no live value for " + t);
                     }
                     if (mc.player.getActiveEffects().size() < 3) fail("potion effects not applied");
+                    mc.gui.getChat().clearMessages(false);
+                    stage = 61;
+                    wait = 0;
+                }
+                case 61 -> {
+                    if (++wait < 3) return;
                     Screenshot.grab(mc.gameDirectory, "the5zig-hud.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     mc.setScreen(new EditorScreen(null));
                     stage = 7;

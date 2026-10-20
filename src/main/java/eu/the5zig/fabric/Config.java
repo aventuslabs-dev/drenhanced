@@ -94,6 +94,8 @@ public final class Config {
     public boolean textShadow = true;
     public boolean coloredEquipmentDurability = true;
     public boolean showWithDebugScreen = false;
+    /** Hide vanilla's top-right effect icons while a module shows potions (they cover the armor module). */
+    public boolean hideVanillaEffects = true;
     public List<Module> modules = new ArrayList<>();
 
     // ------------------------------------------------------------------
@@ -135,6 +137,12 @@ public final class Config {
         } catch (Exception e) {
             The5zigMod.LOGGER.warn("Could not save 5zig config", e);
         }
+    }
+
+    public boolean potionsModuleActive() {
+        if (!enabled) return false;
+        for (Module m : modules) if (m.enabled && m.find(ItemType.POTIONS) != null) return true;
+        return false;
     }
 
     public static void reset() {
