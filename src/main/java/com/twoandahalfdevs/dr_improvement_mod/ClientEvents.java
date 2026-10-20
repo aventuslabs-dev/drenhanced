@@ -37,12 +37,15 @@ public final class ClientEvents {
     private static boolean openConfigNextTick;
 
     /** Opens the settings screen. Default K; rebind under Options > Controls > DR Improvement Mod. */
+    private static final KeyMapping FULLBRIGHT = new KeyMapping(
+        "key.dr_improvement_mod.fullbright", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, "key.categories.dr_improvement_mod");
     private static final KeyMapping OPEN_CONFIG = new KeyMapping(
         "key.dr_improvement_mod.config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, "key.categories.dr_improvement_mod");
 
     public static void register() {
         net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.CHAT.register(SplitChat::onSent);
         KeyBindingHelper.registerKeyBinding(OPEN_CONFIG);
+        KeyBindingHelper.registerKeyBinding(FULLBRIGHT);
         ClientTickEvents.START_CLIENT_TICK.register(ClientEvents::onClientTick);
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             MobHp.tick();
@@ -86,6 +89,7 @@ public final class ClientEvents {
     }
 
     private static void onClientTick(Minecraft mc) {
+        while (FULLBRIGHT.consumeClick()) FullBright.toggle();
         boolean keyPressed = false;
         while (OPEN_CONFIG.consumeClick()) {
             keyPressed = true;

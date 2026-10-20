@@ -95,6 +95,16 @@ final class SelfTest {
                     if (program == null) fail("overlay shader did not compile/link");
                     else if (program.getUniform("energyScale") == null) fail("overlay shader missing placement uniforms");
                     else log("overlay shader ok");
+                    // full bright: gamma reads high while on, the real value is what gets saved
+                    double realGamma = mc.options.gamma().get();
+                    DrConfig.data.fullbright = true;
+                    if (mc.options.gamma().get() != FullBright.GAMMA) fail("full bright gamma not applied");
+                    mc.options.save();
+                    String saved = java.nio.file.Files.readString(mc.gameDirectory.toPath().resolve("options.txt"));
+                    if (saved.contains("gamma:16")) fail("full bright gamma leaked into options.txt");
+                    DrConfig.data.fullbright = false;
+                    if (mc.options.gamma().get() != realGamma) fail("gamma not restored");
+                    log("full bright ok (real gamma " + realGamma + ")");
                     java.util.List<String> names = java.util.List.of("Steve", "Alex_99", "AIbionOnline");
                     for (Object[] c : CHAT_CASES) {
                         boolean got = SplitChat.looksLikePlayerChat((String) c[0], names);

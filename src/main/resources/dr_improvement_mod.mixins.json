@@ -21,6 +21,7 @@
     "LocalPlayerMixin",
     "MultiPlayerGameModeMixin",
     "OptionInstanceMixin",
+    "OptionsMixin",
     "PlayerMixin",
     "PlayerRendererMixin",
     "PlayerTeamMixin",

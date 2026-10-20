@@ -29,6 +29,8 @@ public final class DrConfig {
         public int justMyNaturePoints = 0;    // 0-5
         /** Player chat on the left, system/server messages in a second chat on the right. */
         public boolean splitChat = true;
+        /** Full bright: the lighting uses a very high gamma while on (your own gamma setting is kept). */
+        public boolean fullbright = false;
         /** Fold repeated system messages into "message (x3)". */
         public boolean collapseRepeats = true;
         /** Right box: "FEED" = WoW-style Combat Log, "CHAT" = plain chat. */

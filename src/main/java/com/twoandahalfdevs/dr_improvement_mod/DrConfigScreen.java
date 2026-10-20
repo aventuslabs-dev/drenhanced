@@ -16,7 +16,7 @@ import java.util.function.IntConsumer;
 public class DrConfigScreen extends Screen {
     private static final int W = 200;
     private static final int H = 20;
-    private static final int GAP = 24;
+    private static final int GAP = 22;
 
     private final Screen parent;
 
@@ -69,6 +69,11 @@ public class DrConfigScreen extends Screen {
             rebuildWidgets();
         }).tooltip(Tooltip.create(Component.literal("Logs DR's chat, action bar, titles, boss bars, sidebar and nameplates to .minecraft/dr_capture/ so the mod can be tuned to DR's exact text. Same as /drcapture.")))
             .bounds(right, y, W, H).build());
+        y += GAP;
+        toggle(left, y, "Full bright (G)", c.fullbright, v -> {
+            c.fullbright = v;
+            DrConfig.save();
+        }, "Everything fully lit: caves, night, dungeons. Toggle in game with G (rebind in Controls).");
 
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());
