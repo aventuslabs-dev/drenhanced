@@ -42,6 +42,10 @@ public final class DrConfig {
         public String enemyHpText = "CURRENT_MAX";
         public int enemyHpBarLength = 12;
         public boolean enemyHpShowLevel = true;
+        /** Placement of the shader bars: energy arcs, mana bar, HP bar. */
+        public Bar energyBar = new Bar();
+        public Bar manaBar = new Bar();
+        public Bar healthBar = new Bar();
         /** WoW-style cooldown bar above the hotbar. */
         public boolean cooldownBar = true;
         public int cdIconSize = 22;
@@ -63,12 +67,35 @@ public final class DrConfig {
             enemyHpBarHeight = Math.max(4, Math.min(24, enemyHpBarHeight));
             if (enemyHpColor == null) enemyHpColor = "REACTION";
             if (enemyHpText == null) enemyHpText = "CURRENT_MAX";
+            if (energyBar == null) energyBar = new Bar();
+            if (manaBar == null) manaBar = new Bar();
+            if (healthBar == null) healthBar = new Bar();
+            energyBar.clamp();
+            manaBar.clamp();
+            healthBar.clamp();
             if (leftChat == null) leftChat = new ChatBox();
             if (rightChat == null) rightChat = new ChatBox();
             leftChat.clamp();
             rightChat.clamp();
             shadowmeldPoints = Math.max(0, Math.min(10, shadowmeldPoints));
             justMyNaturePoints = Math.max(0, Math.min(5, justMyNaturePoints));
+        }
+    }
+
+    public static final class Bar {
+        public boolean enabled = true;
+        /** 1.0 = original size. */
+        public double scale = 1.0;
+        /** Offset in percent of the screen; y is upwards. */
+        public double x = 0.0;
+        public double y = 0.0;
+        public double opacity = 1.0;
+
+        void clamp() {
+            scale = Math.max(0.25, Math.min(4.0, scale));
+            x = Math.max(-50, Math.min(50, x));
+            y = Math.max(-50, Math.min(50, y));
+            opacity = Math.max(0.05, Math.min(1.0, opacity));
         }
     }
 

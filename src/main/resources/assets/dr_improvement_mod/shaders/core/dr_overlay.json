@@ -6,6 +6,18 @@
     { "name": "energyPercent", "type": "float", "count": 1, "values": [ 0.0 ] },
     { "name": "healthPercent", "type": "float", "count": 1, "values": [ 1.0 ] },
     { "name": "manaPercent",   "type": "float", "count": 1, "values": [ 0.0 ] },
-    { "name": "aspectRatio",   "type": "float", "count": 1, "values": [ 1.7777 ] }
+    { "name": "aspectRatio",   "type": "float", "count": 1, "values": [ 1.7777 ] },
+    { "name": "energyX", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "energyY", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "energyScale", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "energyAlpha", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "manaX", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "manaY", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "manaScale", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "manaAlpha", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "healthX", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "healthY", "type": "float", "count": 1, "values": [ 0.0 ] },
+    { "name": "healthScale", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "healthAlpha", "type": "float", "count": 1, "values": [ 1.0 ] }
   ]
 }

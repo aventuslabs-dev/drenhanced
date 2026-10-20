@@ -91,6 +91,7 @@ final class SelfTest {
                     }
                     var program = mc.getShaderManager().getProgram(OverlayRenderer.PROGRAM);
                     if (program == null) fail("overlay shader did not compile/link");
+                    else if (program.getUniform("energyScale") == null) fail("overlay shader missing placement uniforms");
                     else log("overlay shader ok");
                     java.util.List<String> names = java.util.List.of("Steve", "Alex_99", "AIbionOnline");
                     for (Object[] c : CHAT_CASES) {
@@ -231,6 +232,24 @@ final class SelfTest {
                     if (!(mc.screen instanceof CooldownScreen)) fail("cooldown screen did not open");
                     else log("cooldown screen ok");
                     Screenshot.grab(mc.gameDirectory, "drim-cooldown-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    // moved / resized bars: energy bigger and left, mana up, HP hidden
+                    DrConfig.data.energyBar.scale = 1.6;
+                    DrConfig.data.energyBar.x = -20;
+                    DrConfig.data.manaBar.y = 12;
+                    DrConfig.data.manaBar.scale = 2.0;
+                    DrConfig.data.healthBar.enabled = false;
+                    mc.setScreen(new BarsScreen(null));
+                    stage = 10;
+                    waitTicks = 0;
+                }
+                case 10 -> {
+                    if (++waitTicks < 15) return;
+                    if (!(mc.screen instanceof BarsScreen)) fail("bars screen did not open");
+                    else log("bars screen ok");
+                    Screenshot.grab(mc.gameDirectory, "drim-bars-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    DrConfig.data.energyBar = new DrConfig.Bar();
+                    DrConfig.data.manaBar = new DrConfig.Bar();
+                    DrConfig.data.healthBar = new DrConfig.Bar();
                     DrConfig.data.leftChat = new DrConfig.ChatBox();
                     DrConfig.data.rightChat = new DrConfig.ChatBox();
                     stage = 99;

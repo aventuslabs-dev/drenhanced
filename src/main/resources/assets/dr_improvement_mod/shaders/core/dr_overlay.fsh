@@ -12,6 +12,27 @@ uniform float healthPercent;
 uniform float aspectRatio;
 uniform float manaPercent;
 
+// per-bar placement: offset (uv units), scale, opacity (0 = hidden)
+uniform float energyX;
+uniform float energyY;
+uniform float energyScale;
+uniform float energyAlpha;
+uniform float manaX;
+uniform float manaY;
+uniform float manaScale;
+uniform float manaAlpha;
+uniform float healthX;
+uniform float healthY;
+uniform float healthScale;
+uniform float healthAlpha;
+
+vec2 st;
+
+// Map the screen position into a bar's own space: move it by (ox, oy) and scale it around its centre.
+vec2 place(vec2 centre, float ox, float oy, float scale) {
+    return centre + (uv - centre - vec2(ox, oy)) / max(scale, 0.05);
+}
+
 const float OPACITY = 0.75;
 const vec4 COLOR_ENERGY_BASE  = vec4(0.8, 0.0, 0.2, OPACITY);
 const vec4 COLOR_ENERGY_BASE2 = vec4(0.6, 0.0, 0.15, OPACITY);
@@ -49,7 +70,7 @@ float udSegment(vec2 a, vec2 b) {
     a.x *= aspectRatio;
     b.x *= aspectRatio;
     vec2 ba = b - a;
-    vec2 pa = vec2(uv.x * aspectRatio, uv.y) - a;
+    vec2 pa = vec2(st.x * aspectRatio, st.y) - a;
     float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
     return length(pa - h * ba);
 }
@@ -66,7 +87,7 @@ float energyArc(bool flip) {
     float ta = flip ? radians(-90.0) : radians(90.0);
     float tb = radians(ENERGY_ARC_DEGREES);
     vec2 offset = vec2(0.0, ENERGY_Y_OFFSET);
-    return sdArc(vec2(-0.5, -0.5) + uv + (flip ? -offset : offset),
+    return sdArc(vec2(-0.5, -0.5) + st + (flip ? -offset : offset),
                  vec2(sin(ta), cos(ta)), vec2(sin(tb), cos(tb)), ENERGY_RADIUS, ENERGY_THICKNESS);
 }
 
@@ -102,10 +123,10 @@ vec4 shadeLinear(float len, bool filled, float start, float size, float percent,
 
     float filledEnd = start + size * percent;
     if (filled) {
-        if (uv.x <= filledEnd) {
+        if (st.x <= filledEnd) {
             inner = fillColor;
         } else {
-            float d = uv.x - filledEnd;
+            float d = st.x - filledEnd;
             inner = d < BAR_MIX_THRESHOLD ? mix(fillColor, baseColor, d / BAR_MIX_THRESHOLD) : baseColor;
         }
     }
@@ -118,30 +139,45 @@ vec4 shadeLinear(float len, bool filled, float start, float size, float percent,
 }
 
 void main() {
-    float topLen = energyArc(false);
-    float btmLen = energyArc(true);
-    float energyFill = (uv.x - ENERGY_START) / ENERGY_WIDTH;
+    vec4 colT = vec4(0.0), colB = vec4(0.0), colM = vec4(0.0), colH = vec4(0.0);
 
-    // Top arc shows 0-50% energy, bottom arc 50-100%.
-    vec4 top = shadeEnergy(topLen, false, false);
-    vec4 topFilled = shadeEnergy(topLen, true, energyFill < min(1.0, energyPercent * 2.0));
-    vec4 colT = mix(top, topFilled, topFilled.a);
+    if (energyAlpha > 0.0) {
+        st = place(vec2(0.5, 0.5), energyX, energyY, energyScale);
+        float topLen = energyArc(false);
+        float btmLen = energyArc(true);
+        float energyFill = (st.x - ENERGY_START) / ENERGY_WIDTH;
 
-    vec4 btm = shadeEnergy(btmLen, false, false);
-    vec4 btmFilled = shadeEnergy(btmLen, true, energyFill < min(1.0, max(0.0, (energyPercent - 0.5) * 2.0)));
-    vec4 colB = mix(btm, btmFilled, btmFilled.a);
+        // Top arc shows 0-50% energy, bottom arc 50-100%.
+        vec4 top = shadeEnergy(topLen, false, false);
+        vec4 topFilled = shadeEnergy(topLen, true, energyFill < min(1.0, energyPercent * 2.0));
+        colT = mix(top, topFilled, topFilled.a);
 
-    float mLen = manaBar();
-    float mPerc = clamp(manaPercent, 0.0, 1.0);
-    vec4 mana = shadeLinear(mLen, false, MANA_BAR_START, MANA_BAR_SIZE, mPerc, COLOR_MANA, COLOR_MANA_BASE, ENERGY_BAR_OUTLINE);
-    vec4 manaFilled = shadeLinear(mLen, true, MANA_BAR_START, MANA_BAR_SIZE, mPerc, COLOR_MANA, COLOR_MANA_BASE, ENERGY_BAR_OUTLINE);
-    vec4 colM = mix(mana, manaFilled, mPerc > 0.0 ? manaFilled.a : 0.0);
+        vec4 btm = shadeEnergy(btmLen, false, false);
+        vec4 btmFilled = shadeEnergy(btmLen, true, energyFill < min(1.0, max(0.0, (energyPercent - 0.5) * 2.0)));
+        colB = mix(btm, btmFilled, btmFilled.a);
+        colT.a *= energyAlpha;
+        colB.a *= energyAlpha;
+    }
 
-    float hLen = healthBar();
-    float hPerc = clamp(healthPercent, 0.0, 1.0);
-    vec4 health = shadeLinear(hLen, false, HEALTH_BAR_START, HEALTH_BAR_SIZE, hPerc, COLOR_HP, COLOR_HP_BASE, HEALTH_BAR_OUTLINE);
-    vec4 healthFilled = shadeLinear(hLen, true, HEALTH_BAR_START, HEALTH_BAR_SIZE, hPerc, COLOR_HP, COLOR_HP_BASE, HEALTH_BAR_OUTLINE);
-    vec4 colH = mix(health, healthFilled, healthFilled.a);
+    if (manaAlpha > 0.0) {
+        st = place(vec2(0.5, MANA_BAR_Y), manaX, manaY, manaScale);
+        float mLen = manaBar();
+        float mPerc = clamp(manaPercent, 0.0, 1.0);
+        vec4 mana = shadeLinear(mLen, false, MANA_BAR_START, MANA_BAR_SIZE, mPerc, COLOR_MANA, COLOR_MANA_BASE, ENERGY_BAR_OUTLINE);
+        vec4 manaFilled = shadeLinear(mLen, true, MANA_BAR_START, MANA_BAR_SIZE, mPerc, COLOR_MANA, COLOR_MANA_BASE, ENERGY_BAR_OUTLINE);
+        colM = mix(mana, manaFilled, mPerc > 0.0 ? manaFilled.a : 0.0);
+        colM.a *= manaAlpha;
+    }
+
+    if (healthAlpha > 0.0) {
+        st = place(vec2(0.5, HEALTH_BAR_Y), healthX, healthY, healthScale);
+        float hLen = healthBar();
+        float hPerc = clamp(healthPercent, 0.0, 1.0);
+        vec4 health = shadeLinear(hLen, false, HEALTH_BAR_START, HEALTH_BAR_SIZE, hPerc, COLOR_HP, COLOR_HP_BASE, HEALTH_BAR_OUTLINE);
+        vec4 healthFilled = shadeLinear(hLen, true, HEALTH_BAR_START, HEALTH_BAR_SIZE, hPerc, COLOR_HP, COLOR_HP_BASE, HEALTH_BAR_OUTLINE);
+        colH = mix(health, healthFilled, healthFilled.a);
+        colH.a *= healthAlpha;
+    }
 
     fragColor = vec4(0.0);
     if (colT.a > 0.0) {
@@ -154,7 +190,6 @@ void main() {
         fragColor = vec4(colH.rgb, colH.a * 0.95);
     }
 
-    // The original left fragColor unset here (undefined output on strict drivers).
     if (fragColor.a <= 0.0) {
         discard;
     }

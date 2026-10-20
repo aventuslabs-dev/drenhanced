@@ -33,6 +33,8 @@ public final class OverlayRenderer {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
         if (player == null || mc.options.hideGui || failed) return;
+        DrConfig.Data c = DrConfig.data;
+        if (!c.energyBar.enabled && !c.manaBar.enabled && !c.healthBar.enabled) return;
 
         CompiledShaderProgram shader;
         try {
@@ -51,6 +53,9 @@ public final class OverlayRenderer {
         shader.safeGetUniform("healthPercent").set(maxHealth > 0f ? player.getHealth() / maxHealth : 0f);
         shader.safeGetUniform("manaPercent").set(player.experienceLevel / 100f);
         shader.safeGetUniform("aspectRatio").set((float) window.getWidth() / Math.max(1, window.getHeight()));
+        place(shader, "energy", DrConfig.data.energyBar);
+        place(shader, "mana", DrConfig.data.manaBar);
+        place(shader, "health", DrConfig.data.healthBar);
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -66,5 +71,12 @@ public final class OverlayRenderer {
 
         RenderSystem.depthMask(true);
         RenderSystem.disableBlend();
+    }
+
+    private static void place(CompiledShaderProgram shader, String name, DrConfig.Bar b) {
+        shader.safeGetUniform(name + "X").set((float) (b.x / 100.0));
+        shader.safeGetUniform(name + "Y").set((float) (b.y / 100.0));
+        shader.safeGetUniform(name + "Scale").set((float) b.scale);
+        shader.safeGetUniform(name + "Alpha").set(b.enabled ? (float) b.opacity : 0f);
     }
 }
