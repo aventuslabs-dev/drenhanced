@@ -27,6 +27,12 @@ public final class DrConfig {
         public boolean legacyCombat = true;
         public int shadowmeldPoints = 0;      // 0-10
         public int justMyNaturePoints = 0;    // 0-5
+        /** Player chat on the left, system/server messages in a second chat on the right. */
+        public boolean splitChat = true;
+        /** Regexes (matched against the plain text) that force a message into the left/player chat. */
+        public java.util.List<String> chatPlayerPatterns = new java.util.ArrayList<>();
+        /** Regexes that force a message into the right/system chat (checked first). */
+        public java.util.List<String> chatSystemPatterns = new java.util.ArrayList<>();
 
         void clamp() {
             shadowmeldPoints = Math.max(0, Math.min(10, shadowmeldPoints));

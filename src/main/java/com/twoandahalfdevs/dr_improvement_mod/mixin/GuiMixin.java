@@ -1,6 +1,8 @@
 package com.twoandahalfdevs.dr_improvement_mod.mixin;
 
 import com.twoandahalfdevs.dr_improvement_mod.ClientEvents;
+import com.twoandahalfdevs.dr_improvement_mod.SplitChat;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -20,5 +22,16 @@ public abstract class GuiMixin {
     @Inject(method = "render", at = @At("TAIL"))
     private void drim$hudAbove(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
         ClientEvents.renderHudAbove(guiGraphics);
+    }
+
+    /** Draw the right-hand system chat right after the vanilla one, with the same visibility rules. */
+    @Inject(method = "renderChat", at = @At("TAIL"))
+    private void drim$rightChat(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (!SplitChat.enabled()) return;
+        Minecraft mc = Minecraft.getInstance();
+        var w = mc.getWindow();
+        int mx = (int) (mc.mouseHandler.xpos() * w.getGuiScaledWidth() / w.getScreenWidth());
+        int my = (int) (mc.mouseHandler.ypos() * w.getGuiScaledHeight() / w.getScreenHeight());
+        SplitChat.render(guiGraphics, ((Gui) (Object) this).getGuiTicks(), mx, my);
     }
 }

@@ -42,6 +42,10 @@ public class DrConfigScreen extends Screen {
         toggle(right, y, "Throttle packets", c.throttlePackets, v -> c.throttlePackets = v, "Debounce settings / tab-complete packets.");
         y += GAP;
         toggle(left, y, "1.8 combat feel", c.legacyCombat, v -> c.legacyCombat = v, "No double-tap sprint, miss delay, client crits or re-equip bob.");
+        toggle(right, y, "Split chat", c.splitChat, v -> {
+            c.splitChat = v;
+            if (!v) SplitChat.reset();
+        }, "Player chat on the left, system/server messages (damage, loot, notices) on the right.");
         y += GAP;
         addRenderableWidget(new IntSlider(left, y, "Shadowmeld points", c.shadowmeldPoints, 0, 10, v -> c.shadowmeldPoints = v));
         addRenderableWidget(new IntSlider(right, y, "Just My Nature points", c.justMyNaturePoints, 0, 5, v -> c.justMyNaturePoints = v));

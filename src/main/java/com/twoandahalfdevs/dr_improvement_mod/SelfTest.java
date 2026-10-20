@@ -1,6 +1,18 @@
 package com.twoandahalfdevs.dr_improvement_mod;
 
+import com.twoandahalfdevs.dr_improvement_mod.mixin.ChatAccessor;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.Difficulty;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.LevelSettings;
+import net.minecraft.world.level.WorldDataConfiguration;
+import net.minecraft.world.level.levelgen.WorldOptions;
+import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 import java.util.ArrayList;
@@ -26,6 +38,24 @@ final class SelfTest {
         "net.minecraft.world.scores.PlayerTeam",
         "net.minecraft.client.gui.components.BossHealthOverlay",
         "net.minecraft.world.entity.player.Player",
+        "net.minecraft.client.gui.components.ChatComponent",
+        "net.minecraft.client.gui.screens.ChatScreen",
+    };
+
+    /** {text, expected player?} for the split-chat classifier, with "Steve" and "Alex_99" online. */
+    private static final Object[][] CHAT_CASES = {
+        {"[G] Steve: anyone for t5?", true},
+        {"<Steve> hello", true},
+        {"[Party] Alex_99 \u00bb omw", true},
+        {"Steve -> Alex_99: pst", true},
+        {"FROM Steve: hi", true},
+        {"[Admin] Steve: server restart soon", true},
+        {"120 DMG -> Steve [2400 HP]", false},
+        {"-35 HP (Steve)", false},
+        {"Steve has activated The Fast", false},
+        {"You have been added to the party.", false},
+        {"Steves: not a name", false},
+        {"+48 EXP [1205/9000]", false},
     };
 
     private static final List<String> failures = new ArrayList<>();
@@ -41,7 +71,7 @@ final class SelfTest {
     }
 
     private static void onTick(Minecraft mc) {
-        if (mc.getOverlay() != null || mc.screen == null) return; // still loading
+        if (stage < 3 && (mc.getOverlay() != null || mc.screen == null)) return; // still loading
         try {
             switch (stage) {
                 case 0 -> {
@@ -56,16 +86,64 @@ final class SelfTest {
                     var program = mc.getShaderManager().getProgram(OverlayRenderer.PROGRAM);
                     if (program == null) fail("overlay shader did not compile/link");
                     else log("overlay shader ok");
+                    java.util.List<String> names = java.util.List.of("Steve", "Alex_99");
+                    for (Object[] c : CHAT_CASES) {
+                        boolean got = SplitChat.looksLikePlayerChat((String) c[0], names);
+                        if (got != (Boolean) c[1]) fail("chat classifier: '" + c[0] + "' -> " + (got ? "player" : "system"));
+                    }
+                    log("chat classifier ok (" + CHAT_CASES.length + " cases)");
                     mc.setScreen(new DrConfigScreen(mc.screen));
                     stage = 1;
                 }
                 case 1 -> {
                     if (!(mc.screen instanceof DrConfigScreen)) fail("config screen did not open");
                     else log("config screen ok");
-                    stage = 2;
+                    DrConfig.data.splitChat = true;
+                    LevelSettings settings = new LevelSettings("drim-selftest", GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
+                        new GameRules(WorldDataConfiguration.DEFAULT.enabledFeatures()), WorldDataConfiguration.DEFAULT);
+                    mc.createWorldOpenFlows().createFreshLevel("drim-selftest", settings, new WorldOptions(5L, false, false),
+                        WorldPresets::createNormalWorldDimensions, mc.screen);
+                    stage = 3;
+                    waitTicks = 0;
+                }
+                case 3 -> {
+                    if (++waitTicks > 20 * 240) { fail("world did not load"); stage = 99; return; }
+                    if (mc.player == null || mc.level == null || mc.screen != null) return;
+                    mc.gui.getChat().clearMessages(false);
+                    MinecraftServer server = mc.getSingleplayerServer();
+                    for (String cmd : new String[]{"time set 6000", "gamerule doDaylightCycle false",
+                            "tellraw @a {\"text\":\"120 DMG -> Skeleton [2400 HP]\",\"color\":\"red\"}",
+                            "tellraw @a {\"text\":\"+48 EXP [1205/9000]\",\"color\":\"yellow\"}",
+                            "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}"}) {
+                        server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
+                    }
+                    String me = mc.player.getGameProfile().getName();
+                    mc.player.connection.sendChat("hello from the left side");
+                    mc.gui.getChat().addMessage(Component.literal("[G] " + me + ": guild chat stays left"));
+                    mc.gui.getChat().addMessage(Component.literal("<" + me + "> plain player chat"));
+                    stage = 4;
+                    waitTicks = 0;
+                }
+                case 4 -> {
+                    if (++waitTicks < 60) return;
+                    int l = ((ChatAccessor) mc.gui.getChat()).drim$messages().size();
+                    int r = ((ChatAccessor) SplitChat.right()).drim$messages().size();
+                    log("left chat: " + l + " messages, right chat: " + r + " messages");
+                    if (l < 3) fail("player messages missing from left chat (" + l + ")");
+                    if (r < 3) fail("system messages missing from right chat (" + r + ")");
+                    Screenshot.grab(mc.gameDirectory, "drim-splitchat.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    mc.setScreen(new ChatScreen(""));
+                    stage = 5;
+                    waitTicks = 0;
+                }
+                case 5 -> {
+                    if (++waitTicks < 20) return;
+                    Screenshot.grab(mc.gameDirectory, "drim-splitchat-open.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    stage = 99;
+                    waitTicks = 0;
                 }
                 default -> {
-                    if (++waitTicks < 5) return;
+                    if (++waitTicks < 20) return;
                     if (failures.isEmpty()) {
                         log("DRIM SELFTEST PASS");
                         Runtime.getRuntime().halt(0);

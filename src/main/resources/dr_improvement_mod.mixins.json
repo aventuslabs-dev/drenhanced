@@ -5,6 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "BossHealthOverlayMixin",
+    "ChatAccessor",
+    "ChatComponentMixin",
+    "ChatScreenMixin",
     "ClientPacketListenerMixin",
     "ConnectionMixin",
     "EntityMixin",
