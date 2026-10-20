@@ -299,7 +299,6 @@ public final class FeedLog {
         g.fill(x0, y0 + HEADER, x1, y0 + HEADER + 1, argb(a, GOLD_DIM));
         outline(g, x0, y0, x1, y1, argb(a, GOLD));
         // title + tabs
-        g.drawString(font, "Combat Log", x0 + 5, y0 + 3, argb(a, 0xFFD100), true);
         int tx = x1 - 4;
         Tab[] tabs = Tab.values();
         for (int i = tabs.length - 1; i >= 0; i--) {
@@ -316,6 +315,9 @@ public final class FeedLog {
             tx -= 8;
         }
         tabY = y0;
+        // title only when it doesn't collide with the tabs (narrow panels)
+        String title = font.width("Combat Log") + 14 < tx - x0 ? "Combat Log" : font.width("Log") + 10 < tx - x0 ? "Log" : null;
+        if (title != null) g.drawString(font, title, x0 + 5, y0 + 3, argb(a, 0xFFD100), true);
 
         // rows, newest at the bottom
         int lh = lineH(scale);
