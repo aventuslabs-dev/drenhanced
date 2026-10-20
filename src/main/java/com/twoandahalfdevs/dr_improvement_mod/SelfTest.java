@@ -452,6 +452,12 @@ final class SelfTest {
                     if (++waitTicks < 15) return;
                     if (!(mc.screen instanceof CooldownScreen)) fail("cooldown screen did not open");
                     else log("cooldown screen ok");
+                    for (String n : new String[]{"dash", "the_fast", "berserk", "divine_protection", "deaths_grasp", "potion", "combat",
+                            "bonus", "monster_slayer", "buff", "heal", "shadow", "fire", "shield", "rune"}) {
+                        if (mc.getResourceManager().getResource(CooldownBar.icon(n)).isEmpty()) fail("missing cooldown icon " + n);
+                    }
+                    if (!CooldownBar.abilityIcon("Berserk").getPath().endsWith("berserk.png") || !CooldownBar.abilityIcon("Dash").getPath().endsWith("dash.png"))
+                        fail("ability icon mapping wrong");
                     Screenshot.grab(mc.gameDirectory, "drim-cooldown-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     // moved / resized bars: energy bigger and left, mana up, HP hidden
                     DrConfig.data.energyBar.scale = 1.6;

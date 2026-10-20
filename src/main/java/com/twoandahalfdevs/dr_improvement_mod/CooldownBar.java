@@ -24,7 +24,36 @@ public final class CooldownBar {
 
     /** One icon to draw. remaining/max in seconds; max <= 0 means "no sweep". */
     record Slot(String key, ItemStack icon, String label, double remaining, double max, boolean active,
-                boolean ready, String badge) {}
+                boolean ready, String badge, net.minecraft.resources.ResourceLocation tex) {
+        Slot(String key, ItemStack icon, String label, double remaining, double max, boolean active, boolean ready, String badge) {
+            this(key, icon, label, remaining, max, active, ready, badge, null);
+        }
+    }
+
+    /** Painted WoW-style icons (tools/make_icons.py), 64x64 in textures/gui/cd/. */
+    static net.minecraft.resources.ResourceLocation icon(String name) {
+        return net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("dr_improvement_mod", "textures/gui/cd/" + name + ".png");
+    }
+
+    /** Picks the painted icon for a DR ability by name, so unknown/new skills still get something fitting. */
+    static net.minecraft.resources.ResourceLocation abilityIcon(String name) {
+        String n = name == null ? "" : name.toLowerCase(Locale.ROOT);
+        if (n.equals("the fast") || has(n, "haste", "swift", "speed", "quick")) return icon("the_fast");
+        if (has(n, "dash", "charge", "leap", "sprint", "blink", "rush", "lunge")) return icon("dash");
+        if (has(n, "berserk", "rage", "fury", "frenzy", "wrath", "bloodlust")) return icon("berserk");
+        if (has(n, "divine", "holy", "bless", "protection", "sanct", "light")) return icon("divine_protection");
+        if (has(n, "death", "grasp", "necro", "soul", "drain", "curse", "decay")) return icon("deaths_grasp");
+        if (has(n, "heal", "mend", "regen", "renew", "life")) return icon("heal");
+        if (has(n, "shadow", "stealth", "vanish", "hide", "cloak", "smoke", "sneak")) return icon("shadow");
+        if (has(n, "fire", "flame", "burn", "inferno", "meteor", "blaze")) return icon("fire");
+        if (has(n, "shield", "guard", "block", "fortif", "wall", "taunt", "armor", "iron")) return icon("shield");
+        return icon("rune");
+    }
+
+    private static boolean has(String n, String... words) {
+        for (String w : words) if (n.contains(w)) return true;
+        return false;
+    }
 
     /** Per-slot memory: total duration (for the sweep) and when it became ready (for the flash). */
     private static final class Mem {
@@ -58,18 +87,18 @@ public final class CooldownBar {
         // Abilities from DR's action bar ("The Fast: [7s]" green = active, "Dash [4s]" = cooldown).
         // Every ability seen this session keeps a slot, shown ready when it's no longer counting down.
         if (DrState.knownAbilities.isEmpty()) {
-            out.add(track("ult", ultIcon(DrState.ultName), "Ultimate", 0, false, null, now));
+            out.add(track("ult", ultIcon(DrState.ultName), abilityIcon(DrState.ultName), "Ultimate", 0, false, null, now));
         }
         for (String name : DrState.knownAbilities) {
             DrState.Ability a = DrState.abilities.get(name);
             double rem = a == null ? 0 : a.remaining();
             boolean active = a != null && a.active();
-            out.add(track("ab:" + name, ultIcon(name), name, rem, active, null, now));
+            out.add(track("ab:" + name, ultIcon(name), abilityIcon(name), name, rem, active, null, now));
         }
 
         // Buffs ("MONSTER SLAYER [2m]"): only while running, green.
         for (DrState.Ability b : DrState.buffs.values()) {
-            out.add(track("buff:" + b.name(), buffIcon(b.name()), pretty(b.name()), b.remaining(), true, null, now));
+            out.add(track("buff:" + b.name(), buffIcon(b.name()), buffTex(b.name()), pretty(b.name()), b.remaining(), true, null, now));
         }
 
         // Potions: count badge, cooldown sweep.
@@ -81,15 +110,15 @@ public final class CooldownBar {
         // "[4/5] Potions: [59s]": charges / max, sweep = time until the next charge
         if (carried > 0 || DrState.potCd != null) {
             String badge = DrState.potCd != null ? DrState.pots + "/" + DrState.potsMax : String.valueOf(carried);
-            out.add(track("pot", new ItemStack(Items.POTION), "Potions", pot, false, badge, now));
+            out.add(track("pot", new ItemStack(Items.POTION), icon("potion"), "Potions", pot, false, badge, now));
         }
 
         if (c.cdShowCombat) {
             double combat = DrState.combatRemaining();
-            if (combat > 0) out.add(track("combat", new ItemStack(Items.IRON_SWORD), "Combat", combat, false, null, now));
+            if (combat > 0) out.add(track("combat", new ItemStack(Items.IRON_SWORD), icon("combat"), "Combat", combat, false, null, now));
             if (DrState.isRogue()) {
                 double bonus = DrState.bonusRemaining();
-                if (bonus > 0) out.add(track("bonus", new ItemStack(Items.CLOCK), "Bonus", bonus, true, null, now));
+                if (bonus > 0) out.add(track("bonus", new ItemStack(Items.CLOCK), icon("bonus"), "Bonus", bonus, true, null, now));
             }
         }
 
@@ -121,6 +150,11 @@ public final class CooldownBar {
     }
 
     private static Slot track(String key, ItemStack icon, String label, double remaining, boolean active, String badge, long now) {
+        return track(key, icon, null, label, remaining, active, badge, now);
+    }
+
+    private static Slot track(String key, ItemStack icon, net.minecraft.resources.ResourceLocation tex, String label, double remaining,
+                              boolean active, String badge, long now) {
         Mem m = mem.computeIfAbsent(key, k -> new Mem());
         boolean started = remaining > 0 && (m.prev <= 0 || remaining > m.prev + 1.5 || active != m.prevActive);
         if (started) m.max = remaining;
@@ -129,7 +163,7 @@ public final class CooldownBar {
         m.prev = remaining;
         m.prevActive = active;
         boolean ready = remaining <= 0;
-        return new Slot(key, icon, label, remaining, m.max, active && remaining > 0, ready, badge);
+        return new Slot(key, icon, label, remaining, m.max, active && remaining > 0, ready, badge, tex);
     }
 
     private static ItemStack buffIcon(String name) {
@@ -137,6 +171,14 @@ public final class CooldownBar {
         Item item = n.contains("SLAYER") || n.contains("MONSTER") ? Items.GOLDEN_SWORD
             : n.contains("LOOT") ? Items.CHEST : n.contains("EXP") || n.contains("XP") ? Items.EXPERIENCE_BOTTLE : Items.BEACON;
         return new ItemStack(item);
+    }
+
+    private static net.minecraft.resources.ResourceLocation buffTex(String name) {
+        String n = name.toUpperCase(Locale.ROOT);
+        if (n.contains("SLAYER") || n.contains("MONSTER")) return icon("monster_slayer");
+        if (n.contains("HEAL") || n.contains("REGEN")) return icon("heal");
+        if (n.contains("SHIELD") || n.contains("DEFEN")) return icon("shield");
+        return icon("buff");
     }
 
     private static String pretty(String caps) {
@@ -188,13 +230,18 @@ public final class CooldownBar {
         g.fill(x - 1, y - 1, x + size + 1, y + size + 1, 0xFF000000);
         g.fill(x, y, x + size, y + size, 0xC0202020);
 
-        // icon, scaled to the slot
-        float k = (size - 4) / 16f;
-        g.pose().pushPose();
-        g.pose().translate(x + 2, y + 2, 0);
-        g.pose().scale(k, k, 1f);
-        g.renderItem(s.icon(), 0, 0);
-        g.pose().popPose();
+        if (s.tex() != null) {
+            // painted icon fills the whole slot (it carries its own bevel and frame)
+            g.blit(net.minecraft.client.renderer.RenderType::guiTextured, s.tex(), x, y, 0f, 0f, size, size, 64, 64, 64, 64);
+        } else {
+            // item icon, scaled to the slot
+            float k = (size - 4) / 16f;
+            g.pose().pushPose();
+            g.pose().translate(x + 2, y + 2, 0);
+            g.pose().scale(k, k, 1f);
+            g.renderItem(s.icon(), 0, 0);
+            g.pose().popPose();
+        }
 
         // the WoW sweep over the part still to go (clockwise from 12 o'clock)
         if (s.remaining() > 0 && s.max() > 0) {
@@ -311,9 +358,10 @@ public final class CooldownBar {
         long t = System.currentTimeMillis() % 6000;
         double ult = 40 - (t / 1000.0) * 4; // 40 -> 16
         return List.of(
-                new Slot("demo-ult", new ItemStack(Items.FEATHER), "Ultimate", ult, 60, false, false, null),
-                new Slot("demo-pot", new ItemStack(Items.POTION), "Potions", 6 - t / 1000.0, 6, false, false, "3/5"),
-                new Slot("demo-combat", new ItemStack(Items.IRON_SWORD), "Combat", 8 - (t % 4000) / 500.0, 8, false, false, null),
-                new Slot("demo-bonus", new ItemStack(Items.CLOCK), "Bonus", 4.5 - (t % 3000) / 1000.0, 4.5, true, false, null));
+                new Slot("demo-ult", new ItemStack(Items.FEATHER), "Berserk", ult, 60, false, false, null, icon("berserk")),
+                new Slot("demo-dash", new ItemStack(Items.FEATHER), "Dash", 0, 0, false, true, null, icon("dash")),
+                new Slot("demo-pot", new ItemStack(Items.POTION), "Potions", 6 - t / 1000.0, 6, false, false, "3/5", icon("potion")),
+                new Slot("demo-combat", new ItemStack(Items.IRON_SWORD), "Combat", 8 - (t % 4000) / 500.0, 8, false, false, null, icon("combat")),
+                new Slot("demo-buff", new ItemStack(Items.GOLDEN_SWORD), "Monster Slayer", 4.5 - (t % 3000) / 1000.0, 4.5, true, false, null, icon("monster_slayer")));
     }
 }
