@@ -345,11 +345,12 @@ public final class MobHp {
         // The mob you swung at gets the first matching line of that swing; cleave/AoE lines for other mobs
         // go to the best other candidate (same name, HP that fits, nearest) instead of overwriting it.
         Track t = null;
-        Track clicked = now - lastAttackAt < 1500 ? tracks.get(lastAttacked) : null;
+        // Thorns/Reflect lines come from mobs hitting you, not from your swing: match those on HP alone.
+        Track clicked = source == null && now - lastAttackAt < 1500 ? tracks.get(lastAttacked) : null;
         if (clicked != null && clicked.swing != swingCounter && matches(clicked, target)) t = clicked;
-        if (t == null) t = bestMatch(target, dmg, left, now, clicked);
+        if (t == null) t = bestMatch(target, dmg, left, now, source == null ? clicked : null);
         if (t == null) return;
-        t.swing = swingCounter;
+        if (source == null && t == clicked) t.swing = swingCounter;
         FloatingText.fromChat(dmg, t.pos, t.height, source);
 
         // exact max = remaining + damage, but only on the first hit against a mob we first saw undamaged
@@ -393,9 +394,12 @@ public final class MobHp {
             if (t.hp >= 0 && now - t.hpAt < 30_000) {
                 long expect = (long) t.hp - dmg;
                 if (left > t.hp) score += 200;                       // HP can't go up from a hit
+                else if (Math.abs(expect - left) <= Math.max(2, t.hp / 100)) score -= 100; // continues exactly
                 else score += Math.min(100, Math.abs(expect - left) / 50.0);
+            } else {
+                score += 30;                                         // unknown HP: possible, but not proven
             }
-            if (t == exclude && exclude.swing == swingCounter) score += 25; // already took this swing's hit
+            if (t == exclude && exclude.swing == swingCounter) score += 60; // already took this swing's hit
             if (score < bestScore) {
                 bestScore = score;
                 best = t;
