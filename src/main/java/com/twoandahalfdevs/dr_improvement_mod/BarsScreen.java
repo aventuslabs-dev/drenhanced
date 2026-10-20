@@ -126,14 +126,16 @@ public final class BarsScreen extends Screen {
     @Override
     public void renderBackground(GuiGraphics g, int mouseX, int mouseY, float delta) {
         if (minecraft.level == null) super.renderBackground(g, mouseX, mouseY, delta);
-        // in game: no dimming, so the bars behind are easy to line up
+        // in game: no dimming, so the bars behind are easy to line up; just a backdrop for the panel
+        g.fill(2, 2, panelRight() + 4, height - 2, 0x90000000);
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
         super.render(g, mouseX, mouseY, delta);
-        g.drawCenteredString(font, title, width / 2, 12, 0xFFFFFFFF);
-        g.drawCenteredString(font, "§7Changes show live on the real bars. Y is upwards.", width / 2, height - 14, 0xFFFFFFFF);
+        g.drawString(font, "§6Bars", 8, 12, 0xFFFFFFFF, true);
+        g.drawCenteredString(font, "§7Drag anywhere to move §f" + NAMES[tab] + "§7 · scroll to resize",
+            (panelRight() + width) / 2, height - 34, 0xFFFFFFFF);
     }
 
     @Override
