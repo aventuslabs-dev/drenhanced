@@ -48,7 +48,7 @@ public final class HudRenderer {
         String color = usable >= 3 ? "§a" : usable >= 1 ? "§e" : "§c";
         StringBuilder pots = new StringBuilder(color).append(usable).append(" / ").append(carried);
         if (DrState.potCd != null) {
-            long left = Math.max(0, DrState.potCd - (now - DrState.potCdStamp) / 1000);
+            long left = (long) Math.ceil(DrState.potRemaining());
             pots.append(" §7(").append(left).append("s)");
         }
         g.drawString(font, pots.toString(), cx + X_OFFSET, cy + Y_ABILITY_POTS, TEXT_COLOR);

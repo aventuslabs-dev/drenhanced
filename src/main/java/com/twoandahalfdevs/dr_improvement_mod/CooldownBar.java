@@ -106,7 +106,7 @@ public final class CooldownBar {
         for (ItemStack s : p.getInventory().items) {
             if (s.is(Items.POTION) || s.is(Items.SPLASH_POTION)) carried += s.getCount();
         }
-        double pot = DrState.potCd == null ? 0 : Math.max(0, DrState.potCd - (now - DrState.potCdStamp) / 1000.0);
+        double pot = DrState.potRemaining();
         // "[4/5] Potions: [59s]": charges / max, sweep = time until the next charge
         if (carried > 0 || DrState.potCd != null) {
             String badge = DrState.potCd != null ? DrState.pots + "/" + DrState.potsMax : String.valueOf(carried);

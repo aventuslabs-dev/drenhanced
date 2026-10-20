@@ -95,13 +95,30 @@ public final class DrState {
     public static long ultCdStamp = System.currentTimeMillis();
     public static int pots = 5;
     public static Integer potCd;         // seconds, null = none
+    /** Seconds until the next potion charge, sub-second accurate (0 when none). */
+    public static double potRemaining() {
+        if (potCd == null) return 0;
+        double r = Countdown.remaining("pots", System.currentTimeMillis());
+        return r >= 0 ? r : Math.max(0, potCd - (System.currentTimeMillis() - potCdStamp) / 1000.0);
+    }
     public static long potCdStamp = System.currentTimeMillis();
 
     /** One ability shown in DR's action bar, e.g. "The Fast: [7s]" (green = active, red = cooldown) or "Dash [4s]". */
-    public record Ability(String name, int seconds, boolean active, long stamp) {
-        public double remaining() {
-            return Math.max(0, seconds - (System.currentTimeMillis() - stamp) / 1000.0);
+    public record Ability(String name, int seconds, boolean active, long stamp, String key) {
+        public Ability(String name, int seconds, boolean active, long stamp) {
+            this(name, seconds, active, stamp, null);
         }
+
+        public double remaining() {
+            long now = System.currentTimeMillis();
+            double r = key == null ? -1 : Countdown.remaining(key, now);
+            return r >= 0 ? r : Math.max(0, seconds - (now - stamp) / 1000.0);
+        }
+    }
+
+    /** "[1m 59s]" counts in seconds, a bare "[2m]" only in minutes. */
+    private static int granularity(String secondsGroup) {
+        return secondsGroup == null || secondsGroup.isEmpty() ? 60 : 1;
     }
 
     private static final java.util.List<String> ULTS = java.util.List.of("The Fast", "Berserk", "Divine Protection", "Deaths Grasp");
@@ -145,6 +162,7 @@ public final class DrState {
             if (c.find()) {
                 serverCombat = parse(c.group(2));
                 serverCombatStamp = shownAt;
+                Countdown.observe("combat", serverCombat, 1, shownAt);
                 serverCombatSeen = true;
                 continue;
             }
@@ -154,6 +172,7 @@ public final class DrState {
                 potsMax = Math.max(1, parse(p.group(2)));
                 potCd = parse(p.group(3)) * 60 + parse(p.group(4));
                 potCdStamp = shownAt;
+                Countdown.observe("pots", potCd, granularity(p.group(4)), shownAt);
                 continue;
             }
             Matcher r = READY.matcher(text);
@@ -167,11 +186,14 @@ public final class DrState {
                 if (name.length() > 24 || name.contains("Potions")) continue;
                 int secs = parse(a.group(2)) * 60 + parse(a.group(3));
                 if (name.equals(name.toUpperCase(java.util.Locale.ROOT)) && name.chars().anyMatch(Character::isLetter)) {
-                    buffs.put(name, new Ability(name, secs, true, shownAt)); // "MONSTER SLAYER [2m]": a buff, not an ability
+                    Countdown.observe("buff:" + name, secs, granularity(a.group(3)), shownAt);
+                    buffs.put(name, new Ability(name, secs, true, shownAt, "buff:" + name)); // "MONSTER SLAYER [2m]": a buff, not an ability
                     continue;
                 }
                 boolean active = "green".equals(color) || "a".equals(color);
-                abilities.put(name, new Ability(name, secs, active, shownAt));
+                String key = "ab:" + name + (active ? ":on" : ":cd");
+                Countdown.observe(key, secs, granularity(a.group(3)), shownAt);
+                abilities.put(name, new Ability(name, secs, active, shownAt, key));
                 learn(name);
                 if (ULTS.contains(name)) {
                     ultName = name;
@@ -215,7 +237,8 @@ public final class DrState {
     /** DR's own combat countdown when it's showing ("PvM Combat: [3s]"), else -1. */
     public static double serverCombatRemaining() {
         if (serverCombat < 0) return -1;
-        return Math.max(0, serverCombat - (System.currentTimeMillis() - serverCombatStamp) / 1000.0);
+        double r = Countdown.remaining("combat", System.currentTimeMillis());
+        return r >= 0 ? r : Math.max(0, serverCombat - (System.currentTimeMillis() - serverCombatStamp) / 1000.0);
     }
 
     private static int parse(String s) {
@@ -320,6 +343,7 @@ public final class DrState {
         latestExp = prevExp = 0f;
         playerClass = "???";
         classKey = "";
+        Countdown.reset();
         abilities.clear();
         knownAbilities.clear();
         ultCd = null;

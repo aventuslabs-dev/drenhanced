@@ -302,6 +302,16 @@ final class SelfTest {
                         fail("buff not separated from abilities: " + DrState.buffs.keySet() + " / " + DrState.knownAbilities);
                     if (DrState.pots != 4 || DrState.potsMax != 5 || DrState.potCd == null || DrState.potCd != 59)
                         fail("potions not parsed: " + DrState.pots + "/" + DrState.potsMax + " cd " + DrState.potCd);
+                    // sub-second timers: DR rounds down, so "[3s]" = 3.0-3.99 s left, and an off-tick message narrows it
+                    Countdown.observe("t:dash", 3, 1, 10_000);     // regular tick
+                    double r1 = Countdown.remaining("t:dash", 10_000);
+                    Countdown.observe("t:dash", 2, 1, 10_700);     // event message 0.7 s later still says 2
+                    double r2 = Countdown.remaining("t:dash", 10_700), w2 = Countdown.uncertainty("t:dash");
+                    Countdown.observe("t:dash", 7, 1, 20_000);     // used again: new window
+                    double r3 = Countdown.remaining("t:dash", 20_000);
+                    log(String.format(java.util.Locale.ROOT, "countdown: %.2f, narrowed %.2f (window %.2fs), restarted %.2f", r1, r2, w2, r3));
+                    if (r1 < 3.0 || r1 > 4.0 || r2 < 2.0 || r2 > 2.6 || w2 > 1.0 || r3 < 7.0 || r3 > 8.0) fail("countdown estimate off");
+                    Countdown.forget("t:dash");
                     // class switch: Rogue abilities must not follow you onto a Warrior, and come back on Rogue
                     var sep = Component.literal(" \u25aa ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY);
                     DrState.setPlayerClass("Lv 101 Rogue");
