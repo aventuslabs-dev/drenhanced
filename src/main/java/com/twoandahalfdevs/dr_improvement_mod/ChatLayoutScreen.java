@@ -31,13 +31,17 @@ public final class ChatLayoutScreen extends Screen {
         column(right, DrConfig.data.rightChat);
 
         int by = height - 26;
+        int bw = (2 * W + 8 - 8) / 3;
         addRenderableWidget(Button.builder(Component.literal("Reset both"), b -> {
             DrConfig.data.leftChat = new DrConfig.ChatBox();
             DrConfig.data.rightChat = new DrConfig.ChatBox();
             SplitChat.relayout();
             rebuildWidgets();
-        }).bounds(left, by, W, H).build());
-        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(right, by, W, H).build());
+        }).bounds(left, by, bw, H).build());
+        addRenderableWidget(net.minecraft.client.gui.components.CycleButton.onOffBuilder(DrConfig.data.collapseRepeats)
+            .withTooltip(v -> net.minecraft.client.gui.components.Tooltip.create(Component.literal("Fold repeated system messages into \"message (x3)\".")))
+            .create(left + bw + 4, by, bw, H, Component.literal("Fold repeats"), (btn, v) -> DrConfig.data.collapseRepeats = v));
+        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(left + 2 * (bw + 4), by, bw, H).build());
     }
 
     private void column(int x, DrConfig.ChatBox b) {

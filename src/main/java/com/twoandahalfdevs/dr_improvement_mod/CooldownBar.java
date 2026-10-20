@@ -67,15 +67,21 @@ public final class CooldownBar {
             out.add(track("ab:" + name, ultIcon(name), name, rem, active, null, now));
         }
 
+        // Buffs ("MONSTER SLAYER [2m]"): only while running, green.
+        for (DrState.Ability b : DrState.buffs.values()) {
+            out.add(track("buff:" + b.name(), buffIcon(b.name()), pretty(b.name()), b.remaining(), true, null, now));
+        }
+
         // Potions: count badge, cooldown sweep.
         int carried = 0;
         for (ItemStack s : p.getInventory().items) {
             if (s.is(Items.POTION) || s.is(Items.SPLASH_POTION)) carried += s.getCount();
         }
         double pot = DrState.potCd == null ? 0 : Math.max(0, DrState.potCd - (now - DrState.potCdStamp) / 1000.0);
-        int usable = Math.min(DrState.pots, carried);
+        // "[4/5] Potions: [59s]": charges / max, sweep = time until the next charge
         if (carried > 0 || DrState.potCd != null) {
-            out.add(track("pot", new ItemStack(Items.POTION), "Potions", pot, false, usable + "/" + carried, now));
+            String badge = DrState.potCd != null ? DrState.pots + "/" + DrState.potsMax : String.valueOf(carried);
+            out.add(track("pot", new ItemStack(Items.POTION), "Potions", pot, false, badge, now));
         }
 
         if (c.cdShowCombat) {
@@ -124,6 +130,23 @@ public final class CooldownBar {
         m.prevActive = active;
         boolean ready = remaining <= 0;
         return new Slot(key, icon, label, remaining, m.max, active && remaining > 0, ready, badge);
+    }
+
+    private static ItemStack buffIcon(String name) {
+        String n = name.toUpperCase(Locale.ROOT);
+        Item item = n.contains("SLAYER") || n.contains("MONSTER") ? Items.GOLDEN_SWORD
+            : n.contains("LOOT") ? Items.CHEST : n.contains("EXP") || n.contains("XP") ? Items.EXPERIENCE_BOTTLE : Items.BEACON;
+        return new ItemStack(item);
+    }
+
+    private static String pretty(String caps) {
+        StringBuilder b = new StringBuilder();
+        for (String w : caps.toLowerCase(Locale.ROOT).split(" ")) {
+            if (w.isEmpty()) continue;
+            if (b.length() > 0) b.append(' ');
+            b.append(Character.toUpperCase(w.charAt(0))).append(w.substring(1));
+        }
+        return b.toString();
     }
 
     private static ItemStack ultIcon(String name) {

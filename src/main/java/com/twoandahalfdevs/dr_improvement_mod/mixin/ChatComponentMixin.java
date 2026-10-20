@@ -24,7 +24,7 @@ public abstract class ChatComponentMixin {
         boolean player = SplitChat.isPlayerMessage(message, sig, tag);
         com.twoandahalfdevs.dr_improvement_mod.Capture.route(message, player);
         if (player) return;
-        SplitChat.right().addMessage(message, sig, tag);
+        SplitChat.addRight(message, sig, tag);
         ci.cancel();
     }
 

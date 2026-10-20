@@ -152,6 +152,7 @@ public final class MobHp {
     private static Display updatePlayer(net.minecraft.client.player.AbstractClientPlayer pl) {
         Minecraft mc = Minecraft.getInstance();
         if (!DrConfig.data.playerPlates || pl == mc.player) return null;
+        if (pl.getGameProfile().getName().startsWith("NPC@")) return null; // DR's NPCs
         boolean real = testPlayers.contains(pl.getId()) || (pl.getUUID().version() == 4
             && mc.getConnection() != null && mc.getConnection().getPlayerInfo(pl.getUUID()) != null);
         if (!real) return null;
@@ -197,9 +198,53 @@ public final class MobHp {
         } else {
             numbers = pct + "%";
         }
+        // DR's team suffix carries level and class: " [Lv 103 ROG]"
+        String level = "";
+        String cls = null;
+        if (team != null) {
+            Matcher lm = PLAYER_SUFFIX.matcher(SplitChat.strip(team.getPlayerSuffix().getString()));
+            if (lm.find()) {
+                level = lm.group(1);
+                cls = lm.group(2);
+            }
+        }
+        if (cls != null) {
+            int cc = classColor(cls);
+            Component clsTag = Component.literal(className(cls)).withStyle(Style.EMPTY.withColor(cc & 0xFFFFFF));
+            sub = sub == null ? clsTag : Component.empty().append(sub).append(Component.literal("  ").append(clsTag));
+        }
         boolean chaotic = col == net.minecraft.ChatFormatting.RED || col == net.minecraft.ChatFormatting.DARK_RED;
-        int bar = chaotic ? 0xFFC41F1F : 0xFF2FB34A;
-        return new Display(label, "", false, showBar, numbers, t, sub, bar);
+        int bar = cls != null ? classColor(cls) : chaotic ? 0xFFC41F1F : 0xFF2FB34A; // WoW: class-coloured bars
+        return new Display(label, level, false, showBar, numbers, t, sub, bar);
+    }
+
+    private static final Pattern PLAYER_SUFFIX = Pattern.compile("\\[Lv\\.? ?(\\d+)(?: ([A-Za-z]{2,4}))?]");
+
+    /** WoW class colours for DR's class tags. */
+    static int classColor(String tag) {
+        return switch (tag.toUpperCase(Locale.ROOT)) {
+            case "ROG" -> 0xFFFFF468;
+            case "WAR" -> 0xFFC69B6D;
+            case "MAG", "MGE", "WIZ" -> 0xFF3FC7EB;
+            case "PAL" -> 0xFFF48CBA;
+            case "ARC", "RAN", "HUN", "BOW" -> 0xFFAAD372;
+            case "PRI", "CLE" -> 0xFFF0F0F0;
+            case "NEC", "WLK" -> 0xFF8788EE;
+            default -> 0xFFB0B0B0;
+        };
+    }
+
+    static String className(String tag) {
+        return switch (tag.toUpperCase(Locale.ROOT)) {
+            case "ROG" -> "Rogue";
+            case "WAR" -> "Warrior";
+            case "MAG", "MGE", "WIZ" -> "Mage";
+            case "PAL" -> "Paladin";
+            case "ARC", "RAN", "HUN", "BOW" -> "Ranger";
+            case "PRI", "CLE" -> "Priest";
+            case "NEC", "WLK" -> "Necromancer";
+            default -> tag;
+        };
     }
 
     /**

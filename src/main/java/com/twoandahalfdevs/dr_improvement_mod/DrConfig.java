@@ -29,6 +29,8 @@ public final class DrConfig {
         public int justMyNaturePoints = 0;    // 0-5
         /** Player chat on the left, system/server messages in a second chat on the right. */
         public boolean splitChat = true;
+        /** Fold repeated system messages into "message (x3)". */
+        public boolean collapseRepeats = true;
         /** Regexes (matched against the plain text) that force a message into the left/player chat. */
         public java.util.List<String> chatPlayerPatterns = new java.util.ArrayList<>();
         /** Regexes that force a message into the right/system chat (checked first). */

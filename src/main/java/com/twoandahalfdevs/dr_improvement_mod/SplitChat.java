@@ -306,6 +306,31 @@ public final class SplitChat {
         g.pose().popPose();
     }
 
+    private static String lastRightText;
+    private static int lastRightCount;
+    private static long lastRightAt;
+
+    /** Adds to the right chat, folding an identical message within 10 s into "message (x3)". */
+    public static void addRight(Component message, MessageSignature sig, GuiMessageTag tag) {
+        ChatComponent r = right();
+        String text = message.getString();
+        long now = System.currentTimeMillis();
+        if (DrConfig.data.collapseRepeats && text.equals(lastRightText) && now - lastRightAt < 10_000 && !text.isBlank()) {
+            var list = ((com.twoandahalfdevs.dr_improvement_mod.mixin.ChatAccessor) r).drim$messages();
+            if (!list.isEmpty()) list.remove(0); // newest first
+            lastRightCount++;
+            lastRightAt = now;
+            r.addMessage(Component.empty().append(message)
+                .append(Component.literal(" (x" + lastRightCount + ")").withStyle(net.minecraft.ChatFormatting.DARK_GRAY)), sig, tag);
+            r.rescaleChat(); // rebuild the visible lines from the edited list
+            return;
+        }
+        lastRightText = text;
+        lastRightCount = 1;
+        lastRightAt = now;
+        r.addMessage(message, sig, tag);
+    }
+
     public static void reset() {
         if (right != null) right.clearMessages(false);
     }

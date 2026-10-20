@@ -173,6 +173,7 @@ final class SelfTest {
                     mc.player.connection.sendChat("hello from the left side");
                     mc.gui.getChat().addMessage(Component.literal("[G] " + me + ": guild chat stays left"));
                     mc.gui.getChat().addMessage(Component.literal("<" + me + "> plain player chat"));
+                    for (int i = 0; i < 3; i++) mc.gui.getChat().addMessage(Component.literal("You must wait before consuming another potion."));
                     SplitChat.onSent("typed by me");
                     mc.gui.getChat().addMessage(Component.literal("\u00a7b<5R> \u00a7e\u00a7lSomeNick\u00a7f: typed by me"));
                     stage = 4;
@@ -185,6 +186,7 @@ final class SelfTest {
                         var team = sb.addPlayerTeam("drimtest");
                         team.setPlayerPrefix(Component.literal("[5R] ").withStyle(net.minecraft.ChatFormatting.DARK_AQUA));
                         team.setColor(net.minecraft.ChatFormatting.RED);
+                        team.setPlayerSuffix(Component.literal(" [Lv 103 ROG]").withStyle(net.minecraft.ChatFormatting.AQUA));
                         sb.addPlayerToTeam("Rival", team);
                         var obj = sb.addObjective("health", net.minecraft.world.scores.criteria.ObjectiveCriteria.DUMMY, Component.literal("HP"),
                             net.minecraft.world.scores.criteria.ObjectiveCriteria.RenderType.INTEGER, false, null);
@@ -207,6 +209,10 @@ final class SelfTest {
                             .append(Component.literal("The Fast: [7s]").withStyle(net.minecraft.ChatFormatting.GREEN))
                             .append(Component.literal(" \u25aa ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY))
                             .append(Component.literal("Dash [4s]").withStyle(net.minecraft.ChatFormatting.RED))
+                            .append(Component.literal(" \u25aa ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY))
+                            .append(Component.literal("MONSTER SLAYER [1m 59s]").withStyle(net.minecraft.ChatFormatting.GOLD))
+                            .append(Component.literal(" \u25aa ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY))
+                            .append(Component.literal("[4/5] Potions: [59s]").withStyle(net.minecraft.ChatFormatting.RED))
                             .append(Component.literal(" \u25aa ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY))
                             .append(Component.literal("PvM Combat: [3s]").withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD)), false);
                         mc.player.getInventory().items.set(1, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ENDER_PEARL, 8));
@@ -254,6 +260,19 @@ final class SelfTest {
                     log("abilities: " + DrState.abilities.keySet() + " combat=" + combat);
                     if (fast == null || !fast.active() || dash == null || dash.active()) fail("action bar abilities not parsed: " + DrState.abilities);
                     if (combat <= 0 || combat > 3.01) fail("server combat timer not used: " + combat);
+                    if (!DrState.buffs.containsKey("MONSTER SLAYER") || DrState.knownAbilities.contains("MONSTER SLAYER"))
+                        fail("buff not separated from abilities: " + DrState.buffs.keySet() + " / " + DrState.knownAbilities);
+                    if (DrState.pots != 4 || DrState.potsMax != 5 || DrState.potCd == null || DrState.potCd != 59)
+                        fail("potions not parsed: " + DrState.pots + "/" + DrState.potsMax + " cd " + DrState.potCd);
+                    if (rivalPlayer != null) {
+                        var pd = MobHp.update(rivalPlayer, rivalPlayer.getDisplayName());
+                        if (pd == null || !"103".equals(pd.level()) || pd.sub() == null || !pd.sub().getString().contains("Rogue"))
+                            fail("player level/class not read: " + (pd == null ? "null" : pd.level() + " " + pd.sub()));
+                        else log("player plate: Lv " + pd.level() + " " + pd.sub().getString());
+                    }
+                    boolean folded = ((ChatAccessor) SplitChat.right()).drim$messages().stream()
+                        .anyMatch(m -> m.content().getString().endsWith("(x3)"));
+                    if (!folded) fail("repeated system message not folded");
                     log("floating text: " + fct + " numbers on screen, DR hologram hidden=" + holoHidden);
                     if (fct < 2) fail("floating damage numbers not spawned (" + fct + ")");
                     if (!holoHidden) fail("DR damage hologram not taken over");

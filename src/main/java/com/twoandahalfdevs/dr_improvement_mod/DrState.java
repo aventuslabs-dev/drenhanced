@@ -53,7 +53,9 @@ public final class DrState {
     // ---- Action bar: ultimate + potion cooldowns ----
     private static final Pattern ULT_CD = Pattern.compile(
         "§(.)(?:The Fast|Berserk|Divine Protection|Deaths Grasp): \\[(?:(\\d+)m)? ?(?:(\\d+)s)?]");
-    private static final Pattern POTS = Pattern.compile("\\[(\\d+)/5] Potions: \\[(\\d+)s]");
+    /** "[4/5] Potions: [59s]" = charges / max, next charge in; also "[1m]". */
+    private static final Pattern POTS = Pattern.compile("\\[(\\d+)/(\\d+)] Potions: \\[(?:(\\d+)m)? ?(?:(\\d+)s)?]");
+    public static int potsMax = 5;
 
     /** Action-bar messages show for 60 ticks; the remaining time tells us how stale the text is. */
     private static final int ACTION_BAR_TICKS = 60;
@@ -83,6 +85,8 @@ public final class DrState {
     public static final java.util.Map<String, Ability> abilities = new java.util.LinkedHashMap<>();
     /** Every ability name seen this session, so the cooldown bar can keep showing them as ready. */
     public static final java.util.Set<String> knownAbilities = new java.util.LinkedHashSet<>();
+    /** Timed buffs DR lists in capitals, e.g. "MONSTER SLAYER [1m 59s]"; shown only while running. */
+    public static final java.util.Map<String, Ability> buffs = new java.util.LinkedHashMap<>();
     private static int serverCombat = -1;   // DR's own "PvM Combat: [3s]"
     private static long serverCombatStamp;
     private static boolean serverCombatSeen;
@@ -93,6 +97,7 @@ public final class DrState {
      */
     public static void onActionBar(net.minecraft.network.chat.Component msg, int remainingTicks) {
         abilities.clear();
+        buffs.clear();
         serverCombat = -1;
         if (msg == null || remainingTicks <= 0) {
             ultCd = null;
@@ -119,7 +124,8 @@ public final class DrState {
             Matcher p = POTS.matcher(text);
             if (p.find()) {
                 pots = parse(p.group(1));
-                potCd = parse(p.group(2));
+                potsMax = Math.max(1, parse(p.group(2)));
+                potCd = parse(p.group(3)) * 60 + parse(p.group(4));
                 potCdStamp = shownAt;
                 continue;
             }
@@ -133,6 +139,10 @@ public final class DrState {
                 String name = a.group(1).trim();
                 if (name.length() > 24 || name.contains("Potions")) continue;
                 int secs = parse(a.group(2)) * 60 + parse(a.group(3));
+                if (name.equals(name.toUpperCase(java.util.Locale.ROOT)) && name.chars().anyMatch(Character::isLetter)) {
+                    buffs.put(name, new Ability(name, secs, true, shownAt)); // "MONSTER SLAYER [2m]": a buff, not an ability
+                    continue;
+                }
                 boolean active = "green".equals(color) || "a".equals(color);
                 abilities.put(name, new Ability(name, secs, active, shownAt));
                 knownAbilities.add(name);
