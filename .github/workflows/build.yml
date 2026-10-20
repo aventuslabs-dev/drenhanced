@@ -53,6 +53,7 @@ jobs:
           grep -E '5ZIG|Mixin|mixin|ERROR|Exception|Caused by' selftest.log > /tmp/out/selftest-summary.log 2>/dev/null || true
           tail -n 300 selftest.log > /tmp/out/selftest-tail.log 2>/dev/null || true
           cp build/libs/*.jar /tmp/out/ 2>/dev/null || true
+          cp run/screenshots/*.png /tmp/out/ 2>/dev/null || true
           # Required runtime dependency, fetched from Fabric's official maven for convenience.
           curl -sSfL -o /tmp/out/fabric-api-0.119.4+1.21.4.jar https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/0.119.4+1.21.4/fabric-api-0.119.4+1.21.4.jar || true
           echo "${{ github.sha }} ${{ job.status }}" > /tmp/out/STATUS

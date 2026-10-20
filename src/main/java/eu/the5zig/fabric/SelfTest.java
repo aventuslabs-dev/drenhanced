@@ -6,6 +6,15 @@ import eu.the5zig.fabric.gui.SettingsScreen;
 import eu.the5zig.fabric.hud.ItemType;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Screenshot;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.Difficulty;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.LevelSettings;
+import net.minecraft.world.level.WorldDataConfiguration;
+import net.minecraft.world.level.levelgen.WorldOptions;
+import net.minecraft.world.level.levelgen.presets.WorldPresets;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +46,7 @@ final class SelfTest {
     }
 
     private static void onTick(Minecraft mc) {
-        if (mc.getOverlay() != null || mc.screen == null) return; // still loading
+        if (stage < 5 && (mc.getOverlay() != null || mc.screen == null)) return; // still loading
         try {
             switch (stage) {
                 case 0 -> {
@@ -106,11 +115,75 @@ final class SelfTest {
                     if (Config.get().modules.size() < 3) fail("config round-trip lost modules");
                     else log("config round-trip ok (" + Config.get().modules.size() + " modules)");
                     Config.reset();
+                    // load a real world so the live HUD path (HudRenderCallback + real values) runs too
+                    LevelSettings settings = new LevelSettings("the5zig-selftest", GameType.CREATIVE, false, Difficulty.PEACEFUL, true,
+                            new GameRules(WorldDataConfiguration.DEFAULT.enabledFeatures()), WorldDataConfiguration.DEFAULT);
+                    mc.createWorldOpenFlows().createFreshLevel("the5zig-selftest", settings, new WorldOptions(5L, false, false),
+                            WorldPresets::createNormalWorldDimensions, mc.screen);
+                    log("creating world");
                     stage = 5;
                     wait = 0;
                 }
+                case 5 -> {
+                    if (++wait > 20 * 240) {
+                        fail("world did not load");
+                        stage = 99;
+                        return;
+                    }
+                    if (mc.player == null || mc.level == null || mc.screen != null) return;
+                    MinecraftServer server = mc.getSingleplayerServer();
+                    for (String cmd : new String[]{
+                            "effect give @a speed 95 1", "effect give @a strength 25 0", "effect give @a night_vision 600 0",
+                            "item replace entity @a weapon.mainhand with diamond_sword[damage=300]",
+                            "item replace entity @a weapon.offhand with shield[damage=200]",
+                            "item replace entity @a armor.head with iron_helmet[damage=20]",
+                            "item replace entity @a armor.chest with diamond_chestplate",
+                            "item replace entity @a armor.legs with golden_leggings[damage=90]",
+                            "item replace entity @a armor.feet with netherite_boots[damage=400]",
+                            "give @a totem_of_undying 2", "time set 6000"}) {
+                        server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
+                    }
+                    Tracker.toggleTimer();
+                    for (int i = 0; i < 6; i++) Tracker.click(0);
+                    Tracker.click(1);
+                    log("in world, gear applied");
+                    stage = 6;
+                    wait = 0;
+                }
+                case 6 -> {
+                    if (++wait < 200) return; // let chunks render
+                    for (ItemType t : ItemType.values()) {
+                        if (t.kind == ItemType.Kind.POTIONS) continue;
+                        Object v = t.value(mc, null, false);
+                        String shown = v instanceof String[][] a ? java.util.Arrays.deepToString(a) : String.valueOf(v);
+                        log("live " + t.name() + " = " + shown);
+                    }
+                    for (ItemType t : new ItemType[]{ItemType.FPS, ItemType.COORDINATES, ItemType.DIRECTION, ItemType.BIOME,
+                            ItemType.MAIN_HAND, ItemType.CHESTPLATE, ItemType.TIMER, ItemType.MEMORY, ItemType.TOTEMS}) {
+                        if (t.value(mc, null, false) == null) fail("no live value for " + t);
+                    }
+                    if (mc.player.getActiveEffects().size() < 3) fail("potion effects not applied");
+                    Screenshot.grab(mc.gameDirectory, "the5zig-hud.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    mc.setScreen(new EditorScreen(null));
+                    stage = 7;
+                    wait = 0;
+                }
+                case 7 -> {
+                    if (++wait < 20) return;
+                    Screenshot.grab(mc.gameDirectory, "the5zig-editor.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    mc.setScreen(new SettingsScreen(null));
+                    stage = 8;
+                    wait = 0;
+                }
+                case 8 -> {
+                    if (++wait < 10) return;
+                    Screenshot.grab(mc.gameDirectory, "the5zig-settings.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    log("live HUD ok");
+                    stage = 99;
+                    wait = 0;
+                }
                 default -> {
-                    if (++wait < 5) return;
+                    if (++wait < 20) return; // give screenshot writers time to finish
                     if (failures.isEmpty()) {
                         log("5ZIG SELFTEST PASS");
                         Runtime.getRuntime().halt(0);
