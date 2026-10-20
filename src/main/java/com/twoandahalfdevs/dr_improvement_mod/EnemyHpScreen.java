@@ -98,12 +98,10 @@ public final class EnemyHpScreen extends Screen {
         int x0 = cx - w / 2, x1 = x0 + w, y0 = top + 12, y1 = y0 + h;
         g.drawCenteredString(font, "§cSpooky Skeleton §f[Lv 90]", cx, top, 0xFFFFFFFF);
         g.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, MobHp.BORDER);
-        g.fill(x0, y0, x1, y1, MobHp.BACK);
-        int fe = x0 + Math.round(w * frac), te = x0 + Math.round(w * trail);
-        if (te > fe) g.fill(fe, y0, te, y1, MobHp.TRAIL);
-        g.fill(x0, y0, fe, y1, MobHp.fillColor(frac));
-        g.fill(x0, y0, fe, y0 + Math.max(1, Math.round(h * 0.45f)), MobHp.SHINE);
-        g.fill(x0, y1 - Math.max(1, Math.round(h * 0.3f)), fe, y1, MobHp.SHADE);
+        int fe = x0 + Math.round(w * frac), te = Math.max(fe, x0 + Math.round(w * trail));
+        bands(g, x0, fe, y0, y1, h, MobHp.fillColor(frac));
+        bands(g, fe, te, y0, y1, h, MobHp.TRAIL);
+        bands(g, te, x1, y0, y1, h, MobHp.BACK);
         String txt = switch (DrConfig.data.enemyHpText) {
             case "CURRENT" -> "1,840";
             case "CURRENT_PERCENT" -> "1,840 (77%)";
@@ -123,6 +121,15 @@ public final class EnemyHpScreen extends Screen {
             g.drawString(font, txt, tx, -4, 0xFFFFFFFF, false);
             g.pose().popPose();
         }
+    }
+
+    private static void bands(GuiGraphics g, int xa, int xb, int y0, int y1, int h, int argb) {
+        if (xb <= xa) return;
+        int top = y0 + Math.max(1, Math.round(h * 0.45f));
+        int bot = Math.max(top, y1 - Math.max(1, Math.round(h * 0.3f)));
+        g.fill(xa, y0, xb, top, MobHp.mix(argb, 0xFFFFFF, 0.22f));
+        g.fill(xa, top, xb, bot, argb);
+        g.fill(xa, bot, xb, y1, MobHp.mix(argb, 0x000000, 0.25f));
     }
 
     @Override

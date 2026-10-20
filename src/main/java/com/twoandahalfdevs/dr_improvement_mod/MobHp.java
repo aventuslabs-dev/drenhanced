@@ -261,18 +261,17 @@ public final class MobHp {
         // bar: border, background, damage trail, fill, shine/shade
         float x0 = -w / 2f, x1 = w / 2f, y0 = 0, y1 = h;
         VertexConsumer vc = buffers.getBuffer(RenderType.textBackgroundSeeThrough());
-        // Translucent quads are depth-sorted on upload, so give each layer its own small step towards the
-        // camera (+z after the camera rotation) to keep the order fixed from every viewing angle.
-        quad(vc, m, x0 - 1, y0 - 1, x1 + 1, y1 + 1, 0.0f, BORDER, bright);
-        quad(vc, m, x0, y0, x1, y1, 0.1f, BACK, bright);
+        // Translucent quads are depth-sorted on upload, so overlapping layers would swap order with the viewing
+        // angle. Draw non-overlapping pieces instead: fill | damage trail | empty, each in three shaded bands.
         float fillEnd = x0 + w * clamp(t.shown);
-        float trailEnd = x0 + w * clamp(t.trail);
-        if (trailEnd > fillEnd) quad(vc, m, fillEnd, y0, trailEnd, y1, 0.2f, TRAIL, bright);
-        if (fillEnd > x0) {
-            quad(vc, m, x0, y0, fillEnd, y1, 0.3f, fillColor(t.frac), bright);
-            quad(vc, m, x0, y0, fillEnd, y0 + Math.max(1f, h * 0.45f), 0.4f, SHINE, bright);
-            quad(vc, m, x0, y1 - Math.max(1f, h * 0.3f), fillEnd, y1, 0.4f, SHADE, bright);
-        }
+        float trailEnd = Math.max(fillEnd, x0 + w * clamp(t.trail));
+        bands(vc, m, x0, fillEnd, y0, y1, h, fillColor(t.frac), bright);
+        bands(vc, m, fillEnd, trailEnd, y0, y1, h, TRAIL, bright);
+        bands(vc, m, trailEnd, x1, y0, y1, h, BACK, bright);
+        quad(vc, m, x0 - 1, y0 - 1, x1 + 1, y0, BORDER, bright);
+        quad(vc, m, x0 - 1, y1, x1 + 1, y1 + 1, BORDER, bright);
+        quad(vc, m, x0 - 1, y0, x0, y1, BORDER, bright);
+        quad(vc, m, x1, y0, x1 + 1, y1, BORDER, bright);
 
         // name above the bar (DR's own colours), drawn like a vanilla nametag
         Component name = d.name();
@@ -297,6 +296,26 @@ public final class MobHp {
         pose.popPose();
     }
 
+    /** A bar segment with a light top band and a dark bottom band (the WoW gloss), no overlaps. */
+    private static void bands(VertexConsumer vc, Matrix4f m, float xa, float xb, float y0, float y1, int h, int argb, int light) {
+        if (xb - xa < 0.01f) return;
+        float top = y0 + Math.max(1f, h * 0.45f);
+        float bot = y1 - Math.max(1f, h * 0.3f);
+        if (bot < top) bot = top;
+        quad(vc, m, xa, y0, xb, top, mix(argb, 0xFFFFFF, 0.22f), light);
+        if (bot > top) quad(vc, m, xa, top, xb, bot, argb, light);
+        quad(vc, m, xa, bot, xb, y1, mix(argb, 0x000000, 0.25f), light);
+    }
+
+    /** Blend the RGB of argb towards rgb by t, keeping argb's alpha. */
+    static int mix(int argb, int rgb, float t) {
+        int a = argb >>> 24;
+        int r = (int) (((argb >> 16) & 255) * (1 - t) + ((rgb >> 16) & 255) * t);
+        int g = (int) (((argb >> 8) & 255) * (1 - t) + ((rgb >> 8) & 255) * t);
+        int b = (int) ((argb & 255) * (1 - t) + (rgb & 255) * t);
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
     private static float clamp(float f) {
         return Math.max(0f, Math.min(1f, f));
     }
@@ -311,11 +330,11 @@ public final class MobHp {
         if (t.trail < t.shown) t.trail = t.shown;
     }
 
-    private static void quad(VertexConsumer vc, Matrix4f m, float x0, float y0, float x1, float y1, float z, int argb, int light) {
-        vc.addVertex(m, x0, y1, z).setColor(argb).setLight(light);
-        vc.addVertex(m, x1, y1, z).setColor(argb).setLight(light);
-        vc.addVertex(m, x1, y0, z).setColor(argb).setLight(light);
-        vc.addVertex(m, x0, y0, z).setColor(argb).setLight(light);
+    private static void quad(VertexConsumer vc, Matrix4f m, float x0, float y0, float x1, float y1, int argb, int light) {
+        vc.addVertex(m, x0, y1, 0f).setColor(argb).setLight(light);
+        vc.addVertex(m, x1, y1, 0f).setColor(argb).setLight(light);
+        vc.addVertex(m, x1, y0, 0f).setColor(argb).setLight(light);
+        vc.addVertex(m, x0, y0, 0f).setColor(argb).setLight(light);
     }
 
     /** Test/preview access. */
