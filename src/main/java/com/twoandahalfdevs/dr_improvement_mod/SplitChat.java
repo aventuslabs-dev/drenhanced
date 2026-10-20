@@ -222,10 +222,9 @@ public final class SplitChat {
     // Opacity is read straight from the options while rendering, so swap in each box's values around its render.
     private static Object savedText, savedBg;
 
+    /** HUD path (chat closed): called around vanilla's own left-chat render. */
     public static void beginLeft(GuiGraphics g) {
-        var o = Minecraft.getInstance().options;
-        savedText = ((OptionAccess) (Object) o.chatOpacity()).drim$get();
-        savedBg = ((OptionAccess) (Object) o.textBackgroundOpacity()).drim$get();
+        save();
         apply(DrConfig.data.leftChat);
         g.pose().pushPose();
         g.pose().translate(leftX(), -DrConfig.data.leftChat.y, 0);
@@ -234,13 +233,49 @@ public final class SplitChat {
     public static void endLeftAndRenderRight(GuiGraphics g, int tickCount, int mouseX, int mouseY) {
         g.pose().popPose();
         try {
-            apply(DrConfig.data.rightChat);
-            render(g, tickCount, mouseX, mouseY);
+            // with chat open, the chat screen draws both boxes (renderBoth)
+            if (!(Minecraft.getInstance().screen instanceof net.minecraft.client.gui.screens.ChatScreen)) {
+                apply(DrConfig.data.rightChat);
+                renderRight(g, tickCount, mouseX, mouseY, false);
+            }
         } finally {
-            var o = Minecraft.getInstance().options;
-            if (savedText != null) ((OptionAccess) (Object) o.chatOpacity()).drim$set(savedText);
-            if (savedBg != null) ((OptionAccess) (Object) o.textBackgroundOpacity()).drim$set(savedBg);
+            restore();
         }
+    }
+
+    /** Chat-screen path (chat open): the screen renders the chat itself, so draw both boxes from there. */
+    public static void renderBoth(GuiGraphics g, int tickCount, int mouseX, int mouseY, boolean focused, LeftRender left) {
+        save();
+        try {
+            DrConfig.ChatBox lb = DrConfig.data.leftChat;
+            apply(lb);
+            g.pose().pushPose();
+            g.pose().translate(leftX(), -lb.y, 0);
+            left.render(mouseX - leftX(), mouseY + lb.y);
+            g.pose().popPose();
+            apply(DrConfig.data.rightChat);
+            renderRight(g, tickCount, mouseX, mouseY, focused);
+        } finally {
+            restore();
+        }
+    }
+
+    @FunctionalInterface
+    public interface LeftRender {
+        void render(int mouseX, int mouseY);
+    }
+
+    private static void save() {
+        var o = Minecraft.getInstance().options;
+        savedText = ((OptionAccess) (Object) o.chatOpacity()).drim$get();
+        savedBg = ((OptionAccess) (Object) o.textBackgroundOpacity()).drim$get();
+    }
+
+    private static void restore() {
+        var o = Minecraft.getInstance().options;
+        if (savedText != null) ((OptionAccess) (Object) o.chatOpacity()).drim$set(savedText);
+        if (savedBg != null) ((OptionAccess) (Object) o.textBackgroundOpacity()).drim$set(savedBg);
+        savedText = savedBg = null;
     }
 
     private static void apply(DrConfig.ChatBox b) {
@@ -256,7 +291,7 @@ public final class SplitChat {
         void drim$set(Object value);
     }
 
-    private static void render(GuiGraphics g, int tickCount, int mouseX, int mouseY) {
+    private static void renderRight(GuiGraphics g, int tickCount, int mouseX, int mouseY, boolean focused) {
         Minecraft mc = Minecraft.getInstance();
         int gw = g.guiWidth();
         if (gw != lastGuiWidth) { // re-wrap both chats for the new width
@@ -267,7 +302,7 @@ public final class SplitChat {
         int y = DrConfig.data.rightChat.y;
         g.pose().pushPose();
         g.pose().translate(x, -y, 0);
-        right().render(g, tickCount, mouseX - x, mouseY + y, false);
+        right().render(g, tickCount, mouseX - x, mouseY + y, focused);
         g.pose().popPose();
     }
 

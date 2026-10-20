@@ -159,7 +159,7 @@ final class SelfTest {
                 }
                 case 6 -> {
                     if (++waitTicks < 10) return;
-                    Screenshot.grab(mc.gameDirectory, "drim-chat-custom.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    Screenshot.grab(mc.gameDirectory, "drim-chat-custom-open.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     mc.setScreen(new ChatLayoutScreen(null));
                     stage = 7;
                     waitTicks = 0;

@@ -2,6 +2,10 @@ package com.twoandahalfdevs.dr_improvement_mod.mixin;
 
 import com.twoandahalfdevs.dr_improvement_mod.DrConfig;
 import com.twoandahalfdevs.dr_improvement_mod.SplitChat;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.ChatComponent;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -37,5 +41,16 @@ public abstract class ChatScreenMixin extends Screen {
         } else {
             cir.setReturnValue(this.minecraft.gui.getChat().getClickedComponentStyleAt(mx - SplitChat.leftX(), my + DrConfig.data.leftChat.y));
         }
+    }
+
+    /** The open chat is drawn by this screen: position/opacity the left box and draw the right one here too. */
+    @WrapOperation(method = "render", at = @At(value = "INVOKE",
+        target = "Lnet/minecraft/client/gui/components/ChatComponent;render(Lnet/minecraft/client/gui/GuiGraphics;IIIZ)V"))
+    private void drim$renderChats(ChatComponent chat, GuiGraphics g, int tick, int mx, int my, boolean focused, Operation<Void> original) {
+        if (!SplitChat.enabled() || SplitChat.isRight(chat)) {
+            original.call(chat, g, tick, mx, my, focused);
+            return;
+        }
+        SplitChat.renderBoth(g, tick, mx, my, focused, (lx, ly) -> original.call(chat, g, tick, lx, ly, focused));
     }
 }
