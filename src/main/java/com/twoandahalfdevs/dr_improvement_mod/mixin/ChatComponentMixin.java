@@ -33,7 +33,17 @@ public abstract class ChatComponentMixin {
     }
 
     @Inject(method = "getWidth()I", at = @At("RETURN"), cancellable = true)
-    private void drim$capWidth(CallbackInfoReturnable<Integer> cir) {
-        if (SplitChat.enabled()) cir.setReturnValue(SplitChat.capWidth(cir.getReturnValueI()));
+    private void drim$width(CallbackInfoReturnable<Integer> cir) {
+        if (SplitChat.enabled()) cir.setReturnValue(SplitChat.width((ChatComponent) (Object) this, cir.getReturnValueI()));
+    }
+
+    @Inject(method = "getHeight()I", at = @At("RETURN"), cancellable = true)
+    private void drim$height(CallbackInfoReturnable<Integer> cir) {
+        if (SplitChat.enabled()) cir.setReturnValue(SplitChat.height((ChatComponent) (Object) this));
+    }
+
+    @Inject(method = "getScale()D", at = @At("RETURN"), cancellable = true)
+    private void drim$scale(CallbackInfoReturnable<Double> cir) {
+        if (SplitChat.enabled()) cir.setReturnValue(SplitChat.box((ChatComponent) (Object) this).scale);
     }
 }

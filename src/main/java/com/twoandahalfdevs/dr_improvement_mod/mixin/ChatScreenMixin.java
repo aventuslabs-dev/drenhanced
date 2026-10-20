@@ -1,5 +1,6 @@
 package com.twoandahalfdevs.dr_improvement_mod.mixin;
 
+import com.twoandahalfdevs.dr_improvement_mod.DrConfig;
 import com.twoandahalfdevs.dr_improvement_mod.SplitChat;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -31,6 +32,10 @@ public abstract class ChatScreenMixin extends Screen {
     private void drim$style(double mx, double my, CallbackInfoReturnable<Style> cir) {
         if (!SplitChat.enabled()) return;
         int x = SplitChat.offsetX(this.width);
-        if (mx >= x) cir.setReturnValue(SplitChat.right().getClickedComponentStyleAt(mx - x, my));
+        if (mx >= x) {
+            cir.setReturnValue(SplitChat.right().getClickedComponentStyleAt(mx - x, my + DrConfig.data.rightChat.y));
+        } else {
+            cir.setReturnValue(this.minecraft.gui.getChat().getClickedComponentStyleAt(mx - SplitChat.leftX(), my + DrConfig.data.leftChat.y));
+        }
     }
 }

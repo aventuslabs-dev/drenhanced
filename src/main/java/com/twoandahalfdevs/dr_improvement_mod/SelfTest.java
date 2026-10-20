@@ -40,6 +40,7 @@ final class SelfTest {
         "net.minecraft.world.entity.player.Player",
         "net.minecraft.client.gui.components.ChatComponent",
         "net.minecraft.client.gui.screens.ChatScreen",
+        "net.minecraft.client.OptionInstance",
     };
 
     /** {text, expected player?} for the split-chat classifier, with "Steve", "Alex_99" and "AIbionOnline" online. */
@@ -144,6 +145,32 @@ final class SelfTest {
                 case 5 -> {
                     if (++waitTicks < 20) return;
                     Screenshot.grab(mc.gameDirectory, "drim-splitchat-open.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    // custom layout: smaller left text moved up, narrow right chat pulled in from the edge
+                    DrConfig.data.leftChat.scale = 0.75;
+                    DrConfig.data.leftChat.y = 40;
+                    DrConfig.data.rightChat.width = 180;
+                    DrConfig.data.rightChat.x = 20;
+                    DrConfig.data.rightChat.background = 0.9;
+                    SplitChat.relayout();
+                    if (SplitChat.right().getWidth() != 180) fail("right chat width not applied");
+                    if (Math.abs(mc.gui.getChat().getScale() - 0.75) > 1e-6) fail("left chat scale not applied");
+                    stage = 6;
+                    waitTicks = 0;
+                }
+                case 6 -> {
+                    if (++waitTicks < 10) return;
+                    Screenshot.grab(mc.gameDirectory, "drim-chat-custom.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    mc.setScreen(new ChatLayoutScreen(null));
+                    stage = 7;
+                    waitTicks = 0;
+                }
+                case 7 -> {
+                    if (++waitTicks < 15) return;
+                    if (!(mc.screen instanceof ChatLayoutScreen)) fail("chat layout screen did not open");
+                    else log("chat layout screen ok");
+                    Screenshot.grab(mc.gameDirectory, "drim-chat-layout-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    DrConfig.data.leftChat = new DrConfig.ChatBox();
+                    DrConfig.data.rightChat = new DrConfig.ChatBox();
                     stage = 99;
                     waitTicks = 0;
                 }

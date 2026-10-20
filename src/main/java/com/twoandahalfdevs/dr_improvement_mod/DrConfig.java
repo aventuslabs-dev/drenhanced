@@ -33,10 +33,43 @@ public final class DrConfig {
         public java.util.List<String> chatPlayerPatterns = new java.util.ArrayList<>();
         /** Regexes that force a message into the right/system chat (checked first). */
         public java.util.List<String> chatSystemPatterns = new java.util.ArrayList<>();
+        /** Size, text and position of the left (player) and right (system) chat boxes. */
+        public ChatBox leftChat = new ChatBox();
+        public ChatBox rightChat = new ChatBox();
 
         void clamp() {
+            if (leftChat == null) leftChat = new ChatBox();
+            if (rightChat == null) rightChat = new ChatBox();
+            leftChat.clamp();
+            rightChat.clamp();
             shadowmeldPoints = Math.max(0, Math.min(10, shadowmeldPoints));
             justMyNaturePoints = Math.max(0, Math.min(5, justMyNaturePoints));
+        }
+    }
+
+    public static final class ChatBox {
+        /** Width in GUI pixels; 0 = automatic (vanilla width, at most half the screen). */
+        public int width = 0;
+        public int heightFocused = 180;
+        public int heightUnfocused = 90;
+        /** Text size. */
+        public double scale = 1.0;
+        public double textOpacity = 1.0;
+        public double background = 0.5;
+        /** Distance from its screen edge (left edge for the left chat, right edge for the right chat). */
+        public int x = 0;
+        /** Distance moved up from the default position. */
+        public int y = 0;
+
+        void clamp() {
+            width = Math.max(0, Math.min(1000, width));
+            heightFocused = Math.max(20, Math.min(600, heightFocused));
+            heightUnfocused = Math.max(20, Math.min(600, heightUnfocused));
+            scale = Math.max(0.25, Math.min(3.0, scale));
+            textOpacity = Math.max(0.1, Math.min(1.0, textOpacity));
+            background = Math.max(0.0, Math.min(1.0, background));
+            x = Math.max(0, Math.min(1000, x));
+            y = Math.max(0, Math.min(1000, y));
         }
     }
 

@@ -24,6 +24,11 @@ public abstract class GuiMixin {
         ClientEvents.renderHudAbove(guiGraphics);
     }
 
+    @Inject(method = "renderChat", at = @At("HEAD"))
+    private void drim$leftChat(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
+        if (SplitChat.enabled()) SplitChat.beginLeft(guiGraphics);
+    }
+
     /** Draw the right-hand system chat right after the vanilla one, with the same visibility rules. */
     @Inject(method = "renderChat", at = @At("TAIL"))
     private void drim$rightChat(GuiGraphics guiGraphics, DeltaTracker deltaTracker, CallbackInfo ci) {
@@ -32,6 +37,6 @@ public abstract class GuiMixin {
         var w = mc.getWindow();
         int mx = (int) (mc.mouseHandler.xpos() * w.getGuiScaledWidth() / w.getScreenWidth());
         int my = (int) (mc.mouseHandler.ypos() * w.getGuiScaledHeight() / w.getScreenHeight());
-        SplitChat.render(guiGraphics, ((Gui) (Object) this).getGuiTicks(), mx, my);
+        SplitChat.endLeftAndRenderRight(guiGraphics, ((Gui) (Object) this).getGuiTicks(), mx, my);
     }
 }

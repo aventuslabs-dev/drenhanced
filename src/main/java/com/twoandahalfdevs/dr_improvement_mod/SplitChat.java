@@ -180,34 +180,94 @@ public final class SplitChat {
 
     // ------------------------------------------------------------------ layout
 
+    public static DrConfig.ChatBox box(ChatComponent c) {
+        return isRight(c) ? DrConfig.data.rightChat : DrConfig.data.leftChat;
+    }
+
     /** Left edge of the right-hand chat, in GUI pixels. */
     public static int offsetX(int guiWidth) {
         ChatComponent c = right();
         double scale = c.getScale();
         int visual = Mth.ceil((Mth.ceil(c.getWidth() / scale) + 12) * scale);
-        return Math.max(guiWidth / 2, guiWidth - visual - 2);
+        return Math.max(0, guiWidth - visual - 2 - DrConfig.data.rightChat.x);
     }
 
-    /** Both chats share the screen, so neither may be wider than half of it. */
-    public static int capWidth(int width) {
+    public static int leftX() {
+        return DrConfig.data.leftChat.x;
+    }
+
+    /** Custom width, or the vanilla width capped at half the screen so the two chats don't overlap. */
+    public static int width(ChatComponent c, int vanilla) {
+        DrConfig.ChatBox b = box(c);
+        if (b.width > 0) return b.width;
         Minecraft mc = Minecraft.getInstance();
-        if (mc.getWindow() == null) return width;
+        if (mc.getWindow() == null) return vanilla;
         int half = mc.getWindow().getGuiScaledWidth() / 2 - 14;
-        return Math.max(40, Math.min(width, half));
+        return Math.max(40, Math.min(vanilla, half));
     }
 
-    public static void render(GuiGraphics g, int tickCount, int mouseX, int mouseY) {
+    public static int height(ChatComponent c) {
+        DrConfig.ChatBox b = box(c);
+        return Minecraft.getInstance().screen instanceof net.minecraft.client.gui.screens.ChatScreen ? b.heightFocused : b.heightUnfocused;
+    }
+
+    /** Re-wrap both chats after a width / size change. */
+    public static void relayout() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.gui == null) return;
+        mc.gui.getChat().rescaleChat();
+        right().rescaleChat();
+    }
+
+    // Opacity is read straight from the options while rendering, so swap in each box's values around its render.
+    private static Object savedText, savedBg;
+
+    public static void beginLeft(GuiGraphics g) {
+        var o = Minecraft.getInstance().options;
+        savedText = ((OptionAccess) (Object) o.chatOpacity()).drim$get();
+        savedBg = ((OptionAccess) (Object) o.textBackgroundOpacity()).drim$get();
+        apply(DrConfig.data.leftChat);
+        g.pose().pushPose();
+        g.pose().translate(leftX(), -DrConfig.data.leftChat.y, 0);
+    }
+
+    public static void endLeftAndRenderRight(GuiGraphics g, int tickCount, int mouseX, int mouseY) {
+        g.pose().popPose();
+        try {
+            apply(DrConfig.data.rightChat);
+            render(g, tickCount, mouseX, mouseY);
+        } finally {
+            var o = Minecraft.getInstance().options;
+            if (savedText != null) ((OptionAccess) (Object) o.chatOpacity()).drim$set(savedText);
+            if (savedBg != null) ((OptionAccess) (Object) o.textBackgroundOpacity()).drim$set(savedBg);
+        }
+    }
+
+    private static void apply(DrConfig.ChatBox b) {
+        var o = Minecraft.getInstance().options;
+        ((OptionAccess) (Object) o.chatOpacity()).drim$set(b.textOpacity);
+        ((OptionAccess) (Object) o.textBackgroundOpacity()).drim$set(b.background);
+    }
+
+    /** Implemented by a mixin on OptionInstance: raw value access without firing option callbacks. */
+    public interface OptionAccess {
+        Object drim$get();
+
+        void drim$set(Object value);
+    }
+
+    private static void render(GuiGraphics g, int tickCount, int mouseX, int mouseY) {
         Minecraft mc = Minecraft.getInstance();
         int gw = g.guiWidth();
         if (gw != lastGuiWidth) { // re-wrap both chats for the new width
             lastGuiWidth = gw;
-            mc.gui.getChat().rescaleChat();
-            right().rescaleChat();
+            relayout();
         }
         int x = offsetX(gw);
+        int y = DrConfig.data.rightChat.y;
         g.pose().pushPose();
-        g.pose().translate(x, 0, 0);
-        right().render(g, tickCount, mouseX - x, mouseY, false);
+        g.pose().translate(x, -y, 0);
+        right().render(g, tickCount, mouseX - x, mouseY + y, false);
         g.pose().popPose();
     }
 

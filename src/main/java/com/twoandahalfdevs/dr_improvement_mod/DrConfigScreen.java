@@ -50,6 +50,10 @@ public class DrConfigScreen extends Screen {
         addRenderableWidget(new IntSlider(left, y, "Shadowmeld points", c.shadowmeldPoints, 0, 10, v -> c.shadowmeldPoints = v));
         addRenderableWidget(new IntSlider(right, y, "Just My Nature points", c.justMyNaturePoints, 0, 5, v -> c.justMyNaturePoints = v));
 
+        y += GAP;
+        addRenderableWidget(Button.builder(Component.literal("Chat layout..."), b -> this.minecraft.setScreen(new ChatLayoutScreen(this)))
+            .bounds(left, y, W, H).build());
+
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());
     }
