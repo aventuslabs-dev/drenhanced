@@ -214,7 +214,7 @@ final class SelfTest {
                         var rival = new net.minecraft.client.player.RemotePlayer(mc.level,
                             new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Rival"));
                         var pp = mc.player.position();
-                        rival.setPos(pp.x - 4.5, pp.y, pp.z + 7);
+                        rival.setPos(pp.x + 5.5, pp.y, pp.z + 9);
                         rival.setHealth(12f);
                         mc.level.addEntity(rival);
                         MobHp.testPlayers.add(rival.getId());
