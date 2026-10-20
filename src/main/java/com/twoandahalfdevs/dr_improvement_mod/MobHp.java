@@ -80,7 +80,8 @@ public final class MobHp {
     private static final Map<Integer, Track> tracks = new HashMap<>();
     /** Max HP last seen for "name|level", used as an estimate for other mobs of the same kind. */
     private static final Map<String, Integer> maxByKind = new HashMap<>();
-    private static final Pattern DMG = Pattern.compile("(\\d+) \\S*DMG -> (.+?) \\[(\\d+) HP]");
+    /** "523 DMG -> Fiendish Skeleton [7319 HP]", also "36 DMG (Thorns) -> ..." and "(Reflect)". */
+    private static final Pattern DMG = Pattern.compile("(\\d+) \\S*DMG(?: \\(([^)]*)\\))? -> (.+?) \\[(\\d+) HP]");
     private static final Pattern LEVEL = Pattern.compile("\\[Lv\\.? ?(\\d+)]");
     private static final NumberFormat NUM = NumberFormat.getIntegerInstance(Locale.US);
 
@@ -242,7 +243,8 @@ public final class MobHp {
                 keep.append(txt.charAt(i));
             }
             if (keep.isEmpty()) continue;
-            if (st.isBold() && !keep.toString().isBlank()) elite = true;
+            // Elite = bold name letters. DR's affix icons ("❄ ", "♨ ") are bold too, so they don't count.
+            if (st.isBold() && keep.chars().anyMatch(Character::isLetter)) elite = true;
             name.append(Component.literal(keep.toString()).withStyle(st.withBold(false)));
         }
         String nameText = name.getString().trim();
@@ -276,15 +278,16 @@ public final class MobHp {
         Matcher m = DMG.matcher(SplitChat.strip(raw));
         if (!m.find()) return;
         int dmg = Integer.parseInt(m.group(1));
-        String target = m.group(2).trim();
-        int left = Integer.parseInt(m.group(3));
+        String source = m.group(2); // null for a normal hit, "Thorns" / "Reflect" otherwise
+        String target = m.group(3).trim();
+        int left = Integer.parseInt(m.group(4));
         long now = System.currentTimeMillis();
 
         Track t = null;
         if (now - lastAttackAt < 1500) t = tracks.get(lastAttacked);
         if (t == null) t = byName(target, now); // staff / bow hits don't go through attack()
         if (t == null) return;
-        FloatingText.fromChat(dmg, t.pos, t.height);
+        FloatingText.fromChat(dmg, t.pos, t.height, source);
 
         boolean wasFull = t.hp < 0 && now - t.plainAt < 2000;
         t.hp = left;

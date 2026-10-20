@@ -134,7 +134,7 @@ public final class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
         GuiAccessor gui = (GuiAccessor) mc.gui;
         Component msg = gui.drim$getOverlayMessage();
-        DrState.onActionBar(msg == null ? null : msg.getString(), gui.drim$getOverlayTime());
+        DrState.onActionBar(msg, gui.drim$getOverlayTime());
 
         if (DrConfig.usefulInfo()) {
             HudRenderer.draw(g);

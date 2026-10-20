@@ -34,17 +34,20 @@ import java.util.regex.Pattern;
 public final class FloatingText {
     private FloatingText() {}
 
-    enum Kind {OUT, CRIT, IN, HEAL}
+    public enum Kind {OUT, CRIT, IN, HEAL, THORNS}
 
     private static final class Num {
         final String text;
-        final Kind kind;
+        Kind kind;
+        String label;      // proc above the number, e.g. "Shattered"
+        final int amount;
         final Vec3 pos;
         final double driftX, driftZ;
         final long born;
 
-        Num(String text, Kind kind, Vec3 pos, double driftX, double driftZ, long born) {
+        Num(String text, int amount, Kind kind, Vec3 pos, double driftX, double driftZ, long born) {
             this.text = text;
+            this.amount = amount;
             this.kind = kind;
             this.pos = pos;
             this.driftX = driftX;
@@ -54,7 +57,15 @@ public final class FloatingText {
     }
 
     /** A chat-reported hit waiting briefly in case DR's hologram for it shows up. */
-    private record Pending(int amount, Vec3 pos, boolean incoming, long at) {}
+    private record Pending(int amount, Vec3 pos, Kind kind, String label, long at) {}
+
+    /** DR sends "* CRIT *" (and proc lines like "* SHATTERED *") a few ms before the damage line they belong to. */
+    private static long critAt;
+    private static String procLabel;
+    private static long procAt;
+    private static final Pattern MARKER = Pattern.compile("^\\*\\s*(.+?)\\s*\\*$");
+    /** amount -> time of a damage line flagged crit (to upgrade a hologram number that arrived first). */
+    private static final Map<Integer, Long> critAmounts = new HashMap<>();
 
     private static final List<Num> nums = new ArrayList<>();
     private static final List<Pending> pending = new ArrayList<>();
@@ -64,7 +75,6 @@ public final class FloatingText {
     private static final Pattern HOLO = Pattern.compile("^([+-])\\s?([\\d,]+)\\s*(?:❤|HP)?\\s*$");
     private static final NumberFormat NUM = NumberFormat.getIntegerInstance(Locale.US);
     private static final Random RNG = new Random();
-    private static double avgHit = -1;
 
     public static boolean enabled() {
         return DrConfig.data.fctEnabled;
@@ -84,11 +94,13 @@ public final class FloatingText {
         long now = System.currentTimeMillis();
         Set<Integer> alive = new HashSet<>();
         for (Entity e : mc.level.entitiesForRendering()) {
-            if (!(e instanceof ArmorStand)) continue;
+            Component name;
+            if (e instanceof ArmorStand) name = e.getCustomName();
+            else if (e instanceof net.minecraft.world.entity.Display.TextDisplay td) name = textOf(td); // DR's current floating text
+            else continue;
             int id = e.getId();
             alive.add(id);
             if (seen.contains(id)) continue;
-            Component name = e.getCustomName();
             if (name == null) continue;
             Matcher m = HOLO.matcher(SplitChat.strip(name.getString()).trim());
             if (!m.find()) continue;
@@ -96,14 +108,17 @@ public final class FloatingText {
             hidden.add(id);
             int amount = parse(m.group(2));
             boolean heal = "+".equals(m.group(1));
-            Vec3 at = e.position().add(0, ((ArmorStand) e).isMarker() ? 0.3 : e.getBbHeight() + 0.3, 0);
+            Vec3 at = e instanceof ArmorStand as ? e.position().add(0, as.isMarker() ? 0.3 : e.getBbHeight() + 0.3, 0) : e.position();
             boolean incoming = at.distanceToSqr(mc.player.getEyePosition()) < 2.5 * 2.5;
             holoValues.put(amount, now);
-            if (enabled()) spawn(amount, heal ? Kind.HEAL : incoming ? Kind.IN : outgoingKind(amount), at, now);
+            Long crit = critAmounts.get(amount);
+            Kind kind = heal ? Kind.HEAL : incoming ? Kind.IN : crit != null && now - crit < 800 ? Kind.CRIT : Kind.OUT;
+            if (enabled()) spawn(amount, kind, null, at, now);
         }
         seen.retainAll(alive);
         hidden.retainAll(alive);
         holoValues.values().removeIf(t -> now - t > 3000);
+        critAmounts.values().removeIf(t -> now - t > 3000);
 
         // chat-reported hits with no matching hologram after a short wait
         for (Iterator<Pending> it = pending.iterator(); it.hasNext(); ) {
@@ -113,7 +128,7 @@ public final class FloatingText {
                 it.remove();
             } else if (now - p.at > 250) {
                 it.remove();
-                if (enabled()) spawn(p.amount, p.incoming ? Kind.IN : outgoingKind(p.amount), p.pos, now);
+                if (enabled()) spawn(p.amount, p.kind, p.label, p.pos, now);
             }
         }
         long life = lifeMillis();
@@ -121,9 +136,25 @@ public final class FloatingText {
     }
 
     /** Called by MobHp when a "DMG -> Name [HP]" line was matched to a mob at {@code pos} (feet). */
-    public static void fromChat(int amount, Vec3 pos, double height) {
+    public static void fromChat(int amount, Vec3 pos, double height, String source) {
         if (pos == null) return;
-        pending.add(new Pending(amount, pos.add(0, height + 0.4, 0), false, System.currentTimeMillis()));
+        long now = System.currentTimeMillis();
+        boolean crit = source == null && now - critAt < 150;
+        if (crit) critAt = 0; // a crit marker belongs to one hit
+        String label = source == null && now - procAt < 150 ? procLabel : source;
+        if (source == null && label != null) procAt = 0;
+        Kind kind = crit && DrConfig.data.fctBigHits ? Kind.CRIT : source != null ? Kind.THORNS : Kind.OUT;
+        if (crit) {
+            critAmounts.put(amount, now);
+            // the hologram for this hit may already be on screen: upgrade it
+            for (Num n : nums) {
+                if (n.amount == amount && n.kind == Kind.OUT && now - n.born < 800) {
+                    n.kind = Kind.CRIT;
+                    n.label = label;
+                }
+            }
+        }
+        pending.add(new Pending(amount, pos.add(0, height + 0.4, 0), kind, label, now));
     }
 
     private static final Pattern IN_LINE = Pattern.compile("-(\\d+) \\S*HP \\((.+)\\)");
@@ -131,37 +162,59 @@ public final class FloatingText {
     /** DR chat lines that aren't tied to a tracked mob: "-35 HP (Attacker)" = damage you took. */
     public static void onChatLine(String raw) {
         if (raw == null) return;
-        Matcher m = IN_LINE.matcher(SplitChat.strip(raw));
+        String txt = SplitChat.strip(raw).trim();
+        Matcher mk = MARKER.matcher(txt);
+        if (mk.find()) {
+            String what = mk.group(1).toUpperCase(Locale.ROOT);
+            long now = System.currentTimeMillis();
+            if (what.equals("CRIT")) critAt = now;
+            else if (what.startsWith("TARGET ") || what.equals("SHATTERED")) {
+                String w = what.startsWith("TARGET ") ? what.substring(7) : what;
+                procLabel = w.charAt(0) + w.substring(1).toLowerCase(Locale.ROOT);
+                procAt = now;
+            }
+            return;
+        }
+        Matcher m = IN_LINE.matcher(txt);
         if (m.find()) incomingFromChat(parse(m.group(1)));
+    }
+
+    private static Component textOf(net.minecraft.world.entity.Display.TextDisplay td) {
+        try {
+            return td.getEntityData().get(com.twoandahalfdevs.dr_improvement_mod.mixin.TextDisplayAccessor.drim$textId());
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /** Text of a DR text-display entity (also used by capture mode). */
+    public static Component displayText(Entity e) {
+        return e instanceof net.minecraft.world.entity.Display.TextDisplay td ? textOf(td) : null;
     }
 
     /** "-35 HP (Attacker)": damage you took. */
     public static void incomingFromChat(int amount) {
         var p = Minecraft.getInstance().player;
         if (p == null || !DrConfig.data.fctIncoming) return;
-        pending.add(new Pending(amount, p.position().add(0, p.getBbHeight() + 0.5, 0), true, System.currentTimeMillis()));
+        pending.add(new Pending(amount, p.position().add(0, p.getBbHeight() + 0.5, 0), Kind.IN, null, System.currentTimeMillis()));
     }
 
-    /** Hits much bigger than your recent average get the crit treatment (DR doesn't mark crits reliably). */
-    private static Kind outgoingKind(int amount) {
-        boolean big = avgHit > 0 && amount >= avgHit * 1.6;
-        avgHit = avgHit < 0 ? amount : avgHit * 0.85 + amount * 0.15;
-        return big && DrConfig.data.fctBigHits ? Kind.CRIT : Kind.OUT;
-    }
-
-    private static void spawn(int amount, Kind kind, Vec3 at, long now) {
+    private static void spawn(int amount, Kind kind, String label, Vec3 at, long now) {
         if (kind == Kind.HEAL && !DrConfig.data.fctHeals) return;
         if (kind == Kind.IN && !DrConfig.data.fctIncoming) return;
         String text = switch (kind) {
             case HEAL -> "+" + NUM.format(amount);
             case IN -> "-" + NUM.format(amount);
             case CRIT -> NUM.format(amount) + "!";
+            case THORNS -> NUM.format(amount);
             default -> NUM.format(amount);
         };
         double a = RNG.nextDouble() * Math.PI * 2;
         double r = 0.25 + RNG.nextDouble() * 0.35;
-        nums.add(new Num(text, kind, at.add((RNG.nextDouble() - 0.5) * 0.4, (RNG.nextDouble() - 0.5) * 0.2, (RNG.nextDouble() - 0.5) * 0.4),
-                Math.cos(a) * r, Math.sin(a) * r, now));
+        Num num = new Num(text, amount, kind, at.add((RNG.nextDouble() - 0.5) * 0.4, (RNG.nextDouble() - 0.5) * 0.2, (RNG.nextDouble() - 0.5) * 0.4),
+                Math.cos(a) * r, Math.sin(a) * r, now);
+        num.label = label;
+        nums.add(num);
         if (nums.size() > 60) nums.remove(0);
     }
 
@@ -209,6 +262,7 @@ public final class FloatingText {
                 case CRIT -> 0xFFC02A;
                 case IN -> 0xFF3B3B;
                 case HEAL -> 0x3DFF5A;
+                case THORNS -> 0xC79BFF;
                 default -> 0xFFFFFF;
             };
             // keep a readable size at range, like WoW's screen-space text
@@ -226,6 +280,15 @@ public final class FloatingText {
                 font.drawInBatch(seq, x, 0, a | color, false, m, buffers, Font.DisplayMode.SEE_THROUGH, 0, LightTexture.FULL_BRIGHT);
             }
             font.drawInBatch8xOutline(seq, x, 0, a | color, a, m, buffers, LightTexture.FULL_BRIGHT);
+            if (n.label != null && DrConfig.data.fctProcs) { // "Shattered", "Cleaved", "Thorns" above the number
+                pose.pushPose();
+                pose.translate(0, -8f, 0);
+                pose.scale(0.6f, 0.6f, 1f);
+                Matrix4f lm = pose.last().pose();
+                FormattedCharSequence ls = Component.literal(n.label).getVisualOrderText();
+                font.drawInBatch8xOutline(ls, -font.width(ls) / 2f, 0, a | 0xFFE9A0, a, lm, buffers, LightTexture.FULL_BRIGHT);
+                pose.popPose();
+            }
             pose.popPose();
         }
         buffers.endBatch();
@@ -237,10 +300,17 @@ public final class FloatingText {
         if (p == null) return;
         long now = System.currentTimeMillis();
         Vec3 front = p.getEyePosition().add(p.getLookAngle().scale(3.5));
-        spawn(1074, Kind.OUT, front.add(-0.6, 0, 0), now);
-        spawn(2391, Kind.CRIT, front.add(0, 0.2, 0), now);
-        spawn(125, Kind.HEAL, front.add(0.7, -0.2, 0), now);
-        spawn(43, Kind.IN, p.position().add(0, p.getBbHeight() + 0.5, 0), now);
+        spawn(523, Kind.OUT, null, front.add(-0.6, 0, 0), now);
+        spawn(1105, Kind.CRIT, "Shattered", front.add(0, 0.2, 0), now);
+        spawn(36, Kind.THORNS, "Thorns", front.add(0.6, -0.3, 0), now);
+        spawn(125, Kind.HEAL, null, front.add(0.7, -0.2, 0), now);
+        spawn(43, Kind.IN, null, p.position().add(0, p.getBbHeight() + 0.5, 0), now);
+    }
+
+    public static int countKind(Kind k) {
+        int c = 0;
+        for (Num n : nums) if (n.kind == k) c++;
+        return c;
     }
 
     static int count() {

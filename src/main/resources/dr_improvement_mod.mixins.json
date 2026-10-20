@@ -23,7 +23,8 @@
     "OptionInstanceMixin",
     "PlayerMixin",
     "PlayerRendererMixin",
-    "PlayerTeamMixin"
+    "PlayerTeamMixin",
+    "TextDisplayAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

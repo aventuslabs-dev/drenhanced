@@ -55,14 +55,17 @@ public final class CooldownBar {
         long now = System.currentTimeMillis();
         DrConfig.Data c = DrConfig.data;
 
-        // Class ultimate: shown green while active, red while cooling down, nothing in the action bar = ready.
-        double ult = 0;
-        boolean ultActive = false;
-        if (DrState.ultCd != null) {
-            ult = Math.max(0, DrState.ultCd - (now - DrState.ultCdStamp) / 1000.0);
-            ultActive = DrState.ultActive;
+        // Abilities from DR's action bar ("The Fast: [7s]" green = active, "Dash [4s]" = cooldown).
+        // Every ability seen this session keeps a slot, shown ready when it's no longer counting down.
+        if (DrState.knownAbilities.isEmpty()) {
+            out.add(track("ult", ultIcon(DrState.ultName), "Ultimate", 0, false, null, now));
         }
-        out.add(track("ult", ultIcon(DrState.ultName), "Ultimate", ult, ultActive, null, now));
+        for (String name : DrState.knownAbilities) {
+            DrState.Ability a = DrState.abilities.get(name);
+            double rem = a == null ? 0 : a.remaining();
+            boolean active = a != null && a.active();
+            out.add(track("ab:" + name, ultIcon(name), name, rem, active, null, now));
+        }
 
         // Potions: count badge, cooldown sweep.
         int carried = 0;
@@ -71,7 +74,9 @@ public final class CooldownBar {
         }
         double pot = DrState.potCd == null ? 0 : Math.max(0, DrState.potCd - (now - DrState.potCdStamp) / 1000.0);
         int usable = Math.min(DrState.pots, carried);
-        out.add(track("pot", new ItemStack(Items.POTION), "Potions", pot, false, usable + "/" + carried, now));
+        if (carried > 0 || DrState.potCd != null) {
+            out.add(track("pot", new ItemStack(Items.POTION), "Potions", pot, false, usable + "/" + carried, now));
+        }
 
         if (c.cdShowCombat) {
             double combat = DrState.combatRemaining();
@@ -125,7 +130,8 @@ public final class CooldownBar {
         Item item = Items.NETHER_STAR;
         if (name != null) {
             switch (name) {
-                case "The Fast" -> item = Items.FEATHER;
+                case "The Fast" -> item = Items.SUGAR;
+                case "Dash" -> item = Items.FEATHER;
                 case "Berserk" -> item = Items.BLAZE_POWDER;
                 case "Divine Protection" -> item = Items.SHIELD;
                 case "Deaths Grasp" -> item = Items.WITHER_SKELETON_SKULL;

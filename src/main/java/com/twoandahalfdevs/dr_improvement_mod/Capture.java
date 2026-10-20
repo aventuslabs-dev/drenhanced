@@ -182,6 +182,7 @@ public final class Capture {
         for (Entity e : mc.level.entitiesForRendering()) {
             if (e == mc.player) continue;
             Component n = e instanceof Player ? e.getDisplayName() : e.getCustomName();
+            if (n == null) n = FloatingText.displayText(e); // DR's floating text (text displays)
             if (n == null) continue;
             alive.add(e.getId());
             String s = n.getString();

@@ -71,8 +71,9 @@ public final class EnemyHp {
             }
         }
         if (total < 8) return null; // not a health bar
-        // a bar that is entirely one colour is either full or uses a separate "empty" shade we didn't see
-        return new Parsed(filled, total, before.toString().trim(), after.toString().trim());
+        // DR caps the bar with "▌" on both sides
+        String b = before.toString().replace("\u258c", "").trim(), a = after.toString().replace("\u258c", "").trim();
+        return new Parsed(filled, total, b, a);
     }
 
     private static boolean same(TextColor a, TextColor b) {

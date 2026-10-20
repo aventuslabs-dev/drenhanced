@@ -122,6 +122,22 @@ final class SelfTest {
                     if (legacyParts == null || legacyParts.elite() || !"Goblin Scout".equals(legacyParts.name().getString()))
                         fail("nameplate split (legacy)");
                     if (MobHp.split(Component.literal("Shop Keeper")) != null) fail("NPC name treated as mob");
+                    // DR affix icon is bold but the mob isn't elite; a bold name is
+                    var affix = MobHp.split(Component.empty()
+                        .append(Component.literal("\u2744 ").withStyle(net.minecraft.ChatFormatting.BLUE, net.minecraft.ChatFormatting.BOLD))
+                        .append(Component.literal("Dwarven War Golem").withStyle(net.minecraft.ChatFormatting.YELLOW))
+                        .append(Component.literal(" [").withStyle(net.minecraft.ChatFormatting.GRAY))
+                        .append(Component.literal("Lv 91").withStyle(net.minecraft.ChatFormatting.GREEN))
+                        .append(Component.literal("]").withStyle(net.minecraft.ChatFormatting.GRAY)));
+                    if (affix == null || affix.elite() || !"91".equals(affix.level())) fail("affix mob flagged elite / level wrong");
+                    var drBar = EnemyHp.parse(Component.empty()
+                        .append(Component.literal("\u258c").withStyle(net.minecraft.ChatFormatting.GREEN))
+                        .append(Component.literal("||||||||||||||||||||||||||||").withStyle(net.minecraft.ChatFormatting.GREEN))
+                        .append(Component.literal("||").withStyle(net.minecraft.ChatFormatting.GRAY))
+                        .append(Component.literal("\u258c").withStyle(net.minecraft.ChatFormatting.GREEN))
+                        .append(Component.literal(" [Lv 92]").withStyle(net.minecraft.ChatFormatting.GRAY)));
+                    if (drBar == null || drBar.filled() != 28 || drBar.total() != 30 || !"[Lv 92]".equals(drBar.after()))
+                        fail("DR 30-pipe bar: " + (drBar == null ? "null" : EnemyHp.describe(drBar)));
                     DrState.setPlayerLevel(90);
                     log("enemy hp parser ok -> " + EnemyHp.render(parsed, EnemyHp.Style.BAR_PERCENT, 12, true).getString());
                     mc.setScreen(new DrConfigScreen(mc.screen));
@@ -186,7 +202,13 @@ final class SelfTest {
                     }
                     if (waitTicks == 20) {
                         // DR action bar: ultimate + potion cooldowns, and a vanilla item cooldown on a hotbar item
-                        mc.gui.setOverlayMessage(Component.literal("\u00a7cThe Fast: [32s]   \u00a7f[2/5] Potions: [5s]"), false);
+                        // DR's current action bar: coloured parts joined by "▪" (from a real capture)
+                        mc.gui.setOverlayMessage(Component.empty()
+                            .append(Component.literal("The Fast: [7s]").withStyle(net.minecraft.ChatFormatting.GREEN))
+                            .append(Component.literal(" \u25aa ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY))
+                            .append(Component.literal("Dash [4s]").withStyle(net.minecraft.ChatFormatting.RED))
+                            .append(Component.literal(" \u25aa ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY))
+                            .append(Component.literal("PvM Combat: [3s]").withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD)), false);
                         mc.player.getInventory().items.set(1, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ENDER_PEARL, 8));
                         mc.player.getCooldowns().addCooldown(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ENDER_PEARL), 200);
                     }
@@ -208,7 +230,7 @@ final class SelfTest {
                         // DR-style damage holograms: one by the mob, a heal above the player
                         MinecraftServer srv = mc.getSingleplayerServer();
                         for (String cmd : new String[]{
-                                "execute at @a run summon armor_stand ~-2 ~2.3 ~5 {Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{\"text\":\"-1074 \u2764\",\"color\":\"red\"}'}",
+                                "execute at @a run summon text_display ~-2 ~2.3 ~5 {billboard:\"center\",text:'{\"text\":\"-1074 \u2764\",\"color\":\"red\"}'}",
                                 "execute at @a run summon armor_stand ~0.5 ~2.2 ~1 {Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{\"text\":\"+125 \u2764\",\"color\":\"green\"}'}"}) {
                             srv.execute(() -> srv.getCommands().performPrefixedCommand(srv.createCommandSourceStack(), cmd));
                         }
@@ -218,13 +240,24 @@ final class SelfTest {
                     int fct = FloatingText.count();
                     boolean holoHidden = false;
                     for (var e : mc.level.entitiesForRendering()) {
-                        if (e instanceof net.minecraft.world.entity.decoration.ArmorStand && e.getCustomName() != null
-                            && e.getCustomName().getString().startsWith("-1074")) holoHidden = FloatingText.isHidden(e);
+                        Component dt = FloatingText.displayText(e);
+                        if (dt != null && dt.getString().startsWith("-1074")) holoHidden = FloatingText.isHidden(e);
                     }
                     if (rivalPlayer != null) {
                         if (MobHp.trackOf(rivalPlayer) == null) fail("no plate for the test player");
                         else log("player plate ok");
                     }
+                    // action bar abilities + DR's own combat timer
+                    var fast = DrState.abilities.get("The Fast");
+                    var dash = DrState.abilities.get("Dash");
+                    double combat = DrState.combatRemaining();
+                    log("abilities: " + DrState.abilities.keySet() + " combat=" + combat);
+                    if (fast == null || !fast.active() || dash == null || dash.active()) fail("action bar abilities not parsed: " + DrState.abilities);
+                    if (combat <= 0 || combat > 3.01) fail("server combat timer not used: " + combat);
+                    // a real crit: DR's "* CRIT *" line right before the damage line
+                    DrState.onChat("                                * CRIT *");
+                    DrState.onChat("1105 DMG -> Spooky Skeleton [1175 HP]");
+                    DrState.onChat("36 DMG (Thorns) -> Spooky Skeleton [1139 HP]");
                     log("floating text: " + fct + " numbers on screen, DR hologram hidden=" + holoHidden);
                     if (fct < 2) fail("floating damage numbers not spawned (" + fct + ")");
                     if (!holoHidden) fail("DR damage hologram not taken over");
@@ -247,6 +280,12 @@ final class SelfTest {
                     waitTicks = 0;
                 }
                 case 5 -> {
+                    if (waitTicks == 10) { // pending chat hits spawn after ~250 ms
+                        int crits = FloatingText.countKind(FloatingText.Kind.CRIT), thorns = FloatingText.countKind(FloatingText.Kind.THORNS);
+                        log("crit numbers: " + crits + ", thorns numbers: " + thorns);
+                        if (crits < 1) fail("crit not shown as crit");
+                        if (thorns < 1) fail("thorns damage not shown");
+                    }
                     if (++waitTicks < 20) return;
                     Screenshot.grab(mc.gameDirectory, "drim-splitchat-open.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     // custom layout: smaller left text moved up, narrow right chat pulled in from the edge

@@ -32,11 +32,13 @@ public final class FloatingTextScreen extends Screen {
         toggle(left, y, "Floating damage", c.fctEnabled, v -> c.fctEnabled = v, "WoW-style numbers that pop off mobs when you hit them.");
         toggle(right, y, "Hide DR's numbers", c.fctHideDr, v -> c.fctHideDr = v, "Hide DR's own \"-1074 ❤\" holograms (ours replace them).");
         y += ROW;
-        toggle(left, y, "Big hits", c.fctBigHits, v -> c.fctBigHits = v, "Hits well above your recent average show larger in gold, like crits.");
+        toggle(left, y, "Crits", c.fctBigHits, v -> c.fctBigHits = v, "DR critical strikes show larger in gold with \"!\" (from DR's * CRIT * message).");
         toggle(right, y, "Heals", c.fctHeals, v -> c.fctHeals = v, "Green +numbers.");
         y += ROW;
         toggle(left, y, "Damage taken", c.fctIncoming, v -> c.fctIncoming = v, "Red -numbers above you.");
         toggle(right, y, "Through walls", c.fctThroughWalls, v -> c.fctThroughWalls = v, "Keep numbers visible behind blocks.");
+        y += ROW;
+        toggle(left, y, "Proc labels", c.fctProcs, v -> c.fctProcs = v, "Small label over the number: Shattered, Cleaved, Executed, Poisoned, Thorns, Reflect.");
         y += ROW;
         slider(left, y, c.fctSize, 0.3, 4.0, 0.05, v -> "Size: " + Math.round(v * 100) + "%", v -> c.fctSize = v);
         slider(right, y, c.fctDuration, 0.4, 5.0, 0.1, v -> String.format(Locale.ROOT, "Duration: %.1fs", v), v -> c.fctDuration = v);

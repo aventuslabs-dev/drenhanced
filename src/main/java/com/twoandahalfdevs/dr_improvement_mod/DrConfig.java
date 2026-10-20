@@ -57,6 +57,7 @@ public final class DrConfig {
         public boolean fctHideDr = true;
         public boolean fctBigHits = true;
         public boolean fctThroughWalls = true;
+        public boolean fctProcs = true;
         /** WoW-style cooldown bar above the hotbar. */
         public boolean cooldownBar = true;
         public int cdIconSize = 22;
