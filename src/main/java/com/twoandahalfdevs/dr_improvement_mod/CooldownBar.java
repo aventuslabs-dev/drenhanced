@@ -146,7 +146,7 @@ public final class CooldownBar {
         int y = sh - c.cdY - size;
         long now = System.currentTimeMillis();
         g.pose().pushPose();
-        g.pose().translate(0, 0, 400); // above the chat boxes and the rest of the HUD
+        g.pose().translate(0, 0, 5000); // vanilla stacks HUD layers 200 apart in z; stay above chat and the rest
         for (Slot s : slots) {
             drawSlot(g, font, s, x, y, size, now);
             x += size + gap;

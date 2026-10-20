@@ -46,7 +46,7 @@ public final class DrConfig {
         public boolean cooldownBar = true;
         public int cdIconSize = 22;
         public int cdX = 0;          // sideways from centre
-        public int cdY = 62;         // up from the bottom of the screen
+        public int cdY = 82;         // up from the bottom of the screen (above the action-bar text)
         public boolean cdShowCombat = true;
         public boolean cdShowItems = true;
         public boolean cdShowLabels = false;
