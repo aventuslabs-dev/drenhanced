@@ -96,7 +96,7 @@ public final class FloatingText {
             hidden.add(id);
             int amount = parse(m.group(2));
             boolean heal = "+".equals(m.group(1));
-            Vec3 at = e.position().add(0, e.isMarker() ? 0.3 : e.getBbHeight() + 0.3, 0);
+            Vec3 at = e.position().add(0, ((ArmorStand) e).isMarker() ? 0.3 : e.getBbHeight() + 0.3, 0);
             boolean incoming = at.distanceToSqr(mc.player.getEyePosition()) < 2.5 * 2.5;
             holoValues.put(amount, now);
             if (enabled()) spawn(amount, heal ? Kind.HEAL : incoming ? Kind.IN : outgoingKind(amount), at, now);
