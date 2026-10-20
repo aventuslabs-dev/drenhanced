@@ -254,10 +254,6 @@ final class SelfTest {
                     log("abilities: " + DrState.abilities.keySet() + " combat=" + combat);
                     if (fast == null || !fast.active() || dash == null || dash.active()) fail("action bar abilities not parsed: " + DrState.abilities);
                     if (combat <= 0 || combat > 3.01) fail("server combat timer not used: " + combat);
-                    // a real crit: DR's "* CRIT *" line right before the damage line
-                    DrState.onChat("                                * CRIT *");
-                    DrState.onChat("1105 DMG -> Spooky Skeleton [1175 HP]");
-                    DrState.onChat("36 DMG (Thorns) -> Spooky Skeleton [1139 HP]");
                     log("floating text: " + fct + " numbers on screen, DR hologram hidden=" + holoHidden);
                     if (fct < 2) fail("floating damage numbers not spawned (" + fct + ")");
                     if (!holoHidden) fail("DR damage hologram not taken over");
@@ -280,6 +276,12 @@ final class SelfTest {
                     waitTicks = 0;
                 }
                 case 5 -> {
+                    if (waitTicks == 0) {
+                        // a real crit: DR's "* CRIT *" line right before the damage line
+                        DrState.onChat("                                    * CRIT *");
+                        DrState.onChat("1105 DMG -> Spooky Skeleton [1175 HP]");
+                        DrState.onChat("36 DMG (Thorns) -> Spooky Skeleton [1139 HP]");
+                    }
                     if (waitTicks == 10) { // pending chat hits spawn after ~250 ms
                         int crits = FloatingText.countKind(FloatingText.Kind.CRIT), thorns = FloatingText.countKind(FloatingText.Kind.THORNS);
                         log("crit numbers: " + crits + ", thorns numbers: " + thorns);
