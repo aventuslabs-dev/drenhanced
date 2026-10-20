@@ -49,7 +49,8 @@ public final class SplitChat {
         if (tag != null && !tag.equals(GuiMessageTag.system()) && !tag.equals(GuiMessageTag.systemSinglePlayer())) {
             return true; // unsigned / modified player chat
         }
-        String text = msg.getString();
+        String text = strip(msg.getString());
+        if (isOwnRecentMessage(text)) return true;
         compilePatterns();
         for (Pattern p : systemPatterns) if (p.matcher(text).find()) return false;
         for (Pattern p : playerPatterns) if (p.matcher(text).find()) return true;
@@ -62,6 +63,7 @@ public final class SplitChat {
      * player's name appears near the start and is followed by a chat separator.
      */
     static boolean looksLikePlayerChat(String text, Collection<String> names) {
+        text = strip(text);
         if (text.isEmpty()) return false;
         for (String name : names) {
             if (name == null || name.length() < 3) continue;
@@ -88,6 +90,50 @@ public final class SplitChat {
         return false;
     }
 
+    /** Legacy "§x" colour codes left inside plain text (many plugin servers send these) break name matching. */
+    static String strip(String s) {
+        if (s == null) return "";
+        if (s.indexOf('\u00a7') < 0) return s;
+        StringBuilder b = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '\u00a7') { i++; continue; }
+            b.append(c);
+        }
+        return b.toString();
+    }
+
+    // ---- what you typed yourself always stays on the left ----
+    private record Sent(String text, long at) {}
+    private static final java.util.ArrayDeque<Sent> sent = new java.util.ArrayDeque<>();
+
+    public static void onSent(String message) {
+        if (message == null || message.isBlank() || message.startsWith("/")) return;
+        synchronized (sent) {
+            sent.addLast(new Sent(message.trim(), System.currentTimeMillis()));
+            while (sent.size() > 10) sent.pollFirst();
+        }
+    }
+
+    private static boolean isOwnRecentMessage(String text) {
+        long cutoff = System.currentTimeMillis() - 15_000;
+        String t = text.trim();
+        synchronized (sent) {
+            sent.removeIf(m -> m.at < cutoff);
+            for (var it = sent.iterator(); it.hasNext(); ) {
+                Sent m = it.next();
+                if (t.length() > m.text.length() && t.endsWith(m.text)) {
+                    char before = t.charAt(t.length() - m.text.length() - 1);
+                    if (before == ' ' || before == ':' || before == '>' || before == '\u00bb') {
+                        it.remove();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     private static boolean isNameChar(char c) {
         return Character.isLetterOrDigit(c) || c == '_';
     }
@@ -98,7 +144,15 @@ public final class SplitChat {
         if (mc.player != null) names.add(mc.player.getGameProfile().getName());
         ClientPacketListener conn = mc.getConnection();
         if (conn != null) {
-            for (PlayerInfo info : conn.getOnlinePlayers()) names.add(info.getProfile().getName());
+            for (PlayerInfo info : conn.getOnlinePlayers()) {
+                names.add(info.getProfile().getName());
+                // nicknames / display names shown in the tab list, e.g. "<5R> Name"
+                if (info.getTabListDisplayName() != null) {
+                    for (String tok : strip(info.getTabListDisplayName().getString()).split("[^A-Za-z0-9_]+")) {
+                        if (tok.length() >= 3 && tok.length() <= 16) names.add(tok);
+                    }
+                }
+            }
         }
         return names;
     }

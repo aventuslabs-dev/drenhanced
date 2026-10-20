@@ -42,7 +42,7 @@ final class SelfTest {
         "net.minecraft.client.gui.screens.ChatScreen",
     };
 
-    /** {text, expected player?} for the split-chat classifier, with "Steve" and "Alex_99" online. */
+    /** {text, expected player?} for the split-chat classifier, with "Steve", "Alex_99" and "AIbionOnline" online. */
     private static final Object[][] CHAT_CASES = {
         {"[G] Steve: anyone for t5?", true},
         {"<Steve> hello", true},
@@ -56,6 +56,9 @@ final class SelfTest {
         {"You have been added to the party.", false},
         {"Steves: not a name", false},
         {"+48 EXP [1205/9000]", false},
+        {"\u00a7b<5R> \u00a7e\u00a7lAIbionOnline\u00a7f: s", true},
+        {"\u00a7b<5R> \u00a7e\u00a7lAIbionOnline\u00a7f: \u00a7ftest", true},
+        {"\u00a7aGuild Chat: \u00a7cfalse", false},
     };
 
     private static final List<String> failures = new ArrayList<>();
@@ -86,7 +89,7 @@ final class SelfTest {
                     var program = mc.getShaderManager().getProgram(OverlayRenderer.PROGRAM);
                     if (program == null) fail("overlay shader did not compile/link");
                     else log("overlay shader ok");
-                    java.util.List<String> names = java.util.List.of("Steve", "Alex_99");
+                    java.util.List<String> names = java.util.List.of("Steve", "Alex_99", "AIbionOnline");
                     for (Object[] c : CHAT_CASES) {
                         boolean got = SplitChat.looksLikePlayerChat((String) c[0], names);
                         if (got != (Boolean) c[1]) fail("chat classifier: '" + c[0] + "' -> " + (got ? "player" : "system"));
@@ -121,6 +124,8 @@ final class SelfTest {
                     mc.player.connection.sendChat("hello from the left side");
                     mc.gui.getChat().addMessage(Component.literal("[G] " + me + ": guild chat stays left"));
                     mc.gui.getChat().addMessage(Component.literal("<" + me + "> plain player chat"));
+                    SplitChat.onSent("typed by me");
+                    mc.gui.getChat().addMessage(Component.literal("\u00a7b<5R> \u00a7e\u00a7lSomeNick\u00a7f: typed by me"));
                     stage = 4;
                     waitTicks = 0;
                 }
@@ -129,7 +134,7 @@ final class SelfTest {
                     int l = ((ChatAccessor) mc.gui.getChat()).drim$messages().size();
                     int r = ((ChatAccessor) SplitChat.right()).drim$messages().size();
                     log("left chat: " + l + " messages, right chat: " + r + " messages");
-                    if (l < 3) fail("player messages missing from left chat (" + l + ")");
+                    if (l < 4) fail("player messages missing from left chat (" + l + ")");
                     if (r < 3) fail("system messages missing from right chat (" + r + ")");
                     Screenshot.grab(mc.gameDirectory, "drim-splitchat.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     mc.setScreen(new ChatScreen(""));

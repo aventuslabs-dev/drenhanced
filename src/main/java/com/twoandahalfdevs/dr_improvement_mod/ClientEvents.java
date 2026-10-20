@@ -41,6 +41,7 @@ public final class ClientEvents {
         "key.dr_improvement_mod.config", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, "key.categories.dr_improvement_mod");
 
     public static void register() {
+        net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.CHAT.register(SplitChat::onSent);
         KeyBindingHelper.registerKeyBinding(OPEN_CONFIG);
         ClientTickEvents.START_CLIENT_TICK.register(ClientEvents::onClientTick);
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> addOrigin(stack, lines));
