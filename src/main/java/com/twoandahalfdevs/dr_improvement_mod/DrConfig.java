@@ -35,6 +35,8 @@ public final class DrConfig {
         public java.util.List<String> chatSystemPatterns = new java.util.ArrayList<>();
         /** Look of DR's mob health bars: ORIGINAL, BAR, BAR_PERCENT, PERCENT or HEARTS. */
         public String enemyHpStyle = "MODERN";
+        /** WoW-style plates for real players too (name, <guild>, HP bar in combat). */
+        public boolean playerPlates = true;
         /** WoW-style bar: size in nametag pixels, colour (REACTION, HEALTH, GOLD) and text (CURRENT_MAX, CURRENT, PERCENT, CURRENT_PERCENT, NONE). */
         public int enemyHpBarWidth = 64;
         public int enemyHpBarHeight = 8;

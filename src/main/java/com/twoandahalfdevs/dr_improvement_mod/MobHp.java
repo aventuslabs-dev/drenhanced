@@ -42,7 +42,15 @@ public final class MobHp {
     }
 
     /** label = mob name without the level; showBar = in combat (hit recently). */
-    public record Display(Component label, String level, boolean elite, boolean showBar, String numbers, Track track) {}
+    public record Display(Component label, String level, boolean elite, boolean showBar, String numbers, Track track,
+                          Component sub, int barColor) {
+        Display(Component label, String level, boolean elite, boolean showBar, String numbers, Track track) {
+            this(label, level, elite, showBar, numbers, track, null, 0);
+        }
+    }
+
+    /** Entity ids treated as real players regardless of the tab-list check (self-test only). */
+    static final java.util.Set<Integer> testPlayers = new java.util.HashSet<>();
 
     /** A DR mob name split into its parts: "Spooky Skeleton" (with DR's colours), "90", bold = elite. */
     record Parts(Component name, String level, boolean elite) {}
@@ -87,7 +95,8 @@ public final class MobHp {
 
     /** Called while extracting the render state: returns what to draw, or null for a normal nametag. */
     public static Display update(Entity e, Component nameTag) {
-        if (!enabled() || nameTag == null || e instanceof net.minecraft.world.entity.player.Player) return null;
+        if (!enabled() || nameTag == null) return null;
+        if (e instanceof net.minecraft.client.player.AbstractClientPlayer pl) return updatePlayer(pl);
         long now = System.currentTimeMillis();
         EnemyHp.Parsed p = EnemyHp.parse(nameTag);
         Parts parts = p == null ? split(nameTag) : null;
@@ -133,6 +142,63 @@ public final class MobHp {
             if (known != null) t.max = known;
         }
         return new Display(label, t.level, t.elite, true, numbers(t, now), t);
+    }
+
+    /**
+     * Real players (in the tab list with a genuine v4 account UUID; DR's NPCs fail this): name in their team
+     * colour, guild tag as "<TAG>" underneath, and an HP bar with DR's real HP while they're hurt or in combat.
+     */
+    private static Display updatePlayer(net.minecraft.client.player.AbstractClientPlayer pl) {
+        Minecraft mc = Minecraft.getInstance();
+        if (!DrConfig.data.playerPlates || pl == mc.player) return null;
+        boolean real = testPlayers.contains(pl.getId()) || (pl.getUUID().version() == 4
+            && mc.getConnection() != null && mc.getConnection().getPlayerInfo(pl.getUUID()) != null);
+        if (!real) return null;
+
+        long now = System.currentTimeMillis();
+        Track t = tracks.computeIfAbsent(pl.getId(), k -> new Track());
+        t.seen = now;
+        t.pos = pl.position();
+        t.height = pl.getBbHeight();
+        float f = pl.getMaxHealth() > 0 ? Math.max(0f, Math.min(1f, pl.getHealth() / pl.getMaxHealth())) : 1f;
+        if (f < t.frac - 0.001f || pl.hurtTime > 0) t.hitAt = now;
+        t.frac = f;
+        boolean showBar = f < 0.999f || now - t.hitAt < 10_000;
+
+        var team = pl.getTeam();
+        net.minecraft.ChatFormatting col = team == null ? null : team.getColor();
+        Style nameStyle = Style.EMPTY.withColor(col == null || col == net.minecraft.ChatFormatting.RESET ? net.minecraft.ChatFormatting.WHITE : col);
+        Component label = Component.literal(pl.getGameProfile().getName()).withStyle(nameStyle);
+        Component sub = null;
+        if (team != null) {
+            // PlayerTeamMixin may have recoloured guild-mates' tags, so take the formatted prefix from the team.
+            Component prefix = team.getFormattedName(Component.empty());
+            String tag = SplitChat.strip(team.getPlayerPrefix().getString()).trim();
+            if (tag.startsWith("[") && tag.endsWith("]") && tag.length() > 2) {
+                Style ts = prefix.getSiblings().isEmpty() ? prefix.getStyle() : prefix.getSiblings().get(0).getStyle();
+                if (ts.getColor() == null) ts = ts.withColor(net.minecraft.ChatFormatting.GRAY);
+                sub = Component.literal("<" + tag.substring(1, tag.length() - 1) + ">").withStyle(ts);
+            }
+        }
+
+        String name = pl.getScoreboardName();
+        Integer max = HealthSync.maxOf(name);
+        int pct = Math.round(f * 100);
+        String numbers;
+        if (max != null && max > 0) {
+            int cur = Math.round(max * f);
+            numbers = switch (DrConfig.data.enemyHpText) {
+                case "CURRENT" -> NUM.format(cur);
+                case "PERCENT" -> pct + "%";
+                case "CURRENT_PERCENT" -> NUM.format(cur) + " (" + pct + "%)";
+                default -> NUM.format(cur) + " / " + NUM.format(max);
+            };
+        } else {
+            numbers = pct + "%";
+        }
+        boolean chaotic = col == net.minecraft.ChatFormatting.RED || col == net.minecraft.ChatFormatting.DARK_RED;
+        int bar = chaotic ? 0xFFC41F1F : 0xFF2FB34A;
+        return new Display(label, "", false, showBar, numbers, t, sub, bar);
     }
 
     /**
@@ -366,7 +432,7 @@ public final class MobHp {
         int gap = 3;
         float total = badgeW + (badgeW > 0 ? gap : 0) + skullW + nameW;
         float x = -total / 2f;
-        float rowY = -13f; // name sits above where the bar goes
+        float rowY = d.sub() != null ? -21f : -13f; // name sits above the guild line and the bar
         int lvColor = levelColor(lv);
 
         if (badgeW > 0) {
@@ -385,6 +451,15 @@ public final class MobHp {
             x += skullW;
         }
         text(font, name, x, rowY, 0xFFFFFFFF, buffers, m, light);
+        if (d.sub() != null) { // WoW-style <Guild> line under the name
+            pose.pushPose();
+            pose.translate(0, -11f, 0);
+            pose.scale(0.8f, 0.8f, 1f);
+            Matrix4f sm = pose.last().pose();
+            var subSeq = d.sub().getVisualOrderText();
+            text(font, subSeq, -font.width(subSeq) / 2f, 0, 0xFFAAAAAA, buffers, sm, light);
+            pose.popPose();
+        }
 
         // ---- health bar, only while in combat ----
         if (d.showBar()) {
@@ -394,7 +469,7 @@ public final class MobHp {
             // viewing angle. Draw non-overlapping pieces instead: fill | damage trail | empty, each in bands.
             float fillEnd = x0 + w * clamp(t.shown);
             float trailEnd = Math.max(fillEnd, x0 + w * clamp(t.trail));
-            bands(vc, m, x0, fillEnd, y0, y1, h, fillColor(t.frac), bright);
+            bands(vc, m, x0, fillEnd, y0, y1, h, d.barColor() != 0 ? d.barColor() : fillColor(t.frac), bright);
             bands(vc, m, fillEnd, trailEnd, y0, y1, h, TRAIL, bright);
             bands(vc, m, trailEnd, x1, y0, y1, h, BACK, bright);
             int edge = d.elite() ? GOLD : BORDER;

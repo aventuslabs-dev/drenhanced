@@ -69,6 +69,10 @@ public final class EnemyHpScreen extends Screen {
             .create(right, y, W, H, Component.literal("Level (text styles)"), (b, v) -> c.enemyHpShowLevel = v));
         y += ROW;
         addRenderableWidget(new IntSlider(left, y, "Text bar length", c.enemyHpBarLength, 4, 40, v -> c.enemyHpBarLength = v));
+        addRenderableWidget(CycleButton.onOffBuilder(c.playerPlates)
+            .withTooltip(v -> Tooltip.create(Component.literal("Same plates for real players (not NPCs): name, <guild>, real HP bar while hurt or in combat.")))
+            .create(right, y, W, H, Component.literal("Player plates"), (b, v) -> c.playerPlates = v));
+        y += ROW;
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(right, y, W, H).build());
     }
 

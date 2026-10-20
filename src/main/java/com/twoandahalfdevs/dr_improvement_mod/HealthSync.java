@@ -98,6 +98,15 @@ public final class HealthSync {
         return null;
     }
 
+    /** Max HP learned for a player (by scoreboard name), or null if not known yet. */
+    public static Integer maxOf(String name) {
+        return maxHealth.get(name);
+    }
+
+    static void setMaxForTest(String name, int max) {
+        maxHealth.put(name, max);
+    }
+
     static void reset() {
         pendingScore.clear();
         latestHealth.clear();

@@ -22,6 +22,7 @@
     "MultiPlayerGameModeMixin",
     "OptionInstanceMixin",
     "PlayerMixin",
+    "PlayerRendererMixin",
     "PlayerTeamMixin"
   ],
   "injectors": {

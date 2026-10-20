@@ -68,6 +68,7 @@ final class SelfTest {
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
     private static java.nio.file.Path captureFile;
+    private static net.minecraft.world.entity.Entity rivalPlayer;
 
     static boolean enabled() {
         return Boolean.getBoolean("drim.selftest");
@@ -162,6 +163,27 @@ final class SelfTest {
                     waitTicks = 0;
                 }
                 case 4 -> {
+                    if (waitTicks == 18) {
+                        // a "real" enemy player (client-side stand-in): chaotic red, guild [5R], real HP 1,500 / 2,500
+                        var sb = mc.level.getScoreboard();
+                        var team = sb.addPlayerTeam("drimtest");
+                        team.setPlayerPrefix(Component.literal("[5R] ").withStyle(net.minecraft.ChatFormatting.DARK_AQUA));
+                        team.setColor(net.minecraft.ChatFormatting.RED);
+                        sb.addPlayerToTeam("Rival", team);
+                        var obj = sb.addObjective("health", net.minecraft.world.scores.criteria.ObjectiveCriteria.DUMMY, Component.literal("HP"),
+                            net.minecraft.world.scores.criteria.ObjectiveCriteria.RenderType.INTEGER, false, null);
+                        sb.setDisplayObjective(net.minecraft.world.scores.DisplaySlot.BELOW_NAME, obj);
+                        sb.getOrCreatePlayerScore(net.minecraft.world.scores.ScoreHolder.forNameOnly("Rival"), obj).set(1500);
+                        var rival = new net.minecraft.client.player.RemotePlayer(mc.level,
+                            new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "Rival"));
+                        var pp = mc.player.position();
+                        rival.setPos(pp.x - 4.5, pp.y, pp.z + 7);
+                        rival.setHealth(12f);
+                        mc.level.addEntity(rival);
+                        MobHp.testPlayers.add(rival.getId());
+                        HealthSync.setMaxForTest("Rival", 2500);
+                        rivalPlayer = rival;
+                    }
                     if (waitTicks == 20) {
                         // DR action bar: ultimate + potion cooldowns, and a vanilla item cooldown on a hotbar item
                         mc.gui.setOverlayMessage(Component.literal("\u00a7cThe Fast: [32s]   \u00a7f[2/5] Potions: [5s]"), false);
@@ -198,6 +220,10 @@ final class SelfTest {
                     for (var e : mc.level.entitiesForRendering()) {
                         if (e instanceof net.minecraft.world.entity.decoration.ArmorStand && e.getCustomName() != null
                             && e.getCustomName().getString().startsWith("-1074")) holoHidden = FloatingText.isHidden(e);
+                    }
+                    if (rivalPlayer != null) {
+                        if (MobHp.trackOf(rivalPlayer) == null) fail("no plate for the test player");
+                        else log("player plate ok");
                     }
                     log("floating text: " + fct + " numbers on screen, DR hologram hidden=" + holoHidden);
                     if (fct < 2) fail("floating damage numbers not spawned (" + fct + ")");
