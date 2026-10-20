@@ -165,7 +165,7 @@ public final class MobHp {
         float f = pl.getMaxHealth() > 0 ? Math.max(0f, Math.min(1f, pl.getHealth() / pl.getMaxHealth())) : 1f;
         if (f < t.frac - 0.001f || pl.hurtTime > 0) t.hitAt = now;
         t.frac = f;
-        boolean showBar = f < 0.999f || now - t.hitAt < 10_000;
+        boolean showBar = true; // players: always show the bar (WoW style)
 
         var team = pl.getTeam();
         net.minecraft.ChatFormatting col = team == null ? null : team.getColor();
@@ -201,11 +201,13 @@ public final class MobHp {
         // DR's team suffix carries level and class: " [Lv 103 ROG]"
         String level = "";
         String cls = null;
-        if (team != null) {
-            Matcher lm = PLAYER_SUFFIX.matcher(SplitChat.strip(team.getPlayerSuffix().getString()));
+        // usually in the team suffix; fall back to the full display name
+        for (String src : new String[]{team == null ? "" : team.getPlayerSuffix().getString(), pl.getDisplayName().getString()}) {
+            Matcher lm = PLAYER_SUFFIX.matcher(SplitChat.strip(src));
             if (lm.find()) {
                 level = lm.group(1);
                 cls = lm.group(2);
+                break;
             }
         }
         if (cls != null) {
