@@ -35,6 +35,9 @@ dependencies {
 
     // Test client only: run the self-test with Sodium like real players do (not bundled).
     modLocalRuntime "maven.modrinth:sodium:mc1.21.4-0.6.13-fabric"
+    // ...and the other performance mods players commonly add, which change render batching/culling
+    modLocalRuntime "maven.modrinth:immediatelyfast:1.8.7+1.21.4-fabric"
+    modLocalRuntime "maven.modrinth:lithium:mc1.21.4-0.15.3-fabric"
 }
 
 processResources {

@@ -25,7 +25,7 @@ jobs:
       - name: Look up mod versions on Modrinth (modrinth-versions)
         run: |
           for p in immediatelyfast entityculling lithium sodium; do
-            echo "== $p"; curl -s "https://api.modrinth.com/v2/project/$p/version?game_versions=%5B%221.21.4%22%5D&loaders=%5B%22fabric%22%5D" | jq -r '.[0:4][] | .version_number' ; done | tee modrinth.txt
+            echo "== $p"; curl -s "https://api.modrinth.com/v2/project/$p/version?game_versions=%5B%221.21.4%22%5D&loaders=%5B%22fabric%22%5D" | jq -r '.[0:2][] | .version_number + "  id=" + .id' ; done | tee modrinth.txt
 
       - name: Build mod jar
         run: |
