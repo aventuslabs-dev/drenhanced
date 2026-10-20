@@ -332,7 +332,9 @@ public final class FeedLog {
             if (dim != null && font.width(left) + 8 + font.width(dim) <= innerW) {
                 lines.add(new Line(left.getVisualOrderText(), dim.getVisualOrderText(), e, alpha, true));
             } else {
-                List<FormattedCharSequence> wrapped = font.split(compose(e, true), innerW);
+                // too narrow: the secondary info gets its own right-aligned row instead of a ragged wrap
+                if (dim != null) lines.add(new Line(FormattedCharSequence.EMPTY, dim.getVisualOrderText(), e, alpha, false));
+                List<FormattedCharSequence> wrapped = font.split(left, innerW);
                 for (int k = wrapped.size() - 1; k >= 0; k--) lines.add(new Line(wrapped.get(k), null, e, alpha, k == 0));
             }
         }
@@ -351,7 +353,7 @@ public final class FeedLog {
             if (ln.first && ln.e.cat == Cat.HIT && ln.e.main.getString().contains("CRIT")) { // crit rows glow
                 g.fill(x0 + 2, y - 1, x1 - 2, y + lh - 1, argb((int) (la * 0.20f), 0xFF8A1F));
             } else if (((i - start) & 1) == 1) { // subtle striping
-                g.fill(x0 + 1, y - 1, x1 - 1, y + lh - 1, argb((int) (la * 0.05f), 0xFFFFFF));
+                g.fill(x0 + 1, y - 1, x1 - 1, y + lh - 1, argb((int) (la * 0.07f), 0xFFFFFF));
             }
             g.pose().pushPose();
             g.pose().translate(x0 + 4, y, 0);
