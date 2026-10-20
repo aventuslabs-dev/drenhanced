@@ -261,15 +261,17 @@ public final class MobHp {
         // bar: border, background, damage trail, fill, shine/shade
         float x0 = -w / 2f, x1 = w / 2f, y0 = 0, y1 = h;
         VertexConsumer vc = buffers.getBuffer(RenderType.textBackgroundSeeThrough());
-        quad(vc, m, x0 - 1, y0 - 1, x1 + 1, y1 + 1, BORDER, bright);
-        quad(vc, m, x0, y0, x1, y1, BACK, bright);
+        // Translucent quads are depth-sorted on upload, so give each layer its own small step towards the
+        // camera (+z after the camera rotation) to keep the order fixed from every viewing angle.
+        quad(vc, m, x0 - 1, y0 - 1, x1 + 1, y1 + 1, 0.0f, BORDER, bright);
+        quad(vc, m, x0, y0, x1, y1, 0.1f, BACK, bright);
         float fillEnd = x0 + w * clamp(t.shown);
         float trailEnd = x0 + w * clamp(t.trail);
-        if (trailEnd > fillEnd) quad(vc, m, fillEnd, y0, trailEnd, y1, TRAIL, bright);
+        if (trailEnd > fillEnd) quad(vc, m, fillEnd, y0, trailEnd, y1, 0.2f, TRAIL, bright);
         if (fillEnd > x0) {
-            quad(vc, m, x0, y0, fillEnd, y1, fillColor(t.frac), bright);
-            quad(vc, m, x0, y0, fillEnd, y0 + Math.max(1f, h * 0.45f), SHINE, bright);
-            quad(vc, m, x0, y1 - Math.max(1f, h * 0.3f), fillEnd, y1, SHADE, bright);
+            quad(vc, m, x0, y0, fillEnd, y1, 0.3f, fillColor(t.frac), bright);
+            quad(vc, m, x0, y0, fillEnd, y0 + Math.max(1f, h * 0.45f), 0.4f, SHINE, bright);
+            quad(vc, m, x0, y1 - Math.max(1f, h * 0.3f), fillEnd, y1, 0.4f, SHADE, bright);
         }
 
         // name above the bar (DR's own colours), drawn like a vanilla nametag
@@ -309,11 +311,11 @@ public final class MobHp {
         if (t.trail < t.shown) t.trail = t.shown;
     }
 
-    private static void quad(VertexConsumer vc, Matrix4f m, float x0, float y0, float x1, float y1, int argb, int light) {
-        vc.addVertex(m, x0, y1, 0f).setColor(argb).setLight(light);
-        vc.addVertex(m, x1, y1, 0f).setColor(argb).setLight(light);
-        vc.addVertex(m, x1, y0, 0f).setColor(argb).setLight(light);
-        vc.addVertex(m, x0, y0, 0f).setColor(argb).setLight(light);
+    private static void quad(VertexConsumer vc, Matrix4f m, float x0, float y0, float x1, float y1, float z, int argb, int light) {
+        vc.addVertex(m, x0, y1, z).setColor(argb).setLight(light);
+        vc.addVertex(m, x1, y1, z).setColor(argb).setLight(light);
+        vc.addVertex(m, x1, y0, z).setColor(argb).setLight(light);
+        vc.addVertex(m, x0, y0, z).setColor(argb).setLight(light);
     }
 
     /** Test/preview access. */
