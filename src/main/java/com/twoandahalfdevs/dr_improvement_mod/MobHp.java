@@ -470,7 +470,9 @@ public final class MobHp {
         pose.scale(0.025f, -0.025f, 0.025f);
         Matrix4f m = pose.last().pose();
         int bright = LightTexture.FULL_BRIGHT;
-        VertexConsumer vc = buffers.getBuffer(RenderType.textBackgroundSeeThrough());
+        // Depth-tested plate pieces: text is drawn with polygon offset in front of them, so the level and HP
+        // numbers stay on top no matter which order the renderer flushes the batches in (Sodium differs).
+        VertexConsumer vc = buffers.getBuffer(RenderType.textBackground());
 
         // ---- name row: [level badge] [skull] Name ----
         FormattedCharSequence name = d.label().getVisualOrderText();
@@ -513,7 +515,7 @@ public final class MobHp {
 
         // ---- health bar, only while in combat ----
         if (d.showBar()) {
-            vc = buffers.getBuffer(RenderType.textBackgroundSeeThrough());
+            vc = buffers.getBuffer(RenderType.textBackground());
             float x0 = -w / 2f, x1 = w / 2f, y0 = 0, y1 = h;
             // Translucent quads are depth-sorted on upload, so overlapping layers would swap order with the
             // viewing angle. Draw non-overlapping pieces instead: fill | damage trail | empty, each in bands.
