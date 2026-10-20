@@ -1,0 +1,65 @@
+name: Build
+
+on:
+  push:
+    branches: [5zig-fabric]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build mod jar
+        run: |
+          chmod +x gradlew
+          set -o pipefail
+          ./gradlew build --no-configuration-cache --console=plain 2>&1 | tee build.log
+
+      - name: Smoke-test in a real client (headless)
+        if: success()
+        timeout-minutes: 20
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq xvfb mesa-utils libgl1-mesa-dri > /dev/null
+          export LIBGL_ALWAYS_SOFTWARE=1 MESA_GL_VERSION_OVERRIDE=4.5
+          set -o pipefail
+          xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClient -Pselftest --no-configuration-cache --console=plain 2>&1 | tee selftest.log
+          grep -q "5ZIG SELFTEST PASS" selftest.log
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: the5zig-fabric-1.21.4
+          path: build/libs/*.jar
+
+      # Publish the log (and jar) to a branch so they can be fetched with plain git.
+      - name: Publish build output to ci-output branch
+        if: always()
+        run: |
+          mkdir -p /tmp/out
+          cp build.log /tmp/out/ 2>/dev/null || true
+          grep -E '5ZIG|Mixin|mixin|ERROR|Exception|Caused by' selftest.log > /tmp/out/selftest-summary.log 2>/dev/null || true
+          tail -n 300 selftest.log > /tmp/out/selftest-tail.log 2>/dev/null || true
+          cp build/libs/*.jar /tmp/out/ 2>/dev/null || true
+          # Required runtime dependency, fetched from Fabric's official maven for convenience.
+          curl -sSfL -o /tmp/out/fabric-api-0.119.4+1.21.4.jar https://maven.fabricmc.net/net/fabricmc/fabric-api/fabric-api/0.119.4+1.21.4/fabric-api-0.119.4+1.21.4.jar || true
+          echo "${{ github.sha }} ${{ job.status }}" > /tmp/out/STATUS
+          cd /tmp/out
+          git init -q -b ci-output-5zig
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "CI output for ${{ github.sha }}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-output-5zig

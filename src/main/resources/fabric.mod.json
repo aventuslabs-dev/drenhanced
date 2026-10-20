@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "the5zig",
+  "version": "${version}",
+  "name": "The 5zig Mod (Fabric)",
+  "description": "Fabric 1.21.4 port of The 5zig Mod's customizable HUD modules: FPS, coordinates, direction, biome, CPS, ping, armor durability, potions, timers and more.",
+  "authors": ["5zig (original mod)", "Fabric 1.21.4 port"],
+  "contact": { "sources": "https://github.com/5zig/The-5zig-Mod" },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["eu.the5zig.fabric.The5zigMod"],
+    "modmenu": ["eu.the5zig.fabric.ModMenuIntegration"]
+  },
+  "mixins": ["the5zig.mixins.json"],
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "fabric-api": "*",
+    "minecraft": "1.21.4",
+    "java": ">=21"
+  },
+  "suggests": {
+    "modmenu": "*"
+  }
+}
