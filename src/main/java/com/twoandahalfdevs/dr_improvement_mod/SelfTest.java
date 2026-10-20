@@ -111,6 +111,7 @@ final class SelfTest {
                         if (got != (Boolean) c[1]) fail("chat classifier: '" + c[0] + "' -> " + (got ? "player" : "system"));
                     }
                     log("chat classifier ok (" + CHAT_CASES.length + " cases)");
+                    log("sodium loaded: " + net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("sodium"));
                     // enemy HP bar parser: 12 green + 8 gray pipes = 60%
                     var bar = Component.empty()
                         .append(Component.literal("||||||||||||").withStyle(net.minecraft.ChatFormatting.GREEN))
