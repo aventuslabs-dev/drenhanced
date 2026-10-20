@@ -431,7 +431,8 @@ public final class FeedLog {
     }
 
     static String lastText(Cat c) {
-        Entry e = lastOf(c);
+        Entry e = null;
+        for (Entry x : entries) if (x.cat == c) e = x;
         return e == null ? null : compose(e).getString();
     }
 }
