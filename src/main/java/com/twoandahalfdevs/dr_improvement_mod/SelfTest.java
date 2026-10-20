@@ -175,6 +175,9 @@ final class SelfTest {
                     log("capture: " + Capture.toggle().getString());
                     MinecraftServer server = mc.getSingleplayerServer();
                     for (String cmd : new String[]{"time set 6000", "gamerule doDaylightCycle false",
+                            // a clear stage so screenshots don't depend on where the random world spawned us
+                            "execute at @a run fill ~-9 ~ ~-4 ~9 ~7 ~14 air",
+                            "execute at @a run fill ~-9 ~-1 ~-4 ~9 ~-1 ~14 smooth_stone",
                             "tellraw @a {\"text\":\"120 DMG -> Skeleton [2400 HP]\",\"color\":\"red\"}",
                             "tellraw @a {\"text\":\"+48 EXP [1205/9000]\",\"color\":\"yellow\"}",
                             "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}",
