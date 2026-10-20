@@ -53,6 +53,14 @@ public class DrConfigScreen extends Screen {
         y += GAP;
         addRenderableWidget(Button.builder(Component.literal("Chat layout..."), b -> this.minecraft.setScreen(new ChatLayoutScreen(this)))
             .bounds(left, y, W, H).build());
+        addRenderableWidget(CycleButton.<EnemyHp.Style>builder(st -> Component.literal(st.label))
+            .withValues(EnemyHp.Style.values())
+            .withInitialValue(DrConfig.enemyHpStyle())
+            .withTooltip(st -> Tooltip.create(Component.literal("How DR's mob health bars (||||| [Lv 90]) are drawn above enemies.")))
+            .create(right, y, W, H, Component.literal("Enemy HP bar"), (btn, st) -> c.enemyHpStyle = st.name()));
+        y += GAP;
+        addRenderableWidget(new IntSlider(left, y, "Enemy bar length", c.enemyHpBarLength, 4, 40, v -> c.enemyHpBarLength = v));
+        toggle(right, y, "Enemy level", c.enemyHpShowLevel, v -> c.enemyHpShowLevel = v, "Keep the [Lv 90] text after the bar.");
 
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());

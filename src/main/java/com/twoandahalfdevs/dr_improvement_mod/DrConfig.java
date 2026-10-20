@@ -33,11 +33,16 @@ public final class DrConfig {
         public java.util.List<String> chatPlayerPatterns = new java.util.ArrayList<>();
         /** Regexes that force a message into the right/system chat (checked first). */
         public java.util.List<String> chatSystemPatterns = new java.util.ArrayList<>();
+        /** Look of DR's mob health bars: ORIGINAL, BAR, BAR_PERCENT, PERCENT or HEARTS. */
+        public String enemyHpStyle = "BAR_PERCENT";
+        public int enemyHpBarLength = 12;
+        public boolean enemyHpShowLevel = true;
         /** Size, text and position of the left (player) and right (system) chat boxes. */
         public ChatBox leftChat = new ChatBox();
         public ChatBox rightChat = new ChatBox();
 
         void clamp() {
+            enemyHpBarLength = Math.max(4, Math.min(40, enemyHpBarLength));
             if (leftChat == null) leftChat = new ChatBox();
             if (rightChat == null) rightChat = new ChatBox();
             leftChat.clamp();
@@ -112,6 +117,13 @@ public final class DrConfig {
     public static boolean hotbarAbilities() { return data.hotbarAbilities; }
     public static boolean throttlePackets() { return data.throttlePackets; }
     public static boolean legacyCombat() { return data.legacyCombat; }
+    public static EnemyHp.Style enemyHpStyle() {
+        try {
+            return EnemyHp.Style.valueOf(data.enemyHpStyle);
+        } catch (Exception e) {
+            return EnemyHp.Style.BAR_PERCENT;
+        }
+    }
     public static int shadowmeldPoints() { return data.shadowmeldPoints; }
     public static int justMyNaturePoints() { return data.justMyNaturePoints; }
 }

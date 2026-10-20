@@ -41,6 +41,7 @@ final class SelfTest {
         "net.minecraft.client.gui.components.ChatComponent",
         "net.minecraft.client.gui.screens.ChatScreen",
         "net.minecraft.client.OptionInstance",
+        "net.minecraft.client.renderer.entity.EntityRenderer",
     };
 
     /** {text, expected player?} for the split-chat classifier, with "Steve", "Alex_99" and "AIbionOnline" online. */
@@ -96,6 +97,19 @@ final class SelfTest {
                         if (got != (Boolean) c[1]) fail("chat classifier: '" + c[0] + "' -> " + (got ? "player" : "system"));
                     }
                     log("chat classifier ok (" + CHAT_CASES.length + " cases)");
+                    // enemy HP bar parser: 12 green + 8 gray pipes = 60%
+                    var bar = Component.empty()
+                        .append(Component.literal("||||||||||||").withStyle(net.minecraft.ChatFormatting.GREEN))
+                        .append(Component.literal("||||||||").withStyle(net.minecraft.ChatFormatting.GRAY))
+                        .append(Component.literal(" [Lv 90]"));
+                    var parsed = EnemyHp.parse(bar);
+                    if (parsed == null || parsed.filled() != 12 || parsed.total() != 20 || !"[Lv 90]".equals(parsed.after()))
+                        fail("enemy hp parse (components): " + (parsed == null ? "null" : EnemyHp.describe(parsed)));
+                    var legacy = EnemyHp.parse(Component.literal("\u00a7a|||||\u00a77|||||||||||||||\u00a7f [Lv 12]"));
+                    if (legacy == null || legacy.filled() != 5 || legacy.total() != 20)
+                        fail("enemy hp parse (legacy): " + (legacy == null ? "null" : EnemyHp.describe(legacy)));
+                    if (EnemyHp.parse(Component.literal("Rotten Zombie [Lv 91]")) != null) fail("plain name parsed as hp bar");
+                    log("enemy hp parser ok -> " + EnemyHp.render(parsed, EnemyHp.Style.BAR_PERCENT, 12, true).getString());
                     mc.setScreen(new DrConfigScreen(mc.screen));
                     stage = 1;
                 }
@@ -118,7 +132,9 @@ final class SelfTest {
                     for (String cmd : new String[]{"time set 6000", "gamerule doDaylightCycle false",
                             "tellraw @a {\"text\":\"120 DMG -> Skeleton [2400 HP]\",\"color\":\"red\"}",
                             "tellraw @a {\"text\":\"+48 EXP [1205/9000]\",\"color\":\"yellow\"}",
-                            "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}"}) {
+                            "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}",
+                            "execute at @a run summon villager ~-1.5 ~ ~4 {NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"||||||||||||||\",\"color\":\"green\"},{\"text\":\"||||||\",\"color\":\"gray\"},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
+                            "execute at @a run summon villager ~1.5 ~ ~4 {NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"|||\",\"color\":\"green\"},{\"text\":\"|||||||||||||||||\",\"color\":\"gray\"},{\"text\":\" [Lv 91]\",\"color\":\"white\"}]'}"}) {
                         server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
                     }
                     String me = mc.player.getGameProfile().getName();
