@@ -112,6 +112,16 @@ final class SelfTest {
                     if (legacy == null || legacy.filled() != 5 || legacy.total() != 20)
                         fail("enemy hp parse (legacy): " + (legacy == null ? "null" : EnemyHp.describe(legacy)));
                     if (EnemyHp.parse(Component.literal("Rotten Zombie [Lv 91]")) != null) fail("plain name parsed as hp bar");
+                    var parts = MobHp.split(Component.empty()
+                        .append(Component.literal("Spooky Skeleton").withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD))
+                        .append(Component.literal(" [Lv 90]")));
+                    if (parts == null || !"Spooky Skeleton".equals(parts.name().getString()) || !"90".equals(parts.level()) || !parts.elite())
+                        fail("nameplate split: " + (parts == null ? "null" : parts.name().getString() + "|" + parts.level() + "|" + parts.elite()));
+                    var legacyParts = MobHp.split(Component.literal("\u00a7aGoblin Scout \u00a77[Lv 12]"));
+                    if (legacyParts == null || legacyParts.elite() || !"Goblin Scout".equals(legacyParts.name().getString()))
+                        fail("nameplate split (legacy)");
+                    if (MobHp.split(Component.literal("Shop Keeper")) != null) fail("NPC name treated as mob");
+                    DrState.setPlayerLevel(90);
                     log("enemy hp parser ok -> " + EnemyHp.render(parsed, EnemyHp.Style.BAR_PERCENT, 12, true).getString());
                     mc.setScreen(new DrConfigScreen(mc.screen));
                     stage = 1;
@@ -137,7 +147,8 @@ final class SelfTest {
                             "tellraw @a {\"text\":\"120 DMG -> Skeleton [2400 HP]\",\"color\":\"red\"}",
                             "tellraw @a {\"text\":\"+48 EXP [1205/9000]\",\"color\":\"yellow\"}",
                             "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}",
-                            "execute at @a run summon villager ~-2 ~ ~5 {Tags:[\"drimA\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\"},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
+                            "execute at @a run summon villager ~-2 ~ ~5 {Tags:[\"drimA\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
+                            "execute at @a run summon villager ~0.3 ~ ~8 {NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Rotten Zombie\",\"color\":\"white\"},{\"text\":\" [Lv 95]\",\"color\":\"gray\"}]'}",
                             "execute at @a run summon villager ~2 ~ ~5 {Tags:[\"drimB\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"||||||||||||||\",\"color\":\"green\"},{\"text\":\"||||||\",\"color\":\"gray\"},{\"text\":\" [Lv 91]\",\"color\":\"white\"}]'}"}) {
                         server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
                     }

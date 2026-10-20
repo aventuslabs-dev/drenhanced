@@ -59,6 +59,7 @@ public abstract class BossHealthOverlayMixin {
             if (dash > 0) {
                 DrState.setPlayerClass(plain.substring(0, dash).trim());
             }
+            DrState.onClassBar(plain);
             if (DrConfig.customBars()) {
                 ci.cancel();
             }

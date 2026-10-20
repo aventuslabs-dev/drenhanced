@@ -8,6 +8,11 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
+import net.minecraft.util.FormattedCharSequence;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
@@ -36,10 +41,16 @@ public final class MobHp {
         void drim$setHp(Display d);
     }
 
-    public record Display(Component name, String numbers, Track track) {}
+    /** label = mob name without the level; showBar = in combat (hit recently). */
+    public record Display(Component label, String level, boolean elite, boolean showBar, String numbers, Track track) {}
+
+    /** A DR mob name split into its parts: "Spooky Skeleton" (with DR's colours), "90", bold = elite. */
+    record Parts(Component name, String level, boolean elite) {}
 
     public static final class Track {
         Component name;          // last plain (un-hit) name, with DR's colours
+        Component label;         // that name without "[Lv 90]"
+        boolean elite;
         String level = "";
         float frac = 1f;         // drawn fraction: exact hp/max when known, else the |||| bar
         float pipe = 1f;         // last |||| bar fraction
@@ -76,27 +87,31 @@ public final class MobHp {
 
     /** Called while extracting the render state: returns what to draw, or null for a normal nametag. */
     public static Display update(Entity e, Component nameTag) {
-        if (!enabled() || nameTag == null) return null;
+        if (!enabled() || nameTag == null || e instanceof net.minecraft.world.entity.player.Player) return null;
         long now = System.currentTimeMillis();
+        EnemyHp.Parsed p = EnemyHp.parse(nameTag);
+        Parts parts = p == null ? split(nameTag) : null;
+        if (p == null && parts == null) return null; // not a DR mob nameplate (NPC, sign text, ...)
+
         Track t = tracks.computeIfAbsent(e.getId(), k -> new Track());
         t.seen = now;
         t.pos = e.position();
         t.height = e.getBbHeight();
-        EnemyHp.Parsed p = EnemyHp.parse(nameTag);
         if (p == null) { // plain "Name [Lv 90]": full health, not in combat
             t.name = nameTag;
-            Matcher m = LEVEL.matcher(SplitChat.strip(nameTag.getString()));
-            if (m.find()) t.level = m.group(1);
+            t.label = parts.name();
+            t.level = parts.level();
+            t.elite = parts.elite();
             if (t.hp >= 0 && now - t.hpAt < 3000) {
-                // just hit, DR hasn't swapped the name for its bar yet: show ours straight away
+                // just hit, DR hasn't swapped the name for its bar yet: show the bar straight away
                 if (t.max > 0) t.frac = Math.min(1f, t.hp / (float) t.max);
-                return new Display(nameTag, numbers(t, now), t);
+                return new Display(t.label, t.level, t.elite, true, numbers(t, now), t);
             }
             t.plainAt = now;
             t.frac = t.pipe = 1f;
             t.hp = -1;
             t.shown = t.trail = 1f;
-            return null;
+            return new Display(t.label, t.level, t.elite, false, "", t);
         }
         float f = (float) p.fraction();
         if (Math.abs(f - t.pipe) > 1e-4) {
@@ -109,16 +124,76 @@ public final class MobHp {
         Matcher m = LEVEL.matcher(p.after());
         if (m.find()) t.level = m.group(1);
 
-        Component name = t.name;
-        if (name == null) { // came into view already damaged: fall back to the mob type
-            String lv = p.after().isEmpty() ? "" : " " + p.after();
-            name = Component.literal(e.getType().getDescription().getString() + lv);
+        Component label = t.label;
+        if (label == null) { // came into view already damaged: fall back to the mob type
+            label = Component.literal(e.getType().getDescription().getString());
         }
         if (t.max < 0 && t.name != null) {
             Integer known = maxByKind.get(kind(t));
             if (known != null) t.max = known;
         }
-        return new Display(name, numbers(t, now), t);
+        return new Display(label, t.level, t.elite, true, numbers(t, now), t);
+    }
+
+    /**
+     * Splits "Spooky Skeleton [Lv 90]" into its name (keeping DR's colours and bold) and level.
+     * Returns null when there's no "[Lv N]", i.e. it isn't a DR mob nameplate.
+     */
+    static Parts split(Component full) {
+        List<Object[]> runs = new ArrayList<>(); // {String, Style}
+        full.visit((style, text) -> {
+            Style st = style;
+            StringBuilder cur = new StringBuilder();
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                if (c == '\u00a7' && i + 1 < text.length()) {
+                    net.minecraft.ChatFormatting f = net.minecraft.ChatFormatting.getByCode(text.charAt(++i));
+                    if (f == null) continue;
+                    if (!cur.isEmpty()) runs.add(new Object[]{cur.toString(), st});
+                    cur.setLength(0);
+                    st = f == net.minecraft.ChatFormatting.RESET ? Style.EMPTY : f.isColor() ? Style.EMPTY.withColor(f) : st.applyLegacyFormat(f);
+                    continue;
+                }
+                cur.append(c);
+            }
+            if (!cur.isEmpty()) runs.add(new Object[]{cur.toString(), st});
+            return java.util.Optional.empty();
+        }, Style.EMPTY);
+        StringBuilder plain = new StringBuilder();
+        for (Object[] r : runs) plain.append((String) r[0]);
+        Matcher m = Pattern.compile("\\s*\\[Lv\\.? ?(\\d+)]").matcher(plain);
+        if (!m.find()) return null;
+        int from = m.start(), to = m.end();
+        MutableComponent name = Component.empty();
+        boolean elite = false;
+        int pos = 0;
+        for (Object[] r : runs) {
+            String txt = (String) r[0];
+            Style st = (Style) r[1];
+            StringBuilder keep = new StringBuilder();
+            for (int i = 0; i < txt.length(); i++, pos++) {
+                if (pos >= from && pos < to) continue;
+                keep.append(txt.charAt(i));
+            }
+            if (keep.isEmpty()) continue;
+            if (st.isBold() && !keep.toString().isBlank()) elite = true;
+            name.append(Component.literal(keep.toString()).withStyle(st.withBold(false)));
+        }
+        String nameText = name.getString().trim();
+        if (nameText.isEmpty()) return null;
+        // drop leading/trailing spaces left around the removed level
+        MutableComponent trimmed = Component.empty();
+        String flat = name.getString();
+        int lead = flat.length() - flat.stripLeading().length();
+        int end = flat.stripTrailing().length();
+        int idx = 0;
+        for (Component part : name.getSiblings()) {
+            String txt = part.getString();
+            int a = Math.max(0, lead - idx), b = Math.min(txt.length(), end - idx);
+            if (a < b) trimmed.append(Component.literal(txt.substring(a, b)).withStyle(part.getStyle()));
+            idx += txt.length();
+        }
+        return new Parts(trimmed, m.group(1), elite);
     }
 
     private static String kind(Track t) {
@@ -242,13 +317,34 @@ public final class MobHp {
         return 0xFF000000 | (r << 16) | (g << 8) | bl;
     }
 
-    /** Draws the name + bar in place of the vanilla nametag. Mirrors EntityRenderer#renderNameTag's transform. */
+    static final int GOLD = 0xFFE8B730;
+    static final int GOLD_DARK = 0xFF7A5A10;
+
+    /** WoW-style difficulty colour of a level against yours. */
+    static int levelColor(String level) {
+        int pl = DrState.playerLevel();
+        int ml;
+        try {
+            ml = Integer.parseInt(level);
+        } catch (Exception e) {
+            return 0xFFFFD100;
+        }
+        if (pl <= 0) return 0xFFFFD100;
+        int d = ml - pl;
+        if (d >= 5) return 0xFFFF2B2B;
+        if (d >= 3) return 0xFFFF8A1F;
+        if (d >= -2) return 0xFFFFD100;
+        if (d >= -8) return 0xFF40C040;
+        return 0xFF9D9D9D;
+    }
+
+    /** Draws the plate in place of the vanilla nametag. Mirrors EntityRenderer#renderNameTag's transform. */
     public static void render(Display d, Vec3 attach, PoseStack pose, MultiBufferSource buffers, int light) {
         if (attach == null) return;
         Minecraft mc = Minecraft.getInstance();
         Font font = mc.font;
         Track t = d.track();
-        animate(t);
+        if (d.showBar()) animate(t);
 
         int w = DrConfig.data.enemyHpBarWidth;
         int h = DrConfig.data.enemyHpBarHeight;
@@ -258,45 +354,77 @@ public final class MobHp {
         pose.scale(0.025f, -0.025f, 0.025f);
         Matrix4f m = pose.last().pose();
         int bright = LightTexture.FULL_BRIGHT;
-
-        // bar: border, background, damage trail, fill, shine/shade
-        float x0 = -w / 2f, x1 = w / 2f, y0 = 0, y1 = h;
         VertexConsumer vc = buffers.getBuffer(RenderType.textBackgroundSeeThrough());
-        // Translucent quads are depth-sorted on upload, so overlapping layers would swap order with the viewing
-        // angle. Draw non-overlapping pieces instead: fill | damage trail | empty, each in three shaded bands.
-        float fillEnd = x0 + w * clamp(t.shown);
-        float trailEnd = Math.max(fillEnd, x0 + w * clamp(t.trail));
-        bands(vc, m, x0, fillEnd, y0, y1, h, fillColor(t.frac), bright);
-        bands(vc, m, fillEnd, trailEnd, y0, y1, h, TRAIL, bright);
-        bands(vc, m, trailEnd, x1, y0, y1, h, BACK, bright);
-        quad(vc, m, x0 - 1, y0 - 1, x1 + 1, y0, BORDER, bright);
-        quad(vc, m, x0 - 1, y1, x1 + 1, y1 + 1, BORDER, bright);
-        quad(vc, m, x0 - 1, y0, x0, y1, BORDER, bright);
-        quad(vc, m, x1, y0, x1 + 1, y1, BORDER, bright);
 
-        // name above the bar (DR's own colours), drawn like a vanilla nametag
-        Component name = d.name();
-        float nx = -font.width(name) / 2f;
-        float ny = -10f;
-        int bg = (int) (mc.options.getBackgroundOpacity(0.25f) * 255f) << 24;
-        font.drawInBatch(name, nx, ny, 0x80FFFFFF, false, m, buffers, Font.DisplayMode.SEE_THROUGH, bg, light);
-        font.drawInBatch(name, nx, ny, 0xFFFFFFFF, false, m, buffers, Font.DisplayMode.NORMAL, 0, LightTexture.lightCoordsWithEmission(light, 2));
+        // ---- name row: [level badge] [skull] Name ----
+        FormattedCharSequence name = d.label().getVisualOrderText();
+        int nameW = font.width(name);
+        String lv = d.level() == null ? "" : d.level();
+        int badgeW = lv.isEmpty() ? 0 : font.width(lv) + 6;
+        String skull = "\u2620";
+        int skullW = d.elite() ? font.width(skull) + 2 : 0;
+        int gap = 3;
+        float total = badgeW + (badgeW > 0 ? gap : 0) + skullW + nameW;
+        float x = -total / 2f;
+        float rowY = -13f; // name sits above where the bar goes
+        int lvColor = levelColor(lv);
 
-        // numbers centred on the bar, outlined like WoW
-        if (!"NONE".equals(DrConfig.data.enemyHpText)) {
-            float s = Math.max(0.5f, Math.min(1.2f, (h - 1) / 8f));
-            pose.pushPose();
-            pose.translate(0, h / 2f, 0);
-            pose.scale(s, s, 1f);
-            Matrix4f tm = pose.last().pose();
-            var seq = Component.literal(d.numbers()).getVisualOrderText();
-            float tx = -font.width(seq) / 2f;
-            // see-through copy keeps the numbers readable when the mob is behind blocks (like the bar itself)
-            font.drawInBatch(seq, tx, -4f, 0xD0FFFFFF, false, tm, buffers, Font.DisplayMode.SEE_THROUGH, 0, bright);
-            font.drawInBatch8xOutline(seq, tx, -4f, 0xFFFFFFFF, 0xFF000000, tm, buffers, bright);
-            pose.popPose();
+        if (badgeW > 0) {
+            float bx0 = x, bx1 = x + badgeW, by0 = rowY - 1, by1 = rowY + 9;
+            int edge = d.elite() ? GOLD : mix(lvColor, 0x000000, 0.45f);
+            quad(vc, m, bx0 + 1, by0 + 1, bx1 - 1, by1 - 1, 0xD0101010, bright);
+            quad(vc, m, bx0, by0, bx1, by0 + 1, edge, bright);
+            quad(vc, m, bx0, by1 - 1, bx1, by1, edge, bright);
+            quad(vc, m, bx0, by0 + 1, bx0 + 1, by1 - 1, edge, bright);
+            quad(vc, m, bx1 - 1, by0 + 1, bx1, by1 - 1, edge, bright);
+            text(font, Component.literal(lv).getVisualOrderText(), bx0 + 3, rowY, lvColor, buffers, m, light);
+            x += badgeW + gap;
+        }
+        if (d.elite()) {
+            text(font, Component.literal(skull).getVisualOrderText(), x, rowY, GOLD, buffers, m, light);
+            x += skullW;
+        }
+        text(font, name, x, rowY, 0xFFFFFFFF, buffers, m, light);
+
+        // ---- health bar, only while in combat ----
+        if (d.showBar()) {
+            vc = buffers.getBuffer(RenderType.textBackgroundSeeThrough());
+            float x0 = -w / 2f, x1 = w / 2f, y0 = 0, y1 = h;
+            // Translucent quads are depth-sorted on upload, so overlapping layers would swap order with the
+            // viewing angle. Draw non-overlapping pieces instead: fill | damage trail | empty, each in bands.
+            float fillEnd = x0 + w * clamp(t.shown);
+            float trailEnd = Math.max(fillEnd, x0 + w * clamp(t.trail));
+            bands(vc, m, x0, fillEnd, y0, y1, h, fillColor(t.frac), bright);
+            bands(vc, m, fillEnd, trailEnd, y0, y1, h, TRAIL, bright);
+            bands(vc, m, trailEnd, x1, y0, y1, h, BACK, bright);
+            int edge = d.elite() ? GOLD : BORDER;
+            quad(vc, m, x0 - 1, y0 - 1, x1 + 1, y0, edge, bright);
+            quad(vc, m, x0 - 1, y1, x1 + 1, y1 + 1, edge, bright);
+            quad(vc, m, x0 - 1, y0, x0, y1, edge, bright);
+            quad(vc, m, x1, y0, x1 + 1, y1, edge, bright);
+            if (d.elite()) { // little gold studs at the ends, WoW elite style
+                quad(vc, m, x0 - 3, y0 + h / 2f - 1.5f, x0 - 1, y0 + h / 2f + 1.5f, GOLD, bright);
+                quad(vc, m, x1 + 1, y0 + h / 2f - 1.5f, x1 + 3, y0 + h / 2f + 1.5f, GOLD, bright);
+            }
+
+            if (!"NONE".equals(DrConfig.data.enemyHpText)) {
+                float s = Math.max(0.5f, Math.min(1.2f, (h - 1) / 8f));
+                pose.pushPose();
+                pose.translate(0, h / 2f, 0);
+                pose.scale(s, s, 1f);
+                Matrix4f tm = pose.last().pose();
+                var seq = Component.literal(d.numbers()).getVisualOrderText();
+                text(font, seq, -font.width(seq) / 2f, -4f, 0xFFFFFFFF, buffers, tm, bright);
+                pose.popPose();
+            }
         }
         pose.popPose();
+    }
+
+    /** Outlined text plus a faint see-through copy so it stays readable behind blocks (like the bar). */
+    private static void text(Font font, FormattedCharSequence seq, float x, float y, int color, MultiBufferSource buffers, Matrix4f m, int light) {
+        font.drawInBatch(seq, x, y, (color & 0x00FFFFFF) | 0x90000000, false, m, buffers, Font.DisplayMode.SEE_THROUGH, 0, LightTexture.FULL_BRIGHT);
+        font.drawInBatch8xOutline(seq, x, y, color, 0xFF000000, m, buffers, LightTexture.FULL_BRIGHT);
     }
 
     /** A bar segment with a light top band and a dark bottom band (the WoW gloss), no overlaps. */

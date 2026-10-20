@@ -38,6 +38,16 @@ public final class DrState {
     private static String playerClass = "???";
 
     public static void setPlayerClass(String c) { playerClass = c; }
+
+    private static int playerLevel = -1;
+    private static final Pattern PLAYER_LV = Pattern.compile("Lv\\.? ?(\\d+)");
+    /** Your level, from the same boss bar (-1 until seen). Used for WoW-style difficulty colours. */
+    public static int playerLevel() { return playerLevel; }
+    public static void setPlayerLevel(int lv) { playerLevel = lv; }
+    public static void onClassBar(String plain) {
+        Matcher m = PLAYER_LV.matcher(plain);
+        if (m.find()) playerLevel = parse(m.group(1));
+    }
     public static boolean isRogue() { return playerClass.contains("Rogue"); }
 
     // ---- Action bar: ultimate + potion cooldowns ----
