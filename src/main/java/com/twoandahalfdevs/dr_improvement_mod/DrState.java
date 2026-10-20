@@ -141,6 +141,7 @@ public final class DrState {
     }
 
     public static void onChat(String msg) {
+        MobHp.onChat(msg);
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null || msg == null) return;
 

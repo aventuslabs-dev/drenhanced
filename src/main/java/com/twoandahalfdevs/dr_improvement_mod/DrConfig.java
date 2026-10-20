@@ -34,7 +34,12 @@ public final class DrConfig {
         /** Regexes that force a message into the right/system chat (checked first). */
         public java.util.List<String> chatSystemPatterns = new java.util.ArrayList<>();
         /** Look of DR's mob health bars: ORIGINAL, BAR, BAR_PERCENT, PERCENT or HEARTS. */
-        public String enemyHpStyle = "BAR_PERCENT";
+        public String enemyHpStyle = "MODERN";
+        /** WoW-style bar: size in nametag pixels, colour (REACTION, HEALTH, GOLD) and text (CURRENT_MAX, CURRENT, PERCENT, CURRENT_PERCENT, NONE). */
+        public int enemyHpBarWidth = 64;
+        public int enemyHpBarHeight = 8;
+        public String enemyHpColor = "REACTION";
+        public String enemyHpText = "CURRENT_MAX";
         public int enemyHpBarLength = 12;
         public boolean enemyHpShowLevel = true;
         /** Size, text and position of the left (player) and right (system) chat boxes. */
@@ -43,6 +48,10 @@ public final class DrConfig {
 
         void clamp() {
             enemyHpBarLength = Math.max(4, Math.min(40, enemyHpBarLength));
+            enemyHpBarWidth = Math.max(30, Math.min(200, enemyHpBarWidth));
+            enemyHpBarHeight = Math.max(4, Math.min(24, enemyHpBarHeight));
+            if (enemyHpColor == null) enemyHpColor = "REACTION";
+            if (enemyHpText == null) enemyHpText = "CURRENT_MAX";
             if (leftChat == null) leftChat = new ChatBox();
             if (rightChat == null) rightChat = new ChatBox();
             leftChat.clamp();
@@ -121,7 +130,7 @@ public final class DrConfig {
         try {
             return EnemyHp.Style.valueOf(data.enemyHpStyle);
         } catch (Exception e) {
-            return EnemyHp.Style.BAR_PERCENT;
+            return EnemyHp.Style.MODERN;
         }
     }
     public static int shadowmeldPoints() { return data.shadowmeldPoints; }

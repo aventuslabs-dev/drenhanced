@@ -1,6 +1,10 @@
 package com.twoandahalfdevs.dr_improvement_mod.mixin;
 
 import com.twoandahalfdevs.dr_improvement_mod.DrConfig;
+import com.twoandahalfdevs.dr_improvement_mod.MobHp;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
@@ -33,5 +37,11 @@ public abstract class MultiPlayerGameModeMixin {
         if (DrConfig.legacyCombat()) {
             cir.setReturnValue(false);
         }
+    }
+
+    /** Remember who we hit so the next "DMG -> Name [HP]" line can be matched to that mob. */
+    @Inject(method = "attack", at = @At("HEAD"))
+    private void drim$attack(Player player, Entity target, CallbackInfo ci) {
+        MobHp.onAttack(target);
     }
 }

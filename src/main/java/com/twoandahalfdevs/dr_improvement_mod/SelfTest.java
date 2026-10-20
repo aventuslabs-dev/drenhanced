@@ -66,6 +66,7 @@ final class SelfTest {
     private static final List<String> failures = new ArrayList<>();
     private static int stage;
     private static int waitTicks;
+    private static net.minecraft.world.entity.Entity hpTarget;
 
     static boolean enabled() {
         return Boolean.getBoolean("drim.selftest");
@@ -133,8 +134,8 @@ final class SelfTest {
                             "tellraw @a {\"text\":\"120 DMG -> Skeleton [2400 HP]\",\"color\":\"red\"}",
                             "tellraw @a {\"text\":\"+48 EXP [1205/9000]\",\"color\":\"yellow\"}",
                             "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}",
-                            "execute at @a run summon villager ~-1.5 ~ ~4 {NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"||||||||||||||\",\"color\":\"green\"},{\"text\":\"||||||\",\"color\":\"gray\"},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
-                            "execute at @a run summon villager ~1.5 ~ ~4 {NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"|||\",\"color\":\"green\"},{\"text\":\"|||||||||||||||||\",\"color\":\"gray\"},{\"text\":\" [Lv 91]\",\"color\":\"white\"}]'}"}) {
+                            "execute at @a run summon villager ~-2 ~ ~5 {Tags:[\"drimA\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\"},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
+                            "execute at @a run summon villager ~2 ~ ~5 {Tags:[\"drimB\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"||||||||||||||\",\"color\":\"green\"},{\"text\":\"||||||\",\"color\":\"gray\"},{\"text\":\" [Lv 91]\",\"color\":\"white\"}]'}"}) {
                         server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
                     }
                     String me = mc.player.getGameProfile().getName();
@@ -147,7 +148,29 @@ final class SelfTest {
                     waitTicks = 0;
                 }
                 case 4 -> {
-                    if (++waitTicks < 60) return;
+                    if (++waitTicks == 30) {
+                        // hit the full-health "Spooky Skeleton": DR then shows the bar and a damage line
+                        for (var e : mc.level.entitiesForRendering()) {
+                            if (e.getCustomName() != null && e.getCustomName().getString().contains("Spooky Skeleton")) hpTarget = e;
+                        }
+                        if (hpTarget == null) fail("test mob not found");
+                        else {
+                            MobHp.onAttack(hpTarget);
+                            MobHp.onChat("\u00a7c120 DMG -> Spooky Skeleton [2280 HP]");
+                            MinecraftServer srv = mc.getSingleplayerServer();
+                            String cmd = "data merge entity @e[tag=drimA,limit=1] {CustomName:'[{\"text\":\"|||||||||||||||||||\",\"color\":\"green\"},{\"text\":\"|\",\"color\":\"gray\"},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}";
+                            srv.execute(() -> srv.getCommands().performPrefixedCommand(srv.createCommandSourceStack(), cmd));
+                        }
+                    }
+                    if (waitTicks < 60) return;
+                    if (hpTarget != null) {
+                        MobHp.Track tr = MobHp.trackOf(hpTarget);
+                        if (tr == null) fail("no hp track for test mob");
+                        else {
+                            log("mob hp track: " + MobHp.hpOf(tr) + " / " + MobHp.maxOf(tr) + (MobHp.maxExact(tr) ? " (exact)" : " (estimate)"));
+                            if (MobHp.hpOf(tr) != 2280 || MobHp.maxOf(tr) != 2400 || !MobHp.maxExact(tr)) fail("mob hp tracking wrong");
+                        }
+                    }
                     int l = ((ChatAccessor) mc.gui.getChat()).drim$messages().size();
                     int r = ((ChatAccessor) SplitChat.right()).drim$messages().size();
                     log("left chat: " + l + " messages, right chat: " + r + " messages");
@@ -185,6 +208,14 @@ final class SelfTest {
                     if (!(mc.screen instanceof ChatLayoutScreen)) fail("chat layout screen did not open");
                     else log("chat layout screen ok");
                     Screenshot.grab(mc.gameDirectory, "drim-chat-layout-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    mc.setScreen(new EnemyHpScreen(null));
+                    stage = 8;
+                    waitTicks = 0;
+                }
+                case 8 -> {
+                    if (++waitTicks < 15) return;
+                    if (!(mc.screen instanceof EnemyHpScreen)) fail("enemy hp screen did not open");
+                    Screenshot.grab(mc.gameDirectory, "drim-enemyhp-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     DrConfig.data.leftChat = new DrConfig.ChatBox();
                     DrConfig.data.rightChat = new DrConfig.ChatBox();
                     stage = 99;

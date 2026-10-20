@@ -44,10 +44,12 @@ public final class ClientEvents {
         net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.CHAT.register(SplitChat::onSent);
         KeyBindingHelper.registerKeyBinding(OPEN_CONFIG);
         ClientTickEvents.START_CLIENT_TICK.register(ClientEvents::onClientTick);
+        ClientTickEvents.END_CLIENT_TICK.register(mc -> MobHp.tick());
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> addOrigin(stack, lines));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             lastSelectedSlot = -1;
             DrState.reset();
+            MobHp.reset();
         });
         // /drconfig opens the settings screen (handy without ModMenu).
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->

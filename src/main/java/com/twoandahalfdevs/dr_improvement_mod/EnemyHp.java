@@ -19,7 +19,7 @@ public final class EnemyHp {
     private EnemyHp() {}
 
     public enum Style {
-        ORIGINAL("Original"), BAR("Bar"), BAR_PERCENT("Bar + %"), PERCENT("% only"), HEARTS("Hearts");
+        MODERN("WoW style"), ORIGINAL("Original"), BAR("Bar"), BAR_PERCENT("Bar + %"), PERCENT("% only"), HEARTS("Hearts");
 
         public final String label;
 
@@ -41,7 +41,7 @@ public final class EnemyHp {
     public static Component transform(Component name) {
         if (name == null) return null;
         Style style = DrConfig.enemyHpStyle();
-        if (style == Style.ORIGINAL) return name;
+        if (style == Style.ORIGINAL || style == Style.MODERN) return name; // MODERN is drawn by MobHp
         Parsed p = parse(name);
         if (p == null) return name;
         return render(p, style, DrConfig.data.enemyHpBarLength, DrConfig.data.enemyHpShowLevel);

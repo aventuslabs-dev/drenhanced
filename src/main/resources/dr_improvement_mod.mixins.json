@@ -12,6 +12,7 @@
     "ConnectionMixin",
     "EntityMixin",
     "EntityRendererMixin",
+    "EntityRenderStateMixin",
     "GuiAccessor",
     "GuiMixin",
     "ItemInHandRendererMixin",
