@@ -41,7 +41,8 @@ public final class MobHp {
     public static final class Track {
         Component name;          // last plain (un-hit) name, with DR's colours
         String level = "";
-        float frac = 1f;         // from the |||| bar
+        float frac = 1f;         // drawn fraction: exact hp/max when known, else the |||| bar
+        float pipe = 1f;         // last |||| bar fraction
         long fracChanged;
         long plainAt;            // last time the plain name was shown (mob at full HP)
         int hp = -1;             // exact, from damage messages
@@ -84,18 +85,25 @@ public final class MobHp {
             t.name = nameTag;
             Matcher m = LEVEL.matcher(SplitChat.strip(nameTag.getString()));
             if (m.find()) t.level = m.group(1);
+            if (t.hp >= 0 && now - t.hpAt < 3000) {
+                // just hit, DR hasn't swapped the name for its bar yet: show ours straight away
+                if (t.max > 0) t.frac = Math.min(1f, t.hp / (float) t.max);
+                return new Display(nameTag, numbers(t, now), t);
+            }
             t.plainAt = now;
-            t.frac = 1f;
+            t.frac = t.pipe = 1f;
             t.hp = -1;
             t.shown = t.trail = 1f;
             return null;
         }
         float f = (float) p.fraction();
-        if (Math.abs(f - t.frac) > 1e-4) {
-            if (f < t.frac) t.hitAt = now;
-            t.frac = f;
+        if (Math.abs(f - t.pipe) > 1e-4) {
+            if (f < t.pipe) t.hitAt = now;
+            t.pipe = f;
             t.fracChanged = now;
         }
+        boolean exact = t.hp >= 0 && t.max > 0 && t.hpAt >= t.fracChanged - 1500;
+        t.frac = exact ? Math.min(1f, t.hp / (float) t.max) : f;
         Matcher m = LEVEL.matcher(p.after());
         if (m.find()) t.level = m.group(1);
 
