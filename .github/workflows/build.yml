@@ -22,6 +22,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - name: Look up mod versions on Modrinth (modrinth-versions)
+        run: |
+          for p in immediatelyfast entityculling lithium sodium; do
+            echo "== $p"; curl -s "https://api.modrinth.com/v2/project/$p/version?game_versions=%5B%221.21.4%22%5D&loaders=%5B%22fabric%22%5D" | jq -r '.[0:4][] | .version_number' ; done | tee modrinth.txt
+
       - name: Build mod jar
         run: |
           chmod +x gradlew
@@ -50,6 +55,7 @@ jobs:
         run: |
           mkdir -p /tmp/out
           cp build.log /tmp/out/ 2>/dev/null || true
+          cp modrinth.txt /tmp/out/ 2>/dev/null || true
           grep -E 'DRIM|Mixin|mixin|ERROR|Exception|Caused by' selftest.log > /tmp/out/selftest-summary.log 2>/dev/null || true
           tail -n 300 selftest.log > /tmp/out/selftest-tail.log 2>/dev/null || true
           cp build/libs/*.jar /tmp/out/ 2>/dev/null || true
