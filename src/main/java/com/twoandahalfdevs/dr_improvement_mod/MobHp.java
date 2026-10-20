@@ -537,7 +537,9 @@ public final class MobHp {
         int w = DrConfig.data.enemyHpBarWidth;
         int h = DrConfig.data.enemyHpBarHeight;
         pose.pushPose();
-        pose.translate(attach.x, attach.y + 0.5, attach.z);
+        // players wear tall cosmetics (hats, horns): lift their plate clear of the head so it isn't hidden
+        boolean player = d.barColor() != 0;
+        pose.translate(attach.x, attach.y + (player ? 0.85 : 0.5), attach.z);
         pose.mulPose(mc.getEntityRenderDispatcher().cameraOrientation());
         pose.scale(0.025f, -0.025f, 0.025f);
         Matrix4f m = pose.last().pose();
@@ -593,7 +595,7 @@ public final class MobHp {
             // viewing angle. Draw non-overlapping pieces instead: fill | damage trail | empty, each in bands.
             float fillEnd = x0 + w * clamp(t.shown);
             float trailEnd = Math.max(fillEnd, x0 + w * clamp(t.trail));
-            bands(vc, m, x0, fillEnd, y0, y1, h, d.barColor() != 0 ? d.barColor() : fillColor(t.frac), bright);
+            bands(vc, m, x0, fillEnd, y0, y1, h, readable(d.barColor() != 0 ? d.barColor() : fillColor(t.frac)), bright);
             bands(vc, m, fillEnd, trailEnd, y0, y1, h, TRAIL, bright);
             bands(vc, m, trailEnd, x1, y0, y1, h, BACK, bright);
             int edge = d.elite() ? GOLD : BORDER;
@@ -607,7 +609,7 @@ public final class MobHp {
             }
 
             if (!"NONE".equals(DrConfig.data.enemyHpText)) {
-                float s = Math.max(0.5f, Math.min(1.2f, (h - 1) / 8f));
+                float s = Math.max(0.6f, Math.min(1.3f, (h + 1) / 8f));
                 pose.pushPose();
                 pose.translate(0, h / 2f, 0);
                 pose.scale(s, s, 1f);
@@ -624,6 +626,18 @@ public final class MobHp {
     private static void text(Font font, FormattedCharSequence seq, float x, float y, int color, MultiBufferSource buffers, Matrix4f m, int light) {
         font.drawInBatch(seq, x, y, (color & 0x00FFFFFF) | 0x90000000, false, m, buffers, Font.DisplayMode.SEE_THROUGH, 0, LightTexture.FULL_BRIGHT);
         font.drawInBatch8xOutline(seq, x, y, color, 0xFF000000, m, buffers, LightTexture.FULL_BRIGHT);
+    }
+
+    /**
+     * Bright fills (Rogue yellow, Priest white, full-HP green) wash out the white HP numbers: darken them to a
+     * mid tone that keeps the hue, so outlined white text always reads.
+     */
+    static int readable(int argb) {
+        double r = ((argb >> 16) & 255) / 255.0, g = ((argb >> 8) & 255) / 255.0, b = (argb & 255) / 255.0;
+        double luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        double target = 0.6;
+        if (luma <= target) return argb;
+        return mix(argb, 0x000000, (float) (1 - target / luma));
     }
 
     /** A bar segment with a light top band and a dark bottom band (the WoW gloss), no overlaps. */
