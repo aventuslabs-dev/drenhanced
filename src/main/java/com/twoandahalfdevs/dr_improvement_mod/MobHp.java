@@ -63,7 +63,11 @@ public final class MobHp {
         float frac = 1f;         // drawn fraction: exact hp/max when known, else the |||| bar
         float pipe = 1f;         // last |||| bar fraction
         long fracChanged;
-        long plainAt;            // last time the plain name was shown (mob at full HP)
+        long plainAt;            // last time the plain name was shown (NOT proof of full HP: DR reverts after combat)
+        Boolean startedFull;     // first time we saw it, was it showing its plain name (never damaged)?
+        boolean confirmed;       // at least one damage line has been matched to this mob
+        long firstDropAt;        // when its |||| bar first dropped below full
+        int swing = -1;          // swing that last updated it (one cleave swing hits several mobs)
         int hp = -1;             // exact, from damage messages
         long hpAt;
         int max = -1;
@@ -107,7 +111,8 @@ public final class MobHp {
         t.seen = now;
         t.pos = e.position();
         t.height = e.getBbHeight();
-        if (p == null) { // plain "Name [Lv 90]": full health, not in combat
+        if (t.startedFull == null) t.startedFull = p == null;
+        if (p == null) { // plain "Name [Lv 90]": out of combat (DR also shows this after combat, while still hurt)
             t.name = nameTag;
             t.label = parts.name();
             t.level = parts.level();
@@ -118,12 +123,16 @@ public final class MobHp {
                 return new Display(t.label, t.level, t.elite, true, numbers(t, now), t);
             }
             t.plainAt = now;
-            t.frac = t.pipe = 1f;
-            t.hp = -1;
-            t.shown = t.trail = 1f;
+            // Keep what we know about its HP: DR swaps back to the name ~8 s after the last hit even when the
+            // mob is still hurt. Only a mob we've never seen damaged counts as full.
+            if (!t.confirmed && t.firstDropAt == 0) {
+                t.frac = t.pipe = 1f;
+                t.shown = t.trail = 1f;
+            }
             return new Display(t.label, t.level, t.elite, false, "", t);
         }
         float f = (float) p.fraction();
+        if (f < 0.999f && t.firstDropAt == 0) t.firstDropAt = now;
         if (Math.abs(f - t.pipe) > 1e-4) {
             if (f < t.pipe) t.hitAt = now;
             t.pipe = f;
@@ -315,9 +324,12 @@ public final class MobHp {
         return SplitChat.strip(t.name.getString()) + "|" + t.level;
     }
 
+    private static int swingCounter;
+
     public static void onAttack(Entity e) {
         lastAttacked = e.getId();
         lastAttackAt = System.currentTimeMillis();
+        swingCounter++;
     }
 
     public static void onChat(String raw) {
@@ -330,13 +342,20 @@ public final class MobHp {
         int left = Integer.parseInt(m.group(4));
         long now = System.currentTimeMillis();
 
+        // The mob you swung at gets the first matching line of that swing; cleave/AoE lines for other mobs
+        // go to the best other candidate (same name, HP that fits, nearest) instead of overwriting it.
         Track t = null;
-        if (now - lastAttackAt < 1500) t = tracks.get(lastAttacked);
-        if (t == null) t = byName(target, now); // staff / bow hits don't go through attack()
+        Track clicked = now - lastAttackAt < 1500 ? tracks.get(lastAttacked) : null;
+        if (clicked != null && clicked.swing != swingCounter && matches(clicked, target)) t = clicked;
+        if (t == null) t = bestMatch(target, dmg, left, now, clicked);
         if (t == null) return;
+        t.swing = swingCounter;
         FloatingText.fromChat(dmg, t.pos, t.height, source);
 
-        boolean wasFull = t.hp < 0 && now - t.plainAt < 2000;
+        // exact max = remaining + damage, but only on the first hit against a mob we first saw undamaged
+        boolean wasFull = Boolean.TRUE.equals(t.startedFull) && !t.confirmed
+            && (t.firstDropAt == 0 || now - t.firstDropAt < 2000);
+        t.confirmed = true;
         t.hp = left;
         t.hpAt = now;
         t.hitAt = now;
@@ -350,17 +369,35 @@ public final class MobHp {
         }
     }
 
-    private static Track byName(String target, long now) {
+    private static String labelText(Track t) {
+        return SplitChat.strip((t.label != null ? t.label : t.name).getString()).trim();
+    }
+
+    private static boolean matches(Track t, String target) {
+        if (t.name == null) return true; // no name yet (came into view damaged): can't rule it out
+        String l = labelText(t);
+        return l.equals(target) || l.endsWith(" " + target) || target.endsWith(" " + l) || l.contains(target);
+    }
+
+    /** Best mob for a damage line: exact name first, then HP continuity (hp - damage ≈ remaining), then distance. */
+    private static Track bestMatch(String target, int dmg, int left, long now, Track exclude) {
         Vec3 me = Minecraft.getInstance().player == null ? Vec3.ZERO : Minecraft.getInstance().player.position();
         Track best = null;
-        double bestD = 40 * 40;
+        double bestScore = Double.MAX_VALUE;
         for (Track t : tracks.values()) {
-            if (now - t.seen > 5000 || t.name == null) continue;
-            String n = SplitChat.strip(t.name.getString());
-            if (!n.contains(target) && !target.contains(n.replaceAll("\\s*\\[Lv.*", "").trim())) continue;
+            if (now - t.seen > 5000 || t.name == null || !matches(t, target)) continue;
             double d = t.pos.distanceToSqr(me);
-            if (d < bestD) {
-                bestD = d;
+            if (d > 40 * 40) continue;
+            double score = Math.sqrt(d);
+            if (!labelText(t).equals(target)) score += 50;         // affix/partial name match
+            if (t.hp >= 0 && now - t.hpAt < 30_000) {
+                long expect = (long) t.hp - dmg;
+                if (left > t.hp) score += 200;                       // HP can't go up from a hit
+                else score += Math.min(100, Math.abs(expect - left) / 50.0);
+            }
+            if (t == exclude && exclude.swing == swingCounter) score += 25; // already took this swing's hit
+            if (score < bestScore) {
+                bestScore = score;
                 best = t;
             }
         }

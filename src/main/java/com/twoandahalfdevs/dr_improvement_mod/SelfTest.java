@@ -177,6 +177,7 @@ final class SelfTest {
                             "tellraw @a {\"text\":\"+48 EXP [1205/9000]\",\"color\":\"yellow\"}",
                             "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}",
                             "execute at @a run summon villager ~-2 ~ ~5 {Tags:[\"drimA\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
+                            "execute at @a run summon villager ~-3.5 ~ ~6 {Tags:[\"drimC\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
                             "execute at @a run summon villager ~0.3 ~ ~8 {NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Rotten Zombie\",\"color\":\"white\"},{\"text\":\" [Lv 95]\",\"color\":\"gray\"}]'}",
                             "execute at @a run summon villager ~2 ~ ~5 {Tags:[\"drimB\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"||||||||||||||\",\"color\":\"green\"},{\"text\":\"||||||\",\"color\":\"gray\"},{\"text\":\" [Lv 91]\",\"color\":\"white\"}]'}"}) {
                         server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
@@ -363,6 +364,32 @@ final class SelfTest {
                     waitTicks = 0;
                 }
                 case 6 -> {
+                    if (waitTicks == 0 && hpTarget != null) {
+                        // DR swaps back to the plain name ~8 s after the last hit, while the mob is still hurt
+                        MinecraftServer srv = mc.getSingleplayerServer();
+                        String cmd = "data merge entity @e[tag=drimA,limit=1] {CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}";
+                        srv.execute(() -> srv.getCommands().performPrefixedCommand(srv.createCommandSourceStack(), cmd));
+                    }
+                    if (waitTicks == 9 && hpTarget != null) {
+                        MobHp.Track a = MobHp.trackOf(hpTarget);
+                        log("after name revert: " + MobHp.hpOf(a) + " / " + MobHp.maxOf(a));
+                        if (MobHp.hpOf(a) != 1139 || MobHp.maxOf(a) != 2400) fail("HP forgotten when DR reverted the name");
+                        // next swing: a cleave hits the clicked mob and a second, untouched "Spooky Skeleton"
+                        net.minecraft.world.entity.Entity other = null;
+                        for (var e : mc.level.entitiesForRendering()) {
+                            if (e != hpTarget && e.getCustomName() != null && e.getCustomName().getString().startsWith("Spooky Skeleton")) other = e;
+                        }
+                        MobHp.onAttack(hpTarget);
+                        DrState.onChat("200 DMG -> Spooky Skeleton [939 HP]");
+                        DrState.onChat("90 DMG -> Spooky Skeleton [2310 HP]");
+                        log("after cleave: clicked " + MobHp.hpOf(a) + " / " + MobHp.maxOf(a)
+                            + (other == null || MobHp.trackOf(other) == null ? ", other untracked"
+                                : ", other " + MobHp.hpOf(MobHp.trackOf(other)) + " / " + MobHp.maxOf(MobHp.trackOf(other))));
+                        if (MobHp.hpOf(a) != 939 || MobHp.maxOf(a) != 2400) fail("clicked mob wrong after cleave / max changed");
+                        if (other == null || MobHp.trackOf(other) == null) fail("second mob not tracked");
+                        else if (MobHp.hpOf(MobHp.trackOf(other)) != 2310 || MobHp.maxOf(MobHp.trackOf(other)) != 2400)
+                            fail("cleave hit not given to the second mob");
+                    }
                     if (++waitTicks < 10) return;
                     Screenshot.grab(mc.gameDirectory, "drim-chat-custom-open.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     mc.setScreen(new ChatLayoutScreen(null));
