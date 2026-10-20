@@ -178,6 +178,7 @@ final class SelfTest {
                             "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}",
                             "execute at @a run summon villager ~-2 ~ ~5 {Tags:[\"drimA\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
                             "execute at @a run summon villager ~-3.5 ~ ~6 {Tags:[\"drimC\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
+                            "execute at @a run summon villager ~-5 ~ ~7 {Tags:[\"drimD\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"\u2668 \",\"color\":\"red\",\"bold\":true},{\"text\":\"Spooky Skeleton\",\"color\":\"yellow\"},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
                             "execute at @a run summon villager ~0.3 ~ ~8 {NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Rotten Zombie\",\"color\":\"white\"},{\"text\":\" [Lv 95]\",\"color\":\"gray\"}]'}",
                             "execute at @a run summon villager ~2 ~ ~5 {Tags:[\"drimB\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"||||||||||||||\",\"color\":\"green\"},{\"text\":\"||||||\",\"color\":\"gray\"},{\"text\":\" [Lv 91]\",\"color\":\"white\"}]'}"}) {
                         server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
@@ -389,6 +390,24 @@ final class SelfTest {
                         if (other == null || MobHp.trackOf(other) == null) fail("second mob not tracked");
                         else if (MobHp.hpOf(MobHp.trackOf(other)) != 2310 || MobHp.maxOf(MobHp.trackOf(other)) != 2400)
                             fail("cleave hit not given to the second mob");
+                        // from a real capture: the axe cleave prints the neighbour's line FIRST, an affixed
+                        // "♨" mob with the same base name is nearby, and Thorns arrives after the mob regenerated
+                        net.minecraft.world.entity.Entity affix = null;
+                        for (var e : mc.level.entitiesForRendering()) {
+                            if (e.getCustomName() != null && e.getCustomName().getString().startsWith("\u2668")) affix = e;
+                        }
+                        MobHp.onAttack(hpTarget);
+                        DrState.onChat("85 DMG -> Spooky Skeleton [2225 HP]");
+                        DrState.onChat("40 DMG -> \u2668 Spooky Skeleton [2360 HP]");
+                        DrState.onChat("200 DMG -> Spooky Skeleton [739 HP]");
+                        DrState.onChat("30 DMG (Thorns) -> Spooky Skeleton [745 HP]"); // +36 regen since the hit
+                        MobHp.Track ot = other == null ? null : MobHp.trackOf(other), ft = affix == null ? null : MobHp.trackOf(affix);
+                        log("after reordered cleave: clicked " + MobHp.hpOf(a) + " / " + MobHp.maxOf(a)
+                            + ", other " + (ot == null ? "?" : MobHp.hpOf(ot) + " / " + MobHp.maxOf(ot))
+                            + ", affix " + (ft == null ? "?" : MobHp.hpOf(ft) + " / " + MobHp.maxOf(ft)));
+                        if (MobHp.hpOf(a) != 745 || MobHp.maxOf(a) != 2400) fail("clicked mob took another mob's line (bar jumps to full)");
+                        if (ot == null || MobHp.hpOf(ot) != 2225) fail("reordered cleave line not given to the neighbour");
+                        if (ft == null || MobHp.hpOf(ft) != 2360 || MobHp.maxOf(ft) != 2400) fail("affixed mob line misrouted");
                     }
                     if (++waitTicks < 10) return;
                     Screenshot.grab(mc.gameDirectory, "drim-chat-custom-open.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));

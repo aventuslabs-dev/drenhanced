@@ -117,8 +117,8 @@ public final class MobHp {
             t.label = parts.name();
             t.level = parts.level();
             t.elite = parts.elite();
-            if (t.hp >= 0 && now - t.hpAt < 3000) {
-                // just hit, DR hasn't swapped the name for its bar yet: show the bar straight away
+            // just hit (DR hasn't swapped in its bar yet), or DR reverted the name mid-fight while it's still hurt
+            if (t.hp >= 0 && (now - t.hpAt < 3000 || (t.confirmed && t.hp > 0 && t.max > 0 && t.hp < t.max && now - t.hitAt < 15_000))) {
                 if (t.max > 0) t.frac = Math.min(1f, t.hp / (float) t.max);
                 return new Display(t.label, t.level, t.elite, true, numbers(t, now), t);
             }
@@ -138,7 +138,8 @@ public final class MobHp {
             t.pipe = f;
             t.fracChanged = now;
         }
-        boolean exact = t.hp >= 0 && t.max > 0 && t.hpAt >= t.fracChanged - 1500;
+        boolean exact = t.hp >= 0 && t.max > 0 && (t.hpAt >= t.fracChanged - 1500
+            || (now - t.hpAt < 30_000 && p.total() > 0 && Math.abs(t.hp / (float) t.max - f) <= 1.5f / p.total() + 0.01f));
         t.frac = exact ? Math.min(1f, t.hp / (float) t.max) : f;
         Matcher m = LEVEL.matcher(p.after());
         if (m.find()) t.level = m.group(1);
@@ -342,16 +343,16 @@ public final class MobHp {
         int left = Integer.parseInt(m.group(4));
         long now = System.currentTimeMillis();
 
-        // The mob you swung at gets the first matching line of that swing; cleave/AoE lines for other mobs
-        // go to the best other candidate (same name, HP that fits, nearest) instead of overwriting it.
-        Track t = null;
-        // Thorns/Reflect lines come from mobs hitting you, not from your swing: match those on HP alone.
+        // Every line (your hit, a cleave/AoE hit on a neighbour, Thorns/Reflect) goes to the mob whose name and
+        // HP history fit it best. The mob you just swung at only gets a head start: on an axe cleave DR prints
+        // the lines in any order, and "♨ Fire Imp" must never land on the plain "Fire Imp" you clicked.
         Track clicked = source == null && now - lastAttackAt < 1500 ? tracks.get(lastAttacked) : null;
-        if (clicked != null && clicked.swing != swingCounter && matches(clicked, target)) t = clicked;
-        if (t == null) t = bestMatch(target, dmg, left, now, source == null ? clicked : null);
+        Track t = bestMatch(target, dmg, left, now, clicked);
         if (t == null) return;
-        if (source == null && t == clicked) t.swing = swingCounter;
+        if (t == clicked) t.swing = swingCounter;
         FloatingText.fromChat(dmg, t.pos, t.height, source);
+        // nothing tracked fits (the real mob is out of view): show the number, but don't corrupt another mob's HP
+        if (t != clicked && fitPenalty(t, dmg, left, now) >= 200) return;
 
         // exact max = remaining + damage, but only on the first hit against a mob we first saw undamaged
         boolean wasFull = Boolean.TRUE.equals(t.startedFull) && !t.confirmed
@@ -380,32 +381,46 @@ public final class MobHp {
         return l.equals(target) || l.endsWith(" " + target) || target.endsWith(" " + l) || l.contains(target);
     }
 
-    /** Best mob for a damage line: exact name first, then HP continuity (hp - damage ≈ remaining), then distance. */
-    private static Track bestMatch(String target, int dmg, int left, long now, Track exclude) {
+    /** Best mob for a damage line: exact name first, then HP continuity (hp - damage ≈ remaining, allowing regen). */
+    private static Track bestMatch(String target, int dmg, int left, long now, Track clicked) {
         Vec3 me = Minecraft.getInstance().player == null ? Vec3.ZERO : Minecraft.getInstance().player.position();
+        List<Track> exact = new ArrayList<>(), loose = new ArrayList<>();
+        for (Track t : tracks.values()) {
+            if (now - t.seen > 5000 || t.pos.distanceToSqr(me) > 40 * 40) continue;
+            if (t.name != null && labelText(t).equals(target)) exact.add(t);
+            else if (matches(t, target)) loose.add(t);
+        }
+        if (clicked != null && clicked.name == null && !exact.contains(clicked)) exact.add(clicked);
+        List<Track> pool = exact.isEmpty() ? loose : exact;
         Track best = null;
         double bestScore = Double.MAX_VALUE;
-        for (Track t : tracks.values()) {
-            if (now - t.seen > 5000 || t.name == null || !matches(t, target)) continue;
-            double d = t.pos.distanceToSqr(me);
-            if (d > 40 * 40) continue;
-            double score = Math.sqrt(d);
-            if (!labelText(t).equals(target)) score += 50;         // affix/partial name match
-            if (t.hp >= 0 && now - t.hpAt < 30_000) {
-                long expect = (long) t.hp - dmg;
-                if (left > t.hp) score += 200;                       // HP can't go up from a hit
-                else if (Math.abs(expect - left) <= Math.max(2, t.hp / 100)) score -= 100; // continues exactly
-                else score += Math.min(100, Math.abs(expect - left) / 50.0);
-            } else {
-                score += 30;                                         // unknown HP: possible, but not proven
-            }
-            if (t == exclude && exclude.swing == swingCounter) score += 60; // already took this swing's hit
+        for (Track t : pool) {
+            double score = Math.min(40, Math.sqrt(t.pos.distanceToSqr(me)));
+            score += fitPenalty(t, dmg, left, now);
+            if (t == clicked && clicked.swing != swingCounter) score -= 40; // you just swung at it
             if (score < bestScore) {
                 bestScore = score;
                 best = t;
             }
         }
         return best;
+    }
+
+    /** How badly "dmg -> [left HP]" fits what we know about this mob's HP. Negative = fits exactly. */
+    static double fitPenalty(Track t, int dmg, int left, long now) {
+        if (t.max > 0 && t.maxExact && left > t.max) return 300;            // more HP than it can have
+        if (t.hp < 0 || now - t.hpAt > 60_000) {
+            if (t.hp == 0 && now - t.hpAt < 3000) return 0;                    // DR still prints hits on a dying mob
+            return 30;                                                          // never matched: possible, unproven
+        }
+        long expect = (long) t.hp - dmg;
+        double secs = Math.max(0, (now - t.hpAt) / 1000.0);
+        int ref = t.max > 0 ? t.max : Math.max(left, t.hp);
+        double regen = 60 + secs * Math.max(100, ref * 0.015);                // DR mobs regen ~1% max HP per second
+        long diff = left - expect;
+        if (diff >= -Math.max(3, ref / 200) && diff <= regen) return -100;     // continues its HP (plus regen)
+        if (diff > regen) return 200;                                           // HP went up too much: other mob
+        return Math.min(100, -diff / 50.0);                                     // lower than expected: unseen damage
     }
 
     public static void tick() {
@@ -423,7 +438,8 @@ public final class MobHp {
     /** The number text for the bar, e.g. "1,840 / 2,400". "~" marks an estimate. */
     static String numbers(Track t, long now) {
         int pct = Math.round(t.frac * 100);
-        boolean freshHp = t.hp >= 0 && t.hpAt >= t.fracChanged - 1500;
+        boolean freshHp = t.hp >= 0 && (t.hpAt >= t.fracChanged - 1500
+            || (t.max > 0 && Math.abs(t.frac - Math.min(1f, t.hp / (float) t.max)) < 1e-4f));
         int hp;
         boolean estimate;
         if (freshHp) {
