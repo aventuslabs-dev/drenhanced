@@ -1,0 +1,29 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+> Configure project :
+Fabric Loom: 1.18.4
+
+> Task :compileJava
+Note: /home/runner/work/drenhanced/drenhanced/src/main/java/eu/the5zig/fabric/The5zigMod.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :processIncludeJars
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :validateAccessWidener NO-SOURCE
+> Task :check UP-TO-DATE
+> Task :remapJar
+> Task :remapSourcesJar SKIPPED
+> Task :assemble
+> Task :build
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1792473052329.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/drenhanced/drenhanced/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 24s
+5 actionable tasks: 5 executed
