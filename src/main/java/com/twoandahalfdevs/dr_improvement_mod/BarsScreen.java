@@ -14,7 +14,7 @@ import java.util.function.DoubleFunction;
 
 /** Enable, size, move and fade the energy arcs, mana bar and HP bar. The real bars update live behind it. */
 public final class BarsScreen extends Screen {
-    private static final int W = 128, H = 20, ROW = 22;
+    private static final int W = 120, H = 20, ROW = 22;
     private final Screen parent;
 
     public BarsScreen(Screen parent) {
@@ -22,31 +22,36 @@ public final class BarsScreen extends Screen {
         this.parent = parent;
     }
 
+    private static int tab; // 0 energy, 1 mana, 2 hp
+    private static final String[] NAMES = {"Energy", "Mana", "HP"};
+    private boolean dragging;
+
+    private DrConfig.Bar bar() {
+        DrConfig.Data c = DrConfig.data;
+        return tab == 0 ? c.energyBar : tab == 1 ? c.manaBar : c.healthBar;
+    }
+
+    private int panelRight() {
+        return 6 + W;
+    }
+
     @Override
     protected void init() {
         DrConfig.Data c = DrConfig.data;
-        int gap = 4;
-        int x0 = width / 2 - (3 * W + 2 * gap) / 2;
-        column(x0, "Energy", c.energyBar);
-        column(x0 + W + gap, "Mana", c.manaBar);
-        column(x0 + 2 * (W + gap), "HP", c.healthBar);
-
-        int by = 30 + 6 * ROW + 6;
-        addRenderableWidget(CycleButton.onOffBuilder(c.customBars)
-            .create(x0, by, W, H, Component.literal("Custom bars"), (b, v) -> c.customBars = v));
-        addRenderableWidget(Button.builder(Component.literal("Reset all"), b -> {
-            c.energyBar = new DrConfig.Bar();
-            c.manaBar = new DrConfig.Bar();
-            c.healthBar = new DrConfig.Bar();
-            rebuildWidgets();
-        }).bounds(x0 + W + gap, by, W, H).build());
-        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(x0 + 2 * (W + gap), by, W, H).build());
-    }
-
-    private void column(int x, String name, DrConfig.Bar b) {
-        int y = 30;
+        int x = 6, y = 26;
+        int tw = (W - 4) / 3;
+        for (int i = 0; i < 3; i++) {
+            final int t = i;
+            Button b = Button.builder(Component.literal((i == tab ? "\u00a7e" : "") + NAMES[i]), btn -> {
+                tab = t;
+                rebuildWidgets();
+            }).bounds(x + i * (tw + 2), y, tw, H).build();
+            addRenderableWidget(b);
+        }
+        y += ROW + 2;
+        DrConfig.Bar b = bar();
         addRenderableWidget(CycleButton.onOffBuilder(b.enabled)
-            .create(x, y, W, H, Component.literal(name), (btn, v) -> b.enabled = v));
+            .create(x, y, W, H, Component.literal("Show"), (btn, v) -> b.enabled = v));
         y += ROW;
         slider(x, y, b.scale, 0.25, 4.0, 0.05, v -> "Size: " + Math.round(v * 100) + "%", v -> b.scale = v);
         y += ROW;
@@ -56,11 +61,57 @@ public final class BarsScreen extends Screen {
         y += ROW;
         slider(x, y, b.opacity, 0.05, 1.0, 0.05, v -> "Opacity: " + Math.round(v * 100) + "%", v -> b.opacity = v);
         y += ROW;
-        addRenderableWidget(Button.builder(Component.literal("Centre"), btn -> {
-            b.x = 0;
-            b.y = 0;
+        addRenderableWidget(Button.builder(Component.literal("Reset " + NAMES[tab]), btn -> {
+            if (tab == 0) c.energyBar = new DrConfig.Bar();
+            else if (tab == 1) c.manaBar = new DrConfig.Bar();
+            else c.healthBar = new DrConfig.Bar();
             rebuildWidgets();
         }).bounds(x, y, W, H).build());
+        y += ROW + 4;
+        addRenderableWidget(CycleButton.onOffBuilder(c.customBars)
+            .create(x, y, W, H, Component.literal("Custom bars"), (btn, v) -> c.customBars = v));
+        y += ROW;
+        addRenderableWidget(Button.builder(Component.literal("Done"), btn -> onClose()).bounds(x, y, W, H).build());
+    }
+
+    @Override
+    public boolean mouseClicked(double mx, double my, int button) {
+        if (super.mouseClicked(mx, my, button)) return true;
+        if (button == 0 && mx > panelRight() + 4) {
+            dragging = true;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean mouseDragged(double mx, double my, int button, double dx, double dy) {
+        if (dragging) {
+            DrConfig.Bar b = bar();
+            b.x = Mth.clamp(b.x + dx / width * 100.0, -50, 50);
+            b.y = Mth.clamp(b.y - dy / height * 100.0, -50, 50);
+            return true;
+        }
+        return super.mouseDragged(mx, my, button, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(double mx, double my, int button) {
+        if (dragging) {
+            dragging = false;
+            rebuildWidgets(); // refresh slider positions
+            return true;
+        }
+        return super.mouseReleased(mx, my, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mx, double my, double sx, double sy) {
+        if (mx <= panelRight() || sy == 0) return super.mouseScrolled(mx, my, sx, sy);
+        DrConfig.Bar b = bar();
+        b.scale = Mth.clamp(Math.round((b.scale + (sy > 0 ? 0.05 : -0.05)) * 100) / 100.0, 0.25, 4.0);
+        rebuildWidgets();
+        return true;
     }
 
     private static String signed(double v) {

@@ -247,6 +247,13 @@ final class SelfTest {
                     if (!(mc.screen instanceof BarsScreen)) fail("bars screen did not open");
                     else log("bars screen ok");
                     Screenshot.grab(mc.gameDirectory, "drim-bars-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    mc.setScreen(null);
+                    stage = 11;
+                    waitTicks = 0;
+                }
+                case 11 -> {
+                    if (++waitTicks < 10) return;
+                    Screenshot.grab(mc.gameDirectory, "drim-bars-moved.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     DrConfig.data.energyBar = new DrConfig.Bar();
                     DrConfig.data.manaBar = new DrConfig.Bar();
                     DrConfig.data.healthBar = new DrConfig.Bar();
