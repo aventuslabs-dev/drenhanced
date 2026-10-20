@@ -51,7 +51,7 @@ public final class EnemyHpScreen extends Screen {
         addRenderableWidget(CycleButton.<EnemyHp.Style>builder(st -> Component.literal(st.label))
             .withValues(EnemyHp.Style.values()).withInitialValue(DrConfig.enemyHpStyle())
             .withTooltip(st -> Tooltip.create(Component.literal(st == EnemyHp.Style.MODERN
-                ? "Name + level until hit, then a health bar with exact HP under it."
+                ? "WoW nameplates: level badge, elite skull for bold names; health bar with exact HP appears when hit."
                 : "Rewrites DR's ||||| bar as text.")))
             .create(left, y, W, H, Component.literal("Style"), (b, st) -> { c.enemyHpStyle = st.name(); rebuildWidgets(); }));
         addRenderableWidget(CycleButton.<String>builder(t -> Component.literal(textLabel(t)))
@@ -96,8 +96,16 @@ public final class EnemyHpScreen extends Screen {
         }
         int w = DrConfig.data.enemyHpBarWidth, h = DrConfig.data.enemyHpBarHeight;
         int x0 = cx - w / 2, x1 = x0 + w, y0 = top + 12, y1 = y0 + h;
-        g.drawCenteredString(font, "§cSpooky Skeleton §f[Lv 90]", cx, top, 0xFFFFFFFF);
-        g.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, MobHp.BORDER);
+        // name row: level badge, elite skull, name (as drawn in the world)
+        String nm = "\u00a7cSpooky Skeleton", lvl = "90", sk = "\u2620";
+        int bw = font.width(lvl) + 6, skw = font.width(sk) + 2, nw = font.width(nm);
+        int rx = cx - (bw + 3 + skw + nw) / 2, ry = top;
+        g.fill(rx, ry - 1, rx + bw, ry + 9, MobHp.GOLD);
+        g.fill(rx + 1, ry, rx + bw - 1, ry + 8, 0xF0101010);
+        g.drawString(font, lvl, rx + 3, ry, 0xFFFFD100, true);
+        g.drawString(font, sk, rx + bw + 3, ry, MobHp.GOLD, true);
+        g.drawString(font, nm, rx + bw + 3 + skw, ry, 0xFFFFFFFF, true);
+        g.fill(x0 - 1, y0 - 1, x1 + 1, y1 + 1, MobHp.GOLD);
         int fe = x0 + Math.round(w * frac), te = Math.max(fe, x0 + Math.round(w * trail));
         bands(g, x0, fe, y0, y1, h, MobHp.fillColor(frac));
         bands(g, fe, te, y0, y1, h, MobHp.TRAIL);
