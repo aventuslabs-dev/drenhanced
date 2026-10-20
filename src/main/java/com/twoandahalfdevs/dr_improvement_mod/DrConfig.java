@@ -31,6 +31,10 @@ public final class DrConfig {
         public boolean splitChat = true;
         /** Fold repeated system messages into "message (x3)". */
         public boolean collapseRepeats = true;
+        /** Right box: "FEED" = WoW-style Combat Log, "CHAT" = plain chat. */
+        public String rightChatStyle = "FEED";
+        public boolean feedTimestamps = true;
+        public boolean feedGroupHeals = true;
         /** Regexes (matched against the plain text) that force a message into the left/player chat. */
         public java.util.List<String> chatPlayerPatterns = new java.util.ArrayList<>();
         /** Regexes that force a message into the right/system chat (checked first). */

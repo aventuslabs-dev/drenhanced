@@ -298,6 +298,10 @@ public final class SplitChat {
             lastGuiWidth = gw;
             relayout();
         }
+        if (FeedLog.enabled()) {
+            FeedLog.render(g, focused || mc.screen instanceof net.minecraft.client.gui.screens.ChatScreen, mouseX, mouseY);
+            return;
+        }
         int x = offsetX(gw);
         int y = DrConfig.data.rightChat.y;
         g.pose().pushPose();
@@ -312,6 +316,7 @@ public final class SplitChat {
 
     /** Adds to the right chat, folding an identical message within 10 s into "message (x3)". */
     public static void addRight(Component message, MessageSignature sig, GuiMessageTag tag) {
+        FeedLog.add(message); // the WoW-style Combat Log keeps its own parsed copy
         ChatComponent r = right();
         String text = message.getString();
         long now = System.currentTimeMillis();
@@ -332,6 +337,7 @@ public final class SplitChat {
     }
 
     public static void reset() {
+        FeedLog.clear();
         if (right != null) right.clearMessages(false);
     }
 }

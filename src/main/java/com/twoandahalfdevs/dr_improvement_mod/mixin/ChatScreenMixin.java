@@ -25,7 +25,14 @@ public abstract class ChatScreenMixin extends Screen {
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
     private void drim$scroll(double mx, double my, double sx, double sy, CallbackInfoReturnable<Boolean> cir) {
-        if (!SplitChat.enabled() || mx < SplitChat.offsetX(this.width)) return;
+        if (!SplitChat.enabled()) return;
+        if (com.twoandahalfdevs.dr_improvement_mod.FeedLog.enabled()) {
+            if (!com.twoandahalfdevs.dr_improvement_mod.FeedLog.contains(this.width, this.height, mx, my)) return;
+            com.twoandahalfdevs.dr_improvement_mod.FeedLog.scroll(sy);
+            cir.setReturnValue(true);
+            return;
+        }
+        if (mx < SplitChat.offsetX(this.width)) return;
         double d = Mth.clamp(sy, -1.0, 1.0);
         if (!hasShiftDown()) d *= 7.0;
         SplitChat.right().scrollChat((int) d);
@@ -35,6 +42,11 @@ public abstract class ChatScreenMixin extends Screen {
     @Inject(method = "getComponentStyleAt", at = @At("HEAD"), cancellable = true)
     private void drim$style(double mx, double my, CallbackInfoReturnable<Style> cir) {
         if (!SplitChat.enabled()) return;
+        if (com.twoandahalfdevs.dr_improvement_mod.FeedLog.enabled()
+            && com.twoandahalfdevs.dr_improvement_mod.FeedLog.contains(this.width, this.height, mx, my)) {
+            cir.setReturnValue(com.twoandahalfdevs.dr_improvement_mod.FeedLog.styleAtMouse());
+            return;
+        }
         int x = SplitChat.offsetX(this.width);
         if (mx >= x) {
             cir.setReturnValue(SplitChat.right().getClickedComponentStyleAt(mx - x, my + DrConfig.data.rightChat.y));
@@ -52,5 +64,14 @@ public abstract class ChatScreenMixin extends Screen {
             return;
         }
         SplitChat.renderBoth(g, tick, mx, my, focused, (lx, ly) -> original.call(chat, g, tick, lx, ly, focused));
+    }
+
+    /** Combat Log tabs. */
+    @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
+    private void drim$feedTabs(double mx, double my, int button, CallbackInfoReturnable<Boolean> cir) {
+        if (SplitChat.enabled() && com.twoandahalfdevs.dr_improvement_mod.FeedLog.enabled() && button == 0
+            && com.twoandahalfdevs.dr_improvement_mod.FeedLog.click(mx, my)) {
+            cir.setReturnValue(true);
+        }
     }
 }

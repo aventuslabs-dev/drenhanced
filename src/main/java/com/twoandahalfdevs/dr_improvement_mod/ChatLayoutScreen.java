@@ -31,17 +31,22 @@ public final class ChatLayoutScreen extends Screen {
         column(right, DrConfig.data.rightChat);
 
         int by = height - 26;
-        int bw = (2 * W + 8 - 8) / 3;
+        int bw = (2 * W + 8 - 12) / 4;
         addRenderableWidget(Button.builder(Component.literal("Reset both"), b -> {
             DrConfig.data.leftChat = new DrConfig.ChatBox();
             DrConfig.data.rightChat = new DrConfig.ChatBox();
             SplitChat.relayout();
             rebuildWidgets();
         }).bounds(left, by, bw, H).build());
+        addRenderableWidget(net.minecraft.client.gui.components.CycleButton.<String>builder(v -> Component.literal("FEED".equals(v) ? "Combat Log" : "Plain chat"))
+            .withValues("FEED", "CHAT").withInitialValue("FEED".equals(DrConfig.data.rightChatStyle) ? "FEED" : "CHAT")
+            .displayOnlyValue()
+            .withTooltip(v -> net.minecraft.client.gui.components.Tooltip.create(Component.literal("Right box style: WoW-style Combat Log (tabs, icons, grouped heals) or plain chat.")))
+            .create(left + bw + 4, by, bw, H, Component.literal("Right box"), (btn, v) -> DrConfig.data.rightChatStyle = v));
         addRenderableWidget(net.minecraft.client.gui.components.CycleButton.onOffBuilder(DrConfig.data.collapseRepeats)
-            .withTooltip(v -> net.minecraft.client.gui.components.Tooltip.create(Component.literal("Fold repeated system messages into \"message (x3)\".")))
-            .create(left + bw + 4, by, bw, H, Component.literal("Fold repeats"), (btn, v) -> DrConfig.data.collapseRepeats = v));
-        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(left + 2 * (bw + 4), by, bw, H).build());
+            .withTooltip(v -> net.minecraft.client.gui.components.Tooltip.create(Component.literal("Fold repeated system messages into one line with a count.")))
+            .create(left + 2 * (bw + 4), by, bw, H, Component.literal("Fold"), (btn, v) -> DrConfig.data.collapseRepeats = v));
+        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(left + 3 * (bw + 4), by, bw, H).build());
     }
 
     private void column(int x, DrConfig.ChatBox b) {

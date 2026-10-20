@@ -174,6 +174,26 @@ final class SelfTest {
                     mc.gui.getChat().addMessage(Component.literal("[G] " + me + ": guild chat stays left"));
                     mc.gui.getChat().addMessage(Component.literal("<" + me + "> plain player chat"));
                     for (int i = 0; i < 3; i++) mc.gui.getChat().addMessage(Component.literal("You must wait before consuming another potion."));
+                    // DR combat-log lines exactly as captured, for the WoW-style feed
+                    for (String line : new String[]{
+                            "                                * CRIT *",
+                            "                           * SHATTERED *",
+                            "1105 DMG -> Fiendish Skeleton [6238 HP]",
+                            "523 DMG -> Fiendish Skeleton [5715 HP]",
+                            "36 DMG (Thorns) -> Fiendish Skeleton [5679 HP]",
+                            "+96 HP (Leeching Poison) [620 Overhealth]",
+                            "+130 HP (Life Steal) [750 Overhealth]",
+                            "+11 HP (Healing) [761 Overhealth]",
+                            "-45 HP (Fiendish Skeleton's Thorns) [22937 HP]",
+                            "   + 48 EXP (EXP BUFF) [1205/9000]",
+                            "                                   99G",
+                            "\u2576\u2576\u2576\u2576\u25c3\u25c3\u25ad\u25ad\u2b4b\u2662\u25b9\u25b9\u2576\u2576\u2576\u2576",
+                            "Beacon Buff: +17% vs. MONSTERS (2m)"}) {
+                        mc.gui.getChat().addMessage(Component.literal(line));
+                    }
+                    mc.gui.getChat().addMessage(Component.empty().append(Component.literal("Fire Imp").withStyle(net.minecraft.ChatFormatting.YELLOW))
+                        .append(Component.literal(" dropped: ").withStyle(net.minecraft.ChatFormatting.GREEN))
+                        .append(Component.literal("SHOW").withStyle(net.minecraft.ChatFormatting.AQUA, net.minecraft.ChatFormatting.BOLD)));
                     SplitChat.onSent("typed by me");
                     mc.gui.getChat().addMessage(Component.literal("\u00a7b<5R> \u00a7e\u00a7lSomeNick\u00a7f: typed by me"));
                     stage = 4;
@@ -273,6 +293,12 @@ final class SelfTest {
                     boolean folded = ((ChatAccessor) SplitChat.right()).drim$messages().stream()
                         .anyMatch(m -> m.content().getString().endsWith("(x3)"));
                     if (!folded) fail("repeated system message not folded");
+                    log("feed: " + FeedLog.size() + " entries; last hit = " + FeedLog.lastText(FeedLog.Cat.HIT)
+                        + "; heal = " + FeedLog.lastText(FeedLog.Cat.HEAL));
+                    if (FeedLog.count(FeedLog.Cat.HEAL) != 1) fail("heals not grouped: " + FeedLog.count(FeedLog.Cat.HEAL));
+                    if (FeedLog.count(FeedLog.Cat.EXP) < 1 || FeedLog.count(FeedLog.Cat.GEMS) < 1 || FeedLog.count(FeedLog.Cat.LOOT) < 1)
+                        fail("feed categories missing");
+                    if (FeedLog.count(FeedLog.Cat.TAKEN) < 1) fail("damage taken missing from feed");
                     log("floating text: " + fct + " numbers on screen, DR hologram hidden=" + holoHidden);
                     if (fct < 2) fail("floating damage numbers not spawned (" + fct + ")");
                     if (!holoHidden) fail("DR damage hologram not taken over");
