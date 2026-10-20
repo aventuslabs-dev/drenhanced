@@ -325,6 +325,7 @@ final class SelfTest {
                 case 5 -> {
                     if (waitTicks == 0) {
                         // a real crit: DR's "* CRIT *" line right before the damage line
+                        if (hpTarget != null) MobHp.onAttack(hpTarget); // as if we just swung at it
                         DrState.onChat("                                    * CRIT *");
                         DrState.onChat("1105 DMG -> Spooky Skeleton [1175 HP]");
                         DrState.onChat("36 DMG (Thorns) -> Spooky Skeleton [1139 HP]");
