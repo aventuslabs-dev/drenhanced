@@ -21,7 +21,9 @@ public abstract class ChatComponentMixin {
     private void drim$route(Component message, @Nullable MessageSignature sig, @Nullable GuiMessageTag tag, CallbackInfo ci) {
         ChatComponent self = (ChatComponent) (Object) this;
         if (!SplitChat.enabled() || SplitChat.isRight(self) || self != Minecraft.getInstance().gui.getChat()) return;
-        if (SplitChat.isPlayerMessage(message, sig, tag)) return;
+        boolean player = SplitChat.isPlayerMessage(message, sig, tag);
+        com.twoandahalfdevs.dr_improvement_mod.Capture.route(message, player);
+        if (player) return;
         SplitChat.right().addMessage(message, sig, tag);
         ci.cancel();
     }

@@ -13,4 +13,10 @@ public interface GuiAccessor {
 
     @Accessor("overlayMessageTime")
     int drim$getOverlayTime();
+
+    @Accessor("title")
+    Component drim$getTitle();
+
+    @Accessor("subtitle")
+    Component drim$getSubtitle();
 }

@@ -44,13 +44,38 @@ public final class ClientEvents {
         net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.CHAT.register(SplitChat::onSent);
         KeyBindingHelper.registerKeyBinding(OPEN_CONFIG);
         ClientTickEvents.START_CLIENT_TICK.register(ClientEvents::onClientTick);
-        ClientTickEvents.END_CLIENT_TICK.register(mc -> MobHp.tick());
+        ClientTickEvents.END_CLIENT_TICK.register(mc -> {
+            MobHp.tick();
+            FloatingText.tick(mc);
+            Capture.tick(mc);
+        });
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_ENTITIES.register(ctx -> FloatingText.render(ctx.camera()));
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> addOrigin(stack, lines));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             lastSelectedSlot = -1;
             DrState.reset();
             MobHp.reset();
+            if (Capture.active()) Capture.mark("disconnected");
         });
+        // /drcapture toggles message capture; /drcapture mark <note> adds a marker line.
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
+            dispatcher.register(ClientCommandManager.literal("drcapture")
+                .executes(ctx -> {
+                    ctx.getSource().sendFeedback(Capture.toggle());
+                    return 1;
+                })
+                .then(ClientCommandManager.literal("mark")
+                    .then(ClientCommandManager.argument("note", com.mojang.brigadier.arguments.StringArgumentType.greedyString())
+                        .executes(ctx -> {
+                            String note = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "note");
+                            if (Capture.active()) {
+                                Capture.mark(note);
+                                ctx.getSource().sendFeedback(net.minecraft.network.chat.Component.literal("\u00a76[DR] \u00a7fMarked: " + note));
+                            } else {
+                                ctx.getSource().sendFeedback(net.minecraft.network.chat.Component.literal("\u00a76[DR] \u00a7fCapture isn't running. Use /drcapture first."));
+                            }
+                            return 1;
+                        })))));
         // /drconfig opens the settings screen (handy without ModMenu).
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
             dispatcher.register(ClientCommandManager.literal("drconfig").executes(ctx -> {
@@ -117,6 +142,7 @@ public final class ClientEvents {
         if (DrConfig.data.cooldownBar && !(mc.screen instanceof CooldownScreen)) {
             CooldownBar.draw(g);
         }
+        Capture.renderIndicator(g);
     }
 
     /** Shows where an item came from (DR stores "Type (Player/...)" in its custom data). */

@@ -46,6 +46,15 @@ public final class DrConfig {
         public Bar energyBar = new Bar();
         public Bar manaBar = new Bar();
         public Bar healthBar = new Bar();
+        /** Floating combat text (replaces DR's damage holograms). */
+        public boolean fctEnabled = true;
+        public double fctSize = 1.0;
+        public double fctDuration = 1.4;
+        public boolean fctHeals = true;
+        public boolean fctIncoming = true;
+        public boolean fctHideDr = true;
+        public boolean fctBigHits = true;
+        public boolean fctThroughWalls = true;
         /** WoW-style cooldown bar above the hotbar. */
         public boolean cooldownBar = true;
         public int cdIconSize = 22;
@@ -60,6 +69,8 @@ public final class DrConfig {
 
         void clamp() {
             enemyHpBarLength = Math.max(4, Math.min(40, enemyHpBarLength));
+            fctSize = Math.max(0.3, Math.min(4.0, fctSize));
+            fctDuration = Math.max(0.4, Math.min(5.0, fctDuration));
             cdIconSize = Math.max(12, Math.min(48, cdIconSize));
             cdX = Math.max(-1000, Math.min(1000, cdX));
             cdY = Math.max(0, Math.min(1000, cdY));

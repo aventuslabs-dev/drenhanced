@@ -52,6 +52,7 @@ public abstract class BossHealthOverlayMixin {
     @Inject(method = "drawBar(Lnet/minecraft/client/gui/GuiGraphics;IILnet/minecraft/world/BossEvent;)V",
         at = @At("HEAD"), cancellable = true)
     private void drim$hideHpBar(GuiGraphics guiGraphics, int x, int y, BossEvent event, CallbackInfo ci) {
+        com.twoandahalfdevs.dr_improvement_mod.Capture.boss(event.getName());
         String plain = event.getName().getString();
         if (plain.contains("Lv ") && plain.contains(" - HP ")) {
             int dash = plain.indexOf('-');

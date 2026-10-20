@@ -51,6 +51,7 @@ public final class MobHp {
         boolean maxExact;
         long hitAt;
         Vec3 pos = Vec3.ZERO;
+        float height = 2f;
         long seen;
         // animation
         float shown = 1f, trail = 1f;
@@ -80,6 +81,7 @@ public final class MobHp {
         Track t = tracks.computeIfAbsent(e.getId(), k -> new Track());
         t.seen = now;
         t.pos = e.position();
+        t.height = e.getBbHeight();
         EnemyHp.Parsed p = EnemyHp.parse(nameTag);
         if (p == null) { // plain "Name [Lv 90]": full health, not in combat
             t.name = nameTag;
@@ -141,6 +143,7 @@ public final class MobHp {
         if (now - lastAttackAt < 1500) t = tracks.get(lastAttacked);
         if (t == null) t = byName(target, now); // staff / bow hits don't go through attack()
         if (t == null) return;
+        FloatingText.fromChat(dmg, t.pos, t.height);
 
         boolean wasFull = t.hp < 0 && now - t.plainAt < 2000;
         t.hp = left;

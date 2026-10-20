@@ -60,6 +60,15 @@ public class DrConfigScreen extends Screen {
             .bounds(left, y, W, H).build());
         addRenderableWidget(Button.builder(Component.literal("Energy / mana / HP bars..."), b -> this.minecraft.setScreen(new BarsScreen(this)))
             .bounds(right, y, W, H).build());
+        y += GAP;
+        addRenderableWidget(Button.builder(Component.literal("Floating damage..."), b -> this.minecraft.setScreen(new FloatingTextScreen(this)))
+            .bounds(left, y, W, H).build());
+        addRenderableWidget(Button.builder(Component.literal(Capture.active() ? "\u00a7cStop message capture" : "Start message capture"), b -> {
+            Component msg = Capture.toggle();
+            if (this.minecraft.player != null) this.minecraft.player.displayClientMessage(msg, false);
+            rebuildWidgets();
+        }).tooltip(Tooltip.create(Component.literal("Logs DR's chat, action bar, titles, boss bars, sidebar and nameplates to .minecraft/dr_capture/ so the mod can be tuned to DR's exact text. Same as /drcapture.")))
+            .bounds(right, y, W, H).build());
 
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());

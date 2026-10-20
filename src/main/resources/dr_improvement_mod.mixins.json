@@ -11,6 +11,7 @@
     "ClientPacketListenerMixin",
     "ConnectionMixin",
     "EntityMixin",
+    "EntityRenderDispatcherMixin",
     "EntityRendererMixin",
     "EntityRenderStateMixin",
     "GuiAccessor",

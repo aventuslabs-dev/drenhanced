@@ -41,13 +41,16 @@ public abstract class ClientPacketListenerMixin {
 
     @Inject(method = "handleSystemChat", at = @At("HEAD"))
     private void drim$systemChat(ClientboundSystemChatPacket packet, CallbackInfo ci) {
-        if (drim$offThread() || packet.overlay()) return;
+        if (drim$offThread()) return;
+        com.twoandahalfdevs.dr_improvement_mod.Capture.chat(packet.overlay() ? "ACTIONBAR_PKT" : "CHAT", packet.content());
+        if (packet.overlay()) return;
         DrState.onChat(packet.content().getString());
     }
 
     @Inject(method = "handlePlayerChat", at = @At("HEAD"))
     private void drim$playerChat(ClientboundPlayerChatPacket packet, CallbackInfo ci) {
         if (drim$offThread()) return;
+        com.twoandahalfdevs.dr_improvement_mod.Capture.chat("PLAYERCHAT", net.minecraft.network.chat.Component.literal(packet.body().content()));
         DrState.onChat(packet.body().content());
     }
 

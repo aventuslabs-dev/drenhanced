@@ -67,6 +67,7 @@ final class SelfTest {
     private static int stage;
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
+    private static java.nio.file.Path captureFile;
 
     static boolean enabled() {
         return Boolean.getBoolean("drim.selftest");
@@ -130,6 +131,7 @@ final class SelfTest {
                     if (++waitTicks > 20 * 240) { fail("world did not load"); stage = 99; return; }
                     if (mc.player == null || mc.level == null || mc.screen != null) return;
                     mc.gui.getChat().clearMessages(false);
+                    log("capture: " + Capture.toggle().getString());
                     MinecraftServer server = mc.getSingleplayerServer();
                     for (String cmd : new String[]{"time set 6000", "gamerule doDaylightCycle false",
                             "tellraw @a {\"text\":\"120 DMG -> Skeleton [2400 HP]\",\"color\":\"red\"}",
@@ -169,7 +171,26 @@ final class SelfTest {
                             srv.execute(() -> srv.getCommands().performPrefixedCommand(srv.createCommandSourceStack(), cmd));
                         }
                     }
+                    if (waitTicks == 50) {
+                        // DR-style damage holograms: one by the mob, a heal above the player
+                        MinecraftServer srv = mc.getSingleplayerServer();
+                        for (String cmd : new String[]{
+                                "execute at @a run summon armor_stand ~-2 ~2.3 ~5 {Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{\"text\":\"-1074 \u2764\",\"color\":\"red\"}'}",
+                                "execute at @a run summon armor_stand ~0.5 ~2.2 ~1 {Invisible:1b,Marker:1b,NoGravity:1b,CustomNameVisible:1b,CustomName:'{\"text\":\"+125 \u2764\",\"color\":\"green\"}'}"}) {
+                            srv.execute(() -> srv.getCommands().performPrefixedCommand(srv.createCommandSourceStack(), cmd));
+                        }
+                        Capture.mark("selftest: holograms summoned");
+                    }
                     if (waitTicks < 60) return;
+                    int fct = FloatingText.count();
+                    boolean holoHidden = false;
+                    for (var e : mc.level.entitiesForRendering()) {
+                        if (e instanceof net.minecraft.world.entity.decoration.ArmorStand && e.getCustomName() != null
+                            && e.getCustomName().getString().startsWith("-1074")) holoHidden = FloatingText.isHidden(e);
+                    }
+                    log("floating text: " + fct + " numbers on screen, DR hologram hidden=" + holoHidden);
+                    if (fct < 2) fail("floating damage numbers not spawned (" + fct + ")");
+                    if (!holoHidden) fail("DR damage hologram not taken over");
                     if (hpTarget != null) {
                         MobHp.Track tr = MobHp.trackOf(hpTarget);
                         if (tr == null) fail("no hp track for test mob");
@@ -254,6 +275,23 @@ final class SelfTest {
                 case 11 -> {
                     if (++waitTicks < 10) return;
                     Screenshot.grab(mc.gameDirectory, "drim-bars-moved.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    captureFile = Capture.file();
+                    log("capture: " + Capture.toggle().getString());
+                    stage = 12;
+                    waitTicks = 0;
+                }
+                case 12 -> {
+                    if (++waitTicks < 10) return;
+                    try {
+                        java.util.List<String> lines = java.nio.file.Files.readAllLines(captureFile);
+                        log("capture file: " + lines.size() + " lines");
+                        for (String type : new String[]{"| CHAT |", "| ROUTE |", "| NAME |", "| ACTIONBAR |", "| MARK |"}) {
+                            if (lines.stream().noneMatch(l -> l.contains(type))) fail("capture has no " + type + " lines");
+                        }
+                        lines.stream().limit(60).forEach(l -> log("CAPTURE> " + l));
+                    } catch (Exception e) {
+                        fail("capture file unreadable: " + e);
+                    }
                     DrConfig.data.energyBar = new DrConfig.Bar();
                     DrConfig.data.manaBar = new DrConfig.Bar();
                     DrConfig.data.healthBar = new DrConfig.Bar();
