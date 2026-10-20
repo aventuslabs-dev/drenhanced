@@ -37,7 +37,34 @@ public final class DrState {
     // ---- Class (from the "<Class> Lv X - HP" boss bar) ----
     private static String playerClass = "???";
 
-    public static void setPlayerClass(String c) { playerClass = c; }
+    private static final Pattern CLASS_NAME = Pattern.compile("Lv\\.? ?\\d+ ([A-Za-z][A-Za-z ]*)");
+    private static String classKey = "";
+
+    /** "Lv 101 Warrior": on a class switch, swap the cooldown bar to that class's abilities. */
+    public static void setPlayerClass(String c) {
+        playerClass = c;
+        Matcher m = CLASS_NAME.matcher(c);
+        String key = m.find() ? m.group(1).trim() : "";
+        if (key.isEmpty() || key.equals(classKey)) return;
+        classKey = key;
+        abilities.clear();
+        knownAbilities.clear();
+        ultName = null;
+        ultCd = null;
+        if (DrConfig.data.classAbilities == null) DrConfig.data.classAbilities = new java.util.LinkedHashMap<>();
+        java.util.List<String> saved = DrConfig.data.classAbilities.get(key);
+        if (saved != null) knownAbilities.addAll(saved);
+    }
+
+    public static String classKey() { return classKey; }
+
+    /** Remember a newly seen ability for the current class (saved, so it survives restarts). */
+    private static void learn(String name) {
+        if (!knownAbilities.add(name) || classKey.isEmpty()) return;
+        if (DrConfig.data.classAbilities == null) DrConfig.data.classAbilities = new java.util.LinkedHashMap<>();
+        DrConfig.data.classAbilities.put(classKey, new java.util.ArrayList<>(knownAbilities));
+        DrConfig.save();
+    }
 
     private static int playerLevel = -1;
     private static final Pattern PLAYER_LV = Pattern.compile("Lv\\.? ?(\\d+)");
@@ -131,7 +158,7 @@ public final class DrState {
             }
             Matcher r = READY.matcher(text);
             if (r.find()) {
-                knownAbilities.add(r.group(1).trim());
+                learn(r.group(1).trim());
                 continue;
             }
             Matcher a = ABILITY_CD.matcher(text);
@@ -145,7 +172,7 @@ public final class DrState {
                 }
                 boolean active = "green".equals(color) || "a".equals(color);
                 abilities.put(name, new Ability(name, secs, active, shownAt));
-                knownAbilities.add(name);
+                learn(name);
                 if (ULTS.contains(name)) {
                     ultName = name;
                     ultCd = secs;
@@ -292,6 +319,9 @@ public final class DrState {
     public static void reset() {
         latestExp = prevExp = 0f;
         playerClass = "???";
+        classKey = "";
+        abilities.clear();
+        knownAbilities.clear();
         ultCd = null;
         pots = 5;
         potCd = null;

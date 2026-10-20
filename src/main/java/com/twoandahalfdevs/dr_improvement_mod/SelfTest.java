@@ -302,6 +302,20 @@ final class SelfTest {
                         fail("buff not separated from abilities: " + DrState.buffs.keySet() + " / " + DrState.knownAbilities);
                     if (DrState.pots != 4 || DrState.potsMax != 5 || DrState.potCd == null || DrState.potCd != 59)
                         fail("potions not parsed: " + DrState.pots + "/" + DrState.potsMax + " cd " + DrState.potCd);
+                    // class switch: Rogue abilities must not follow you onto a Warrior, and come back on Rogue
+                    var sep = Component.literal(" \u25aa ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY);
+                    DrState.setPlayerClass("Lv 101 Rogue");
+                    DrState.onActionBar(Component.empty().append(Component.literal("The Fast: [7s]").withStyle(net.minecraft.ChatFormatting.GREEN))
+                        .append(sep).append(Component.literal("Dash [4s]").withStyle(net.minecraft.ChatFormatting.RED)), 60);
+                    DrState.setPlayerClass("Lv 101 Warrior");
+                    boolean clearedOnSwitch = DrState.knownAbilities.isEmpty();
+                    DrState.onActionBar(Component.literal("Berserk: [15s]").withStyle(net.minecraft.ChatFormatting.RED), 60);
+                    String warrior = String.valueOf(DrState.knownAbilities);
+                    DrState.setPlayerClass("Lv 101 Rogue");
+                    log("class switch: warrior " + warrior + ", back to rogue " + DrState.knownAbilities);
+                    if (!clearedOnSwitch || !warrior.equals("[Berserk]")) fail("abilities not switched with the class: " + warrior);
+                    if (!DrState.knownAbilities.contains("The Fast") || DrState.knownAbilities.contains("Berserk"))
+                        fail("rogue abilities not restored: " + DrState.knownAbilities);
                     if (rivalPlayer != null) {
                         var pd = MobHp.update(rivalPlayer, rivalPlayer.getDisplayName());
                         if (pd == null || !"103".equals(pd.level()) || pd.sub() == null || !pd.sub().getString().contains("Rogue"))

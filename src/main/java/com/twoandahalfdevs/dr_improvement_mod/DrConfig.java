@@ -45,6 +45,8 @@ public final class DrConfig {
         public String enemyHpStyle = "MODERN";
         /** WoW-style plates for real players too (name, <guild>, HP bar in combat). */
         public boolean playerPlates = true;
+        /** Abilities seen per class ("Warrior" -> [Berserk, ...]), so the cooldown bar fits the class you're on. */
+        public java.util.Map<String, java.util.List<String>> classAbilities = new java.util.LinkedHashMap<>();
         /** WoW-style bar: size in nametag pixels, colour (REACTION, HEALTH, GOLD) and text (CURRENT_MAX, CURRENT, PERCENT, CURRENT_PERCENT, NONE). */
         public int enemyHpBarWidth = 64;
         public int enemyHpBarHeight = 8;
