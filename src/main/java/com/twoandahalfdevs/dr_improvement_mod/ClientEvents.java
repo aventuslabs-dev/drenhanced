@@ -98,6 +98,27 @@ public final class ClientEvents {
                     return 1;
                 }))));
         });
+        // /drcd hide|show NAME, /drcd list: choose what the cooldown bar shows
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            var nameArg = com.mojang.brigadier.arguments.StringArgumentType.greedyString();
+            dispatcher.register(ClientCommandManager.literal("drcd")
+                .executes(ctx -> { ctx.getSource().sendFeedback(cdList()); return 1; })
+                .then(ClientCommandManager.literal("list").executes(ctx -> { ctx.getSource().sendFeedback(cdList()); return 1; }))
+                .then(ClientCommandManager.literal("hide").then(ClientCommandManager.argument("name", nameArg).executes(ctx -> {
+                    String n = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "name").trim();
+                    if (!DrConfig.abilityHidden(n)) DrConfig.data.hiddenAbilities.add(n);
+                    DrConfig.save();
+                    ctx.getSource().sendFeedback(net.minecraft.network.chat.Component.literal("\u00a76[DR] \u00a7f" + n + " hidden from the cooldown bar."));
+                    return 1;
+                })))
+                .then(ClientCommandManager.literal("show").then(ClientCommandManager.argument("name", nameArg).executes(ctx -> {
+                    String n = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "name").trim();
+                    DrConfig.data.hiddenAbilities.removeIf(h -> h.equalsIgnoreCase(n));
+                    DrConfig.save();
+                    ctx.getSource().sendFeedback(net.minecraft.network.chat.Component.literal("\u00a76[DR] \u00a7f" + n + " shown on the cooldown bar again."));
+                    return 1;
+                }))));
+        });
         // /drconfig opens the settings screen (handy without ModMenu).
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
             dispatcher.register(ClientCommandManager.literal("drconfig").executes(ctx -> {
@@ -105,6 +126,12 @@ public final class ClientEvents {
                 openConfigNextTick = true;
                 return 1;
             })));
+    }
+
+    private static net.minecraft.network.chat.Component cdList() {
+        return net.minecraft.network.chat.Component.literal("\u00a76[DR] \u00a7fCooldown bar: \u00a7a" + String.join(", ", DrState.knownAbilities)
+            + "  \u00a77hidden: \u00a7f" + (DrConfig.data.hiddenAbilities.isEmpty() ? "none" : String.join(", ", DrConfig.data.hiddenAbilities))
+            + "  \u00a77(/drcd hide NAME, /drcd show NAME)");
     }
 
     private static void onClientTick(Minecraft mc) {

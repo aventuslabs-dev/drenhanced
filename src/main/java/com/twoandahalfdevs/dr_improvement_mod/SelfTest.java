@@ -343,6 +343,7 @@ final class SelfTest {
                     DrState.setPlayerClass("Lv 101 Rogue");
                     log("class switch: warrior " + warrior + ", back to rogue " + DrState.knownAbilities);
                     if (!clearedOnSwitch || !warrior.equals("[Berserk]")) fail("abilities not switched with the class: " + warrior);
+                    if (!DrConfig.abilityHidden("Smite") || !DrConfig.abilityHidden("smite")) fail("Smite not hidden by default");
                     if (!DrState.knownAbilities.contains("The Fast") || DrState.knownAbilities.contains("Berserk"))
                         fail("rogue abilities not restored: " + DrState.knownAbilities);
                     if (rivalPlayer != null) {

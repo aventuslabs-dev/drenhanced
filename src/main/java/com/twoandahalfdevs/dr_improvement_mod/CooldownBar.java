@@ -90,6 +90,7 @@ public final class CooldownBar {
             out.add(track("ult", ultIcon(DrState.ultName), abilityIcon(DrState.ultName), "Ultimate", 0, false, null, now));
         }
         for (String name : DrState.knownAbilities) {
+            if (DrConfig.abilityHidden(name)) continue;
             DrState.Ability a = DrState.abilities.get(name);
             double rem = a == null ? 0 : a.remaining();
             boolean active = a != null && a.active();

@@ -45,6 +45,8 @@ public final class DrConfig {
         public String enemyHpStyle = "MODERN";
         /** WoW-style plates for real players too (name, <guild>, HP bar in combat). */
         public boolean playerPlates = true;
+        /** Action-bar entries never shown on the cooldown bar (/drcd hide NAME). */
+        public java.util.List<String> hiddenAbilities = new java.util.ArrayList<>(java.util.List.of("Smite"));
         /** Nicer client-side icons for some DR items (gem pouch = gold bag). */
         public boolean reskinItems = true;
         /** Guild tags (upper case) shown green / red on player plates. Your own guild and party are always green. */
@@ -190,6 +192,12 @@ public final class DrConfig {
 
     public static boolean customBars() { return data.customBars; }
     public static boolean usefulInfo() { return data.usefulInfo; }
+    public static boolean abilityHidden(String name) {
+        if (data.hiddenAbilities == null) return false;
+        for (String h : data.hiddenAbilities) if (h.equalsIgnoreCase(name)) return true;
+        return false;
+    }
+
     public static boolean guildNametags() { return data.guildNametags; }
     public static boolean colorBlind() { return data.colorBlindGlow; }
     public static boolean hotbarAbilities() { return data.hotbarAbilities; }
