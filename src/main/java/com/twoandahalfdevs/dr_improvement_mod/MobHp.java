@@ -180,7 +180,7 @@ public final class MobHp {
 
         var team = pl.getTeam();
         net.minecraft.ChatFormatting col = team == null ? null : team.getColor();
-        Style nameStyle = Style.EMPTY.withColor(col == null || col == net.minecraft.ChatFormatting.RESET ? net.minecraft.ChatFormatting.WHITE : col);
+        Style nameStyle = Style.EMPTY.withColor(alignmentColor(pl, col));
         Component label = Component.literal(pl.getGameProfile().getName()).withStyle(nameStyle);
         Component sub = null;
         if (team != null) {
@@ -231,6 +231,48 @@ public final class MobHp {
     }
 
     static final int PLAYER_GREEN = 0xFF2FB34A;
+    static final int CHAOTIC = 0xFF5555, NEUTRAL = 0xFFFF55, LAWFUL = 0xFFFFFF;
+
+    /**
+     * DR alignment from the name colour it gives the player: red = chaotic, yellow = neutral, anything else =
+     * lawful (plain white). Team colour first; if DR colours the name in the display name instead, use that.
+     */
+    static int alignmentColor(net.minecraft.client.player.AbstractClientPlayer pl, net.minecraft.ChatFormatting teamCol) {
+        Integer rgb = teamCol != null && teamCol.isColor() ? teamCol.getColor() : null;
+        if (rgb == null) rgb = nameColorIn(pl.getDisplayName(), pl.getGameProfile().getName());
+        return alignment(rgb);
+    }
+
+    static int alignment(Integer rgb) {
+        if (rgb == null) return LAWFUL;
+        int r = (rgb >> 16) & 255, g = (rgb >> 8) & 255, b = rgb & 255;
+        if (r > 140 && g < 110 && b < 110) return CHAOTIC;            // red / dark red
+        if (r > 180 && g > 140 && b < 120) return NEUTRAL;            // yellow / gold
+        return LAWFUL;
+    }
+
+    /** Colour of the part of {@code full} that spells the player's name (handles § codes too). */
+    private static Integer nameColorIn(Component full, String name) {
+        Integer[] found = {null};
+        full.visit((style, text) -> {
+            Integer col = style.getColor() == null ? null : style.getColor().getValue();
+            StringBuilder run = new StringBuilder();
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                if (c == '\u00a7' && i + 1 < text.length()) {
+                    if (run.indexOf(name) >= 0) { found[0] = col; return java.util.Optional.of(Boolean.TRUE); }
+                    run.setLength(0);
+                    net.minecraft.ChatFormatting f = net.minecraft.ChatFormatting.getByCode(text.charAt(++i));
+                    if (f != null && f.isColor()) col = f.getColor();
+                    continue;
+                }
+                run.append(c);
+            }
+            if (run.indexOf(name) >= 0) { found[0] = col; return java.util.Optional.of(Boolean.TRUE); }
+            return java.util.Optional.empty();
+        }, Style.EMPTY);
+        return found[0];
+    }
 
     private static final Pattern PLAYER_SUFFIX = Pattern.compile("\\[Lv\\.? ?(\\d+)(?: ([A-Za-z]{2,4}))?]");
 
@@ -541,8 +583,15 @@ public final class MobHp {
         // players wear tall cosmetics (hats, horns): lift their plate clear of the head so it isn't hidden
         boolean player = d.barColor() != 0;
         pose.translate(attach.x, attach.y + (player ? 0.85 : 0.5), attach.z);
+        // players: keep the plate readable from far away (grows with distance, up to 3x), lifted so it clears the head
+        float k = 1f;
+        if (player) {
+            double dist = Math.sqrt(t.pos.distanceToSqr(mc.gameRenderer.getMainCamera().getPosition()));
+            k = (float) Math.max(1.0, Math.min(3.0, dist / 9.0));
+            pose.translate(0, (DrConfig.data.enemyHpBarHeight + 2) * 0.025f * (k - 1f), 0);
+        }
         pose.mulPose(mc.getEntityRenderDispatcher().cameraOrientation());
-        pose.scale(0.025f, -0.025f, 0.025f);
+        pose.scale(0.025f * k, -0.025f * k, 0.025f * k);
         Matrix4f m = pose.last().pose();
         int bright = LightTexture.FULL_BRIGHT;
         // Depth-tested plate pieces: text is drawn with polygon offset in front of them, so the level and HP

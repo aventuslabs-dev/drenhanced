@@ -351,6 +351,13 @@ final class SelfTest {
                             fail("player level/class not read: " + (pd == null ? "null" : pd.level() + " " + pd.sub()));
                         else log("player plate: Lv " + pd.level() + " " + pd.sub().getString());
                         if (pd != null && pd.barColor() != MobHp.PLAYER_GREEN) fail("player bar not health green");
+                        // Rival's team is RED: chaotic name; alignment mapping for DR's three colours
+                        if (pd != null && (pd.label().getStyle().getColor() == null || pd.label().getStyle().getColor().getValue() != MobHp.CHAOTIC))
+                            fail("chaotic player name not red: " + pd.label().getStyle().getColor());
+                        if (MobHp.alignment(0xFFAA00) != MobHp.NEUTRAL || MobHp.alignment(0xFFFF55) != MobHp.NEUTRAL
+                                || MobHp.alignment(0xAA0000) != MobHp.CHAOTIC || MobHp.alignment(0xFFFFFF) != MobHp.LAWFUL
+                                || MobHp.alignment(0xAAAAAA) != MobHp.LAWFUL || MobHp.alignment(null) != MobHp.LAWFUL)
+                            fail("alignment colours wrong");
                     }
                     boolean folded = ((ChatAccessor) SplitChat.right()).drim$messages().stream()
                         .anyMatch(m -> m.content().getString().endsWith("(x3)"));
