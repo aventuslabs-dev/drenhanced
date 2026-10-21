@@ -226,12 +226,11 @@ public final class MobHp {
             Component clsTag = Component.literal(className(cls)).withStyle(Style.EMPTY.withColor(cc != 0 ? cc & 0xFFFFFF : 0xD8D8D8));
             sub = sub == null ? clsTag : Component.empty().append(sub).append(Component.literal("  ").append(clsTag));
         }
-        boolean chaotic = col == net.minecraft.ChatFormatting.RED || col == net.minecraft.ChatFormatting.DARK_RED;
-        int known = cls != null ? classColor(cls) : 0;
-        // WoW: class-coloured bars; unknown class -> health green (red for chaotic), never a grey bar
-        int bar = known != 0 ? known : chaotic ? 0xFFC41F1F : 0xFF2FB34A;
+        int bar = PLAYER_GREEN; // one health-green bar for every class (the class shows in the line above)
         return new Display(label, level, false, showBar, numbers, t, sub, bar);
     }
+
+    static final int PLAYER_GREEN = 0xFF2FB34A;
 
     private static final Pattern PLAYER_SUFFIX = Pattern.compile("\\[Lv\\.? ?(\\d+)(?: ([A-Za-z]{2,4}))?]");
 

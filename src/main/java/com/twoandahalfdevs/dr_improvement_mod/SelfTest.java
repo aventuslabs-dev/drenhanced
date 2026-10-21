@@ -350,7 +350,7 @@ final class SelfTest {
                         if (pd == null || !"103".equals(pd.level()) || pd.sub() == null || !pd.sub().getString().contains("Rogue"))
                             fail("player level/class not read: " + (pd == null ? "null" : pd.level() + " " + pd.sub()));
                         else log("player plate: Lv " + pd.level() + " " + pd.sub().getString());
-                        if (pd != null && pd.barColor() != 0xFFFFF468) fail("rogue bar not class-coloured");
+                        if (pd != null && pd.barColor() != MobHp.PLAYER_GREEN) fail("player bar not health green");
                     }
                     boolean folded = ((ChatAccessor) SplitChat.right()).drim$messages().stream()
                         .anyMatch(m -> m.content().getString().endsWith("(x3)"));
