@@ -36,8 +36,8 @@ vec2 place(vec2 centre, float ox, float oy, float scale) {
 const float OPACITY = 0.75;
 const vec4 COLOR_ENERGY_BASE  = vec4(0.8, 0.0, 0.2, OPACITY);
 const vec4 COLOR_ENERGY_BASE2 = vec4(0.6, 0.0, 0.15, OPACITY);
-const vec4 COLOR_ENERGY       = vec4(0.0, 0.8, 0.55, OPACITY);
-const vec4 COLOR_ENERGY2      = vec4(0.0, 0.7, 0.7, OPACITY);
+const vec4 COLOR_ENERGY       = vec4(1.0, 0.84, 0.12, OPACITY); // stamina yellow
+const vec4 COLOR_ENERGY2      = vec4(0.95, 0.62, 0.05, OPACITY);
 
 const vec4 COLOR_HP_BASE = vec4(0.8, 0.0, 0.2, 0.85);
 const vec4 COLOR_HP      = vec4(0.0, 0.75, 0.6, 0.85);
