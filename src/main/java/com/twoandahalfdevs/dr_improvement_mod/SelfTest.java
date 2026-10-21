@@ -352,6 +352,8 @@ final class SelfTest {
                     // the "-1074" hologram has no chat line of ours: another player's hit, hidden and not drawn
                     log("other players' numbers drawn: " + FloatingText.countKind(FloatingText.Kind.OTHER));
                     if (FloatingText.countKind(FloatingText.Kind.OTHER) > 0) fail("other players' damage shown");
+                    log("heal numbers (from your chat only): " + FloatingText.countKind(FloatingText.Kind.HEAL));
+                    if (FloatingText.countKind(FloatingText.Kind.HEAL) != 1) fail("heals should come from your chat lines only (one burst)");
                     if (hpTarget != null) {
                         MobHp.Track tr = MobHp.trackOf(hpTarget);
                         if (tr == null) fail("no hp track for test mob");

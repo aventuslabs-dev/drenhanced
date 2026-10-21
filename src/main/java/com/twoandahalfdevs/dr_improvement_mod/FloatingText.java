@@ -120,14 +120,13 @@ public final class FloatingText {
             int amount = parse(m.group(2));
             boolean heal = "+".equals(m.group(1));
             Vec3 at = e instanceof ArmorStand as ? e.position().add(0, as.isMarker() ? 0.3 : e.getBbHeight() + 0.3, 0) : e.position();
-            boolean nearMe = at.distanceToSqr(mc.player.getEyePosition()) < 2.5 * 2.5;
             holoValues.put(amount, now);
-            if (nearMe) { // heals on you / damage you take
-                if (enabled()) spawn(amount, heal ? Kind.HEAL : Kind.IN, null, at, now);
-            } else if (heal) { // someone else being healed
+            // DR shows these for everyone around you. Your own numbers come from your chat lines (chat is yours
+            // only); a hologram is used just to place your hit, and otherwise counts as someone else's.
+            if (heal) {
                 if (enabled() && DrConfig.data.fctOthers) spawn(amount, Kind.OTHER, null, at, now);
             } else {
-                holoWait.add(new Holo(amount, at, now)); // yours only if your chat confirms it
+                holoWait.add(new Holo(amount, at, now));
             }
         }
         seen.retainAll(alive);
@@ -135,21 +134,18 @@ public final class FloatingText {
         holoValues.values().removeIf(t -> now - t > 3000);
         critAmounts.values().removeIf(t -> now - t > 3000);
 
+        flushHeals(mc, now);
         // your hits (chat) paired with DR's hologram for them: shown at the hologram's spot, with crit/proc info
         for (Iterator<Pending> it = pending.iterator(); it.hasNext(); ) {
             Pending p = it.next();
-            if (p.kind == Kind.IN) { // "-35 HP (Attacker)": skip if the hologram above you already showed it
-                Long h = holoValues.get(p.amount);
-                if (h != null && Math.abs(h - p.at) < 800) it.remove();
-                else if (now - p.at > 250) {
-                    it.remove();
-                    if (enabled()) spawn(p.amount, p.kind, p.label, p.pos, now);
-                }
+            if (p.kind == Kind.IN || p.kind == Kind.HEAL) { // from your own "-35 HP (X)" / "+96 HP (X)" lines
+                it.remove();
+                if (enabled()) spawn(p.amount, p.kind, p.label, p.pos, now);
                 continue;
             }
             Holo match = null;
-            for (Holo h : holoWait) {
-                if (h.amount == p.amount && Math.abs(h.at - p.at) < PAIR_MS) {
+            for (Holo h : holoWait) { // same amount, same moment, at that mob: DR's hologram for your hit
+                if (h.amount == p.amount && Math.abs(h.at - p.at) < PAIR_MS && h.pos.distanceToSqr(p.pos) < 3.5 * 3.5) {
                     match = h;
                     break;
                 }
@@ -216,7 +212,30 @@ public final class FloatingText {
             return;
         }
         Matcher m = IN_LINE.matcher(txt);
-        if (m.find()) incomingFromChat(parse(m.group(1)));
+        if (m.find()) {
+            incomingFromChat(parse(m.group(1)));
+            return;
+        }
+        Matcher h = HEAL_LINE.matcher(txt);
+        if (h.find()) {
+            long now = System.currentTimeMillis();
+            if (healSum == 0) healStart = now;
+            healSum += parse(h.group(1));
+        }
+    }
+
+    /** "+96 HP (Leeching Poison) [620 Overhealth]": your heals. One swing can give several; shown as one number. */
+    private static final Pattern HEAL_LINE = Pattern.compile("^\\+(\\d+) \\S*HP \\((.+?)\\)");
+    private static int healSum;
+    private static long healStart;
+
+    private static void flushHeals(Minecraft mc, long now) {
+        if (healSum <= 0 || now - healStart < 150 || mc.player == null) return;
+        if (DrConfig.data.fctHeals) {
+            var p = mc.player;
+            pending.add(new Pending(healSum, p.position().add(0.4, p.getBbHeight() + 0.3, 0), Kind.HEAL, null, now));
+        }
+        healSum = 0;
     }
 
     private static Component textOf(net.minecraft.world.entity.Display.TextDisplay td) {
