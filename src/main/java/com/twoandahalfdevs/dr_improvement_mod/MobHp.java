@@ -223,11 +223,13 @@ public final class MobHp {
         }
         if (cls != null) {
             int cc = classColor(cls);
-            Component clsTag = Component.literal(className(cls)).withStyle(Style.EMPTY.withColor(cc & 0xFFFFFF));
+            Component clsTag = Component.literal(className(cls)).withStyle(Style.EMPTY.withColor(cc != 0 ? cc & 0xFFFFFF : 0xD8D8D8));
             sub = sub == null ? clsTag : Component.empty().append(sub).append(Component.literal("  ").append(clsTag));
         }
         boolean chaotic = col == net.minecraft.ChatFormatting.RED || col == net.minecraft.ChatFormatting.DARK_RED;
-        int bar = cls != null ? classColor(cls) : chaotic ? 0xFFC41F1F : 0xFF2FB34A; // WoW: class-coloured bars
+        int known = cls != null ? classColor(cls) : 0;
+        // WoW: class-coloured bars; unknown class -> health green (red for chaotic), never a grey bar
+        int bar = known != 0 ? known : chaotic ? 0xFFC41F1F : 0xFF2FB34A;
         return new Display(label, level, false, showBar, numbers, t, sub, bar);
     }
 
@@ -243,7 +245,7 @@ public final class MobHp {
             case "ARC", "RAN", "HUN", "BOW" -> 0xFFAAD372;
             case "PRI", "CLE" -> 0xFFF0F0F0;
             case "NEC", "WLK" -> 0xFF8788EE;
-            default -> 0xFFB0B0B0;
+            default -> 0; // a class tag we don't know yet (e.g. "REV"): no class colour
         };
     }
 
