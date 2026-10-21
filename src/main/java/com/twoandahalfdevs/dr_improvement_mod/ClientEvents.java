@@ -79,6 +79,25 @@ public final class ClientEvents {
                             }
                             return 1;
                         })))));
+        // /drguild ally|enemy|remove TAG, /drguild list: colour guild tags on player plates
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            var tagArg = com.mojang.brigadier.arguments.StringArgumentType.word();
+            dispatcher.register(ClientCommandManager.literal("drguild")
+                .executes(ctx -> { ctx.getSource().sendFeedback(Guilds.list()); return 1; })
+                .then(ClientCommandManager.literal("list").executes(ctx -> { ctx.getSource().sendFeedback(Guilds.list()); return 1; }))
+                .then(ClientCommandManager.literal("ally").then(ClientCommandManager.argument("tag", tagArg).executes(ctx -> {
+                    ctx.getSource().sendFeedback(Guilds.mark(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "tag"), Guilds.Rel.ALLY));
+                    return 1;
+                })))
+                .then(ClientCommandManager.literal("enemy").then(ClientCommandManager.argument("tag", tagArg).executes(ctx -> {
+                    ctx.getSource().sendFeedback(Guilds.mark(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "tag"), Guilds.Rel.ENEMY));
+                    return 1;
+                })))
+                .then(ClientCommandManager.literal("remove").then(ClientCommandManager.argument("tag", tagArg).executes(ctx -> {
+                    ctx.getSource().sendFeedback(Guilds.mark(com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "tag"), Guilds.Rel.NEUTRAL));
+                    return 1;
+                }))));
+        });
         // /drconfig opens the settings screen (handy without ModMenu).
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
             dispatcher.register(ClientCommandManager.literal("drconfig").executes(ctx -> {

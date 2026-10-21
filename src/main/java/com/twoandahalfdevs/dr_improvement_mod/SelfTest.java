@@ -351,6 +351,16 @@ final class SelfTest {
                             fail("player level/class not read: " + (pd == null ? "null" : pd.level() + " " + pd.sub()));
                         else log("player plate: Lv " + pd.level() + " " + pd.sub().getString());
                         if (pd != null && pd.barColor() != MobHp.PLAYER_GREEN) fail("player bar not health green");
+                        // guild badge: Rival is in [5R]; neutral until marked, then enemy/ally
+                        String g0 = pd == null ? null : pd.guild() + "/" + pd.guildRel();
+                        Guilds.mark("5R", Guilds.Rel.ENEMY);
+                        var pe = MobHp.update(rivalPlayer, rivalPlayer.getDisplayName());
+                        Guilds.mark("5r", Guilds.Rel.ALLY);
+                        var pa = MobHp.update(rivalPlayer, rivalPlayer.getDisplayName());
+                        log("guild badge: " + g0 + ", marked enemy " + (pe == null ? null : pe.guildRel()) + ", ally " + (pa == null ? null : pa.guildRel()));
+                        if (!"5R/NEUTRAL".equals(g0) || pe == null || pe.guildRel() != Guilds.Rel.ENEMY || pa == null || pa.guildRel() != Guilds.Rel.ALLY)
+                            fail("guild relation wrong");
+                        Guilds.mark("5R", Guilds.Rel.ENEMY); // leave it red for the screenshot
                         // Rival's team is RED: chaotic name; alignment mapping for DR's three colours
                         if (pd != null && (pd.label().getStyle().getColor() == null || pd.label().getStyle().getColor().getValue() != MobHp.CHAOTIC))
                             fail("chaotic player name not red: " + pd.label().getStyle().getColor());

@@ -45,6 +45,9 @@ public final class DrConfig {
         public String enemyHpStyle = "MODERN";
         /** WoW-style plates for real players too (name, <guild>, HP bar in combat). */
         public boolean playerPlates = true;
+        /** Guild tags (upper case) shown green / red on player plates. Your own guild and party are always green. */
+        public java.util.List<String> allyGuilds = new java.util.ArrayList<>();
+        public java.util.List<String> enemyGuilds = new java.util.ArrayList<>();
         /** Abilities seen per class ("Warrior" -> [Berserk, ...]), so the cooldown bar fits the class you're on. */
         public java.util.Map<String, java.util.List<String>> classAbilities = new java.util.LinkedHashMap<>();
         /** WoW-style bar: size in nametag pixels, colour (REACTION, HEALTH, GOLD) and text (CURRENT_MAX, CURRENT, PERCENT, CURRENT_PERCENT, NONE). */

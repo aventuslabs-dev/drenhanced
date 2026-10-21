@@ -43,9 +43,9 @@ public final class MobHp {
 
     /** label = mob name without the level; showBar = in combat (hit recently). */
     public record Display(Component label, String level, boolean elite, boolean showBar, String numbers, Track track,
-                          Component sub, int barColor) {
+                          Component sub, int barColor, String guild, Guilds.Rel guildRel) {
         Display(Component label, String level, boolean elite, boolean showBar, String numbers, Track track) {
-            this(label, level, elite, showBar, numbers, track, null, 0);
+            this(label, level, elite, showBar, numbers, track, null, 0, null, null);
         }
     }
 
@@ -183,16 +183,8 @@ public final class MobHp {
         Style nameStyle = Style.EMPTY.withColor(alignmentColor(pl, col));
         Component label = Component.literal(pl.getGameProfile().getName()).withStyle(nameStyle);
         Component sub = null;
-        if (team != null) {
-            // PlayerTeamMixin may have recoloured guild-mates' tags, so take the formatted prefix from the team.
-            Component prefix = team.getFormattedName(Component.empty());
-            String tag = SplitChat.strip(team.getPlayerPrefix().getString()).trim();
-            if (tag.startsWith("[") && tag.endsWith("]") && tag.length() > 2) {
-                Style ts = prefix.getSiblings().isEmpty() ? prefix.getStyle() : prefix.getSiblings().get(0).getStyle();
-                if (ts.getColor() == null) ts = ts.withColor(net.minecraft.ChatFormatting.GRAY);
-                sub = Component.literal("<" + tag.substring(1, tag.length() - 1) + ">").withStyle(ts);
-            }
-        }
+        String guild = Guilds.tagOf(team);
+        Guilds.Rel rel = guild == null ? null : Guilds.relation(guild, team, mc);
 
         String name = pl.getScoreboardName();
         Integer max = HealthSync.maxOf(name);
@@ -224,10 +216,10 @@ public final class MobHp {
         if (cls != null) {
             int cc = classColor(cls);
             Component clsTag = Component.literal(className(cls)).withStyle(Style.EMPTY.withColor(cc != 0 ? cc & 0xFFFFFF : 0xD8D8D8));
-            sub = sub == null ? clsTag : Component.empty().append(sub).append(Component.literal("  ").append(clsTag));
+            sub = clsTag;
         }
         int bar = PLAYER_GREEN; // one health-green bar for every class (the class shows in the line above)
-        return new Display(label, level, false, showBar, numbers, t, sub, bar);
+        return new Display(label, level, false, showBar, numbers, t, sub, bar, guild, rel);
     }
 
     static final int PLAYER_GREEN = 0xFF2FB34A;
@@ -608,7 +600,8 @@ public final class MobHp {
         int gap = 3;
         float total = badgeW + (badgeW > 0 ? gap : 0) + skullW + nameW;
         float x = -total / 2f;
-        float rowY = d.sub() != null ? -21f : -13f; // name sits above the guild line and the bar
+        boolean line2 = d.sub() != null || d.guild() != null;
+        float rowY = line2 ? -24f : -13f; // name sits above the guild line and the bar
         int lvColor = levelColor(lv);
 
         if (badgeW > 0) {
@@ -627,14 +620,32 @@ public final class MobHp {
             x += skullW;
         }
         text(font, name, x, rowY, 0xFFFFFFFF, buffers, m, light);
-        if (d.sub() != null) { // WoW-style <Guild> line under the name
-            pose.pushPose();
-            pose.translate(0, -11f, 0);
-            pose.scale(0.8f, 0.8f, 1f);
-            Matrix4f sm = pose.last().pose();
-            var subSeq = d.sub().getVisualOrderText();
-            text(font, subSeq, -font.width(subSeq) / 2f, 0, 0xFFAAAAAA, buffers, sm, light);
-            pose.popPose();
+        if (line2) { // guild badge (coloured by relation: green friendly, red enemy) + class
+            String g = d.guild();
+            int gw = g == null ? 0 : font.width(g) + 8;
+            var subSeq = d.sub() == null ? null : d.sub().getVisualOrderText();
+            float cs = 0.85f;
+            float cw = subSeq == null ? 0 : font.width(subSeq) * cs;
+            float lineW = gw + (gw > 0 && cw > 0 ? 4 : 0) + cw;
+            float lx = -lineW / 2f, ly = -12f;
+            if (gw > 0) {
+                Guilds.Rel r = d.guildRel() == null ? Guilds.Rel.NEUTRAL : d.guildRel();
+                float bx0 = lx, bx1 = lx + gw, by0 = ly - 1, by1 = ly + 9;
+                quad(vc, m, bx0 + 1, by0 + 1, bx1 - 1, by1 - 1, r.fill, bright);
+                quad(vc, m, bx0, by0, bx1, by0 + 1, r.edge, bright);
+                quad(vc, m, bx0, by1 - 1, bx1, by1, r.edge, bright);
+                quad(vc, m, bx0, by0 + 1, bx0 + 1, by1 - 1, r.edge, bright);
+                quad(vc, m, bx1 - 1, by0 + 1, bx1, by1 - 1, r.edge, bright);
+                text(font, Component.literal(g).getVisualOrderText(), bx0 + 4, ly, r.text, buffers, m, light);
+                lx += gw + 4;
+            }
+            if (subSeq != null) {
+                pose.pushPose();
+                pose.translate(lx, ly + (1 - cs) * 4, 0);
+                pose.scale(cs, cs, 1f);
+                text(font, subSeq, 0, 0, 0xFFAAAAAA, buffers, pose.last().pose(), light);
+                pose.popPose();
+            }
         }
 
         // ---- health bar, only while in combat ----
