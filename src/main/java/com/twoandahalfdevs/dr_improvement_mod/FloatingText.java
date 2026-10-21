@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 public final class FloatingText {
     private FloatingText() {}
 
-    public enum Kind {OUT, CRIT, IN, HEAL, THORNS}
+    public enum Kind {OUT, CRIT, IN, HEAL, THORNS, OTHER}
 
     private static final class Num {
         final String text;
@@ -58,6 +58,16 @@ public final class FloatingText {
 
     /** A chat-reported hit waiting briefly in case DR's hologram for it shows up. */
     private record Pending(int amount, Vec3 pos, Kind kind, String label, long at) {}
+
+    /**
+     * A DR damage hologram away from you. DR shows everyone's hits, so it only becomes one of YOUR numbers
+     * when one of your own "DMG ->" chat lines (chat is yours only) has the same amount.
+     */
+    private record Holo(int amount, Vec3 pos, long at) {}
+
+    private static final List<Holo> holoWait = new ArrayList<>();
+    /** How long a hologram and your chat line may be apart and still be the same hit. */
+    private static final long PAIR_MS = 450;
 
     /** DR sends "* CRIT *" (and proc lines like "* SHATTERED *") a few ms before the damage line they belong to. */
     private static long critAt;
@@ -89,6 +99,7 @@ public final class FloatingText {
             hidden.clear();
             nums.clear();
             pending.clear();
+            holoWait.clear();
             return;
         }
         long now = System.currentTimeMillis();
@@ -109,26 +120,55 @@ public final class FloatingText {
             int amount = parse(m.group(2));
             boolean heal = "+".equals(m.group(1));
             Vec3 at = e instanceof ArmorStand as ? e.position().add(0, as.isMarker() ? 0.3 : e.getBbHeight() + 0.3, 0) : e.position();
-            boolean incoming = at.distanceToSqr(mc.player.getEyePosition()) < 2.5 * 2.5;
+            boolean nearMe = at.distanceToSqr(mc.player.getEyePosition()) < 2.5 * 2.5;
             holoValues.put(amount, now);
-            Long crit = critAmounts.get(amount);
-            Kind kind = heal ? Kind.HEAL : incoming ? Kind.IN : crit != null && now - crit < 800 ? Kind.CRIT : Kind.OUT;
-            if (enabled()) spawn(amount, kind, null, at, now);
+            if (nearMe) { // heals on you / damage you take
+                if (enabled()) spawn(amount, heal ? Kind.HEAL : Kind.IN, null, at, now);
+            } else if (heal) { // someone else being healed
+                if (enabled() && DrConfig.data.fctOthers) spawn(amount, Kind.OTHER, null, at, now);
+            } else {
+                holoWait.add(new Holo(amount, at, now)); // yours only if your chat confirms it
+            }
         }
         seen.retainAll(alive);
         hidden.retainAll(alive);
         holoValues.values().removeIf(t -> now - t > 3000);
         critAmounts.values().removeIf(t -> now - t > 3000);
 
-        // chat-reported hits with no matching hologram after a short wait
+        // your hits (chat) paired with DR's hologram for them: shown at the hologram's spot, with crit/proc info
         for (Iterator<Pending> it = pending.iterator(); it.hasNext(); ) {
             Pending p = it.next();
-            Long h = holoValues.get(p.amount);
-            if (h != null && Math.abs(h - p.at) < 800) {
+            if (p.kind == Kind.IN) { // "-35 HP (Attacker)": skip if the hologram above you already showed it
+                Long h = holoValues.get(p.amount);
+                if (h != null && Math.abs(h - p.at) < 800) it.remove();
+                else if (now - p.at > 250) {
+                    it.remove();
+                    if (enabled()) spawn(p.amount, p.kind, p.label, p.pos, now);
+                }
+                continue;
+            }
+            Holo match = null;
+            for (Holo h : holoWait) {
+                if (h.amount == p.amount && Math.abs(h.at - p.at) < PAIR_MS) {
+                    match = h;
+                    break;
+                }
+            }
+            if (match != null) {
+                holoWait.remove(match);
                 it.remove();
-            } else if (now - p.at > 250) {
+                if (enabled()) spawn(p.amount, p.kind, p.label, match.pos, now);
+            } else if (now - p.at > PAIR_MS) { // no hologram (or it was culled): show it over the mob
                 it.remove();
                 if (enabled()) spawn(p.amount, p.kind, p.label, p.pos, now);
+            }
+        }
+        // holograms nobody claimed: another player's hit
+        for (Iterator<Holo> it = holoWait.iterator(); it.hasNext(); ) {
+            Holo h = it.next();
+            if (now - h.at > PAIR_MS) {
+                it.remove();
+                if (enabled() && DrConfig.data.fctOthers) spawn(h.amount, Kind.OTHER, null, h.pos, now);
             }
         }
         long life = lifeMillis();
@@ -253,16 +293,18 @@ public final class FloatingText {
             float ease = 1f - (1f - t) * (1f - t);
             double rise = ease * 1.1;
             Vec3 p = n.pos.add(n.driftX * ease, rise, n.driftZ * ease);
-            float pop = n.kind == Kind.CRIT ? 1.6f : 1.0f;
+            float pop = n.kind == Kind.CRIT ? 1.6f : n.kind == Kind.OTHER ? 0.65f : 1.0f;
             float popT = Math.min(1f, (now - n.born) / 140f);
             float s = pop * (1f + (n.kind == Kind.CRIT ? 0.9f : 0.5f) * (1f - popT));
             float alpha = t < 0.6f ? 1f : 1f - (t - 0.6f) / 0.4f;
+            if (n.kind == Kind.OTHER) alpha *= 0.75f;
             int a = Math.max(8, Math.round(alpha * 255)) << 24;
             int color = switch (n.kind) {
                 case CRIT -> 0xFFC02A;
                 case IN -> 0xFF3B3B;
                 case HEAL -> 0x3DFF5A;
                 case THORNS -> 0xC79BFF;
+                case OTHER -> 0x9A9A9A;
                 default -> 0xFFFFFF;
             };
             // keep a readable size at range, like WoW's screen-space text

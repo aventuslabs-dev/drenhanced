@@ -349,6 +349,9 @@ final class SelfTest {
                     log("floating text: " + fct + " numbers on screen, DR hologram hidden=" + holoHidden);
                     if (fct < 2) fail("floating damage numbers not spawned (" + fct + ")");
                     if (!holoHidden) fail("DR damage hologram not taken over");
+                    // the "-1074" hologram has no chat line of ours: another player's hit, hidden and not drawn
+                    log("other players' numbers drawn: " + FloatingText.countKind(FloatingText.Kind.OTHER));
+                    if (FloatingText.countKind(FloatingText.Kind.OTHER) > 0) fail("other players' damage shown");
                     if (hpTarget != null) {
                         MobHp.Track tr = MobHp.trackOf(hpTarget);
                         if (tr == null) fail("no hp track for test mob");

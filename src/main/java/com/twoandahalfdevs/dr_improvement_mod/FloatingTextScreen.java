@@ -39,6 +39,7 @@ public final class FloatingTextScreen extends Screen {
         toggle(right, y, "Through walls", c.fctThroughWalls, v -> c.fctThroughWalls = v, "Keep numbers visible behind blocks.");
         y += ROW;
         toggle(left, y, "Proc labels", c.fctProcs, v -> c.fctProcs = v, "Small label over the number: Shattered, Cleaved, Executed, Poisoned, Thorns, Reflect.");
+        toggle(right, y, "Other players", c.fctOthers, v -> c.fctOthers = v, "Also show other players' hits (small and grey). Off = only your own damage.");
         y += ROW;
         slider(left, y, c.fctSize, 0.3, 4.0, 0.05, v -> "Size: " + Math.round(v * 100) + "%", v -> c.fctSize = v);
         slider(right, y, c.fctDuration, 0.4, 5.0, 0.1, v -> String.format(Locale.ROOT, "Duration: %.1fs", v), v -> c.fctDuration = v);

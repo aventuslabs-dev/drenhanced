@@ -68,6 +68,8 @@ public final class DrConfig {
         public boolean fctBigHits = true;
         public boolean fctThroughWalls = true;
         public boolean fctProcs = true;
+        /** Other players' hits (DR shows everyone's): off = only your own numbers. */
+        public boolean fctOthers = false;
         /** WoW-style cooldown bar above the hotbar. */
         public boolean cooldownBar = true;
         public int cdIconSize = 22;
