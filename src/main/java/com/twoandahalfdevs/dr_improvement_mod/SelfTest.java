@@ -522,6 +522,13 @@ final class SelfTest {
                     if (++waitTicks < 15) return;
                     if (!(mc.screen instanceof CooldownScreen)) fail("cooldown screen did not open");
                     else log("cooldown screen ok");
+                    // DR's gem pouch (an ink sac with a custom name) gets the gold bag model
+                    var pouch = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.INK_SAC);
+                    pouch.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal("Large Gem Pouch 30g"));
+                    if (ItemSkins.modelFor(pouch, net.minecraft.core.component.DataComponents.ITEM_MODEL) != ItemSkins.GEM_POUCH) fail("gem pouch not reskinned");
+                    if (mc.getResourceManager().getResource(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("dr_improvement_mod", "textures/item/gem_pouch.png")).isEmpty())
+                        fail("gem pouch texture missing");
+                    mc.player.getInventory().items.set(2, pouch);
                     for (String n : new String[]{"dash", "the_fast", "berserk", "divine_protection", "deaths_grasp", "potion", "combat",
                             "bonus", "monster_slayer", "buff", "heal", "shadow", "fire", "shield", "rune"}) {
                         if (mc.getResourceManager().getResource(CooldownBar.icon(n)).isEmpty()) fail("missing cooldown icon " + n);

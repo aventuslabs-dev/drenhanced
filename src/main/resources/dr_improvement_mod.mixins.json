@@ -17,6 +17,7 @@
     "GuiAccessor",
     "GuiMixin",
     "ItemInHandRendererMixin",
+    "ItemModelResolverMixin",
     "LivingEntityAccessor",
     "LocalPlayerMixin",
     "MultiPlayerGameModeMixin",

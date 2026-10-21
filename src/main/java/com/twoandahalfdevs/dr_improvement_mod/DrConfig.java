@@ -45,6 +45,8 @@ public final class DrConfig {
         public String enemyHpStyle = "MODERN";
         /** WoW-style plates for real players too (name, <guild>, HP bar in combat). */
         public boolean playerPlates = true;
+        /** Nicer client-side icons for some DR items (gem pouch = gold bag). */
+        public boolean reskinItems = true;
         /** Guild tags (upper case) shown green / red on player plates. Your own guild and party are always green. */
         public java.util.List<String> allyGuilds = new java.util.ArrayList<>();
         public java.util.List<String> enemyGuilds = new java.util.ArrayList<>();
