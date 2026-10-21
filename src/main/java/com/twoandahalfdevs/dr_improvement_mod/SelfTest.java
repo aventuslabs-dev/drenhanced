@@ -68,7 +68,7 @@ final class SelfTest {
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
     private static net.minecraft.world.entity.Entity barMob;
-    private static int maxCrits, maxThorns;
+    private static int maxCrits, maxThorns, holdTicks;
     private static java.nio.file.Path captureFile;
     private static net.minecraft.world.entity.Entity rivalPlayer;
 
@@ -178,6 +178,8 @@ final class SelfTest {
                             // a clear stage so screenshots don't depend on where the random world spawned us
                             "execute at @a run fill ~-9 ~ ~-4 ~9 ~7 ~14 air",
                             "execute at @a run fill ~-9 ~-1 ~-4 ~9 ~-1 ~14 smooth_stone",
+                            // face the test mobs (+z) so they're on screen and their plates get tracked
+                            "execute as @a at @s run tp @s ~ ~ ~ 0 5",
                             "tellraw @a {\"text\":\"120 DMG -> Skeleton [2400 HP]\",\"color\":\"red\"}",
                             "tellraw @a {\"text\":\"+48 EXP [1205/9000]\",\"color\":\"yellow\"}",
                             "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}",
@@ -236,6 +238,17 @@ final class SelfTest {
                             .append(Component.literal("PvM Combat: [3s]").withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD)), false);
                         mc.player.getInventory().items.set(1, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ENDER_PEARL, 8));
                         mc.player.getCooldowns().addCooldown(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ENDER_PEARL), 200);
+                    }
+                    // wait (up to 10 s) until the test mob's plate has been drawn once, so its track exists
+                    if (waitTicks == 29 && holdTicks < 200) {
+                        boolean drawn = false;
+                        for (var e : mc.level.entitiesForRendering()) {
+                            if (e.getUUID().equals(new java.util.UUID(0L, 1001L)) && MobHp.trackOf(e) != null) drawn = true;
+                        }
+                        if (!drawn) {
+                            holdTicks++;
+                            return;
+                        }
                     }
                     if (++waitTicks == 30) {
                         // hit the full-health "Spooky Skeleton": DR then shows the bar and a damage line
