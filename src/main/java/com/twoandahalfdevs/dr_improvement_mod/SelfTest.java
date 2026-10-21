@@ -181,7 +181,7 @@ final class SelfTest {
                             "tellraw @a {\"text\":\"120 DMG -> Skeleton [2400 HP]\",\"color\":\"red\"}",
                             "tellraw @a {\"text\":\"+48 EXP [1205/9000]\",\"color\":\"yellow\"}",
                             "tellraw @a {\"text\":\"You have found 12 Gems!\",\"color\":\"green\"}",
-                            "execute at @a run summon villager ~-2 ~ ~5 {Tags:[\"drimA\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
+                            "execute at @a run summon villager ~-2 ~ ~5 {UUID:[I;0,0,0,1001],Tags:[\"drimA\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
                             "execute at @a run summon villager ~-3.5 ~ ~6 {Tags:[\"drimC\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Spooky Skeleton\",\"color\":\"red\",\"bold\":true},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
                             "execute at @a run summon villager ~-5 ~ ~7 {Tags:[\"drimD\"],NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"\u2668 \",\"color\":\"red\",\"bold\":true},{\"text\":\"Spooky Skeleton\",\"color\":\"yellow\"},{\"text\":\" [Lv 90]\",\"color\":\"white\"}]'}",
                             "execute at @a run summon villager ~0.3 ~ ~8 {NoAI:1b,Silent:1b,CustomNameVisible:1b,CustomName:'[{\"text\":\"Rotten Zombie\",\"color\":\"white\"},{\"text\":\" [Lv 95]\",\"color\":\"gray\"}]'}",
@@ -241,8 +241,7 @@ final class SelfTest {
                         // hit the full-health "Spooky Skeleton": DR then shows the bar and a damage line
                         for (var e : mc.level.entitiesForRendering()) {
                             // drimA: the plain "Spooky Skeleton" summoned at ~-2 ~ ~5
-                            if (e.getCustomName() != null && e.getCustomName().getString().startsWith("Spooky Skeleton")
-                                && Math.abs(e.getX() - (mc.player.getX() - 2)) < 0.75) hpTarget = e;
+                            if (e.getUUID().equals(new java.util.UUID(0L, 1001L))) hpTarget = e;
                         }
                         if (hpTarget == null) fail("test mob not found");
                         else {
@@ -281,6 +280,8 @@ final class SelfTest {
                                 "Beacon Buff: +17% vs. MONSTERS (2m)"}) {
                             mc.gui.getChat().addMessage(Component.literal(line));
                         }
+                        for (String heal : new String[]{"+96 HP (Leeching Poison) [620 Overhealth]", "+130 HP (Life Steal) [750 Overhealth]"})
+                            DrState.onChat(heal); // server chat reaches the mod through DrState.onChat
                         mc.gui.getChat().addMessage(Component.empty().append(Component.literal("Fire Imp").withStyle(net.minecraft.ChatFormatting.YELLOW))
                             .append(Component.literal(" dropped: ").withStyle(net.minecraft.ChatFormatting.GREEN))
                             .append(Component.literal("SHOW").withStyle(net.minecraft.ChatFormatting.AQUA, net.minecraft.ChatFormatting.BOLD)));
