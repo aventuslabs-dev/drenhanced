@@ -587,6 +587,7 @@ final class SelfTest {
                 }
                 case 13 -> { // TEMP: main-hand sword pose candidates
                     mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN);
+                    DrConfig.data.splitChat = false;
                     int n = waitTicks / 14 + 1;
                     if (n > 8) { stage = 99; waitTicks = 0; return; }
                     if (waitTicks % 14 == 0) {

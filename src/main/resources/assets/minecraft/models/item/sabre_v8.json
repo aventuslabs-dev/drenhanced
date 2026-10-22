@@ -1,1 +1,1 @@
-{"parent": "minecraft:item/handheld", "textures": {"layer0": "minecraft:item/diamond_sword"}, "display": {"firstperson_righthand": {"rotation": [0, -45, 30], "translation": [1, 2.6, 0.8], "scale": [0.6, 0.6, 0.6]}}}
+{"parent": "minecraft:item/handheld", "textures": {"layer0": "minecraft:item/diamond_sword"}, "display": {"firstperson_righthand": {"rotation": [0, -45, 15], "translation": [1.13, 3.6, 1.13], "scale": [0.62, 0.62, 0.62]}}}
