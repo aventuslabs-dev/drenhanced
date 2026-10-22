@@ -588,11 +588,12 @@ final class SelfTest {
                 case 13 -> { // TEMP: off-hand pose candidates
                     mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN);
                     int n = waitTicks / 14 + 1;
-                    if (n > 8) { stage = 99; waitTicks = 0; return; }
+                    if (n > 4) { stage = 99; waitTicks = 0; return; }
                     if (waitTicks % 14 == 0) {
                         var st = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.SHIELD);
                         st.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
                             new net.minecraft.world.item.component.CustomModelData(java.util.List.of(), java.util.List.of(), java.util.List.of("v" + n), java.util.List.of()));
+                        if (n >= 2) st.set(net.minecraft.core.component.DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
                         mc.player.getInventory().offhand.set(0, st);
                         mc.player.getInventory().items.set(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_AXE));
                         mc.player.setXRot(10f);
