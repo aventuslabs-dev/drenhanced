@@ -617,7 +617,11 @@ final class SelfTest {
                     if (waitTicks == 1) {
                         MinecraftServer server = mc.getSingleplayerServer();
                         String cmd = "setblock " + ore.getX() + " " + ore.getY() + " " + ore.getZ() + " minecraft:coal_ore";
+                        // a wall between us and the ore: the cards must still show (through walls)
+                        var w = ore.offset(0, 0, -1);
+                        String wall = "fill " + (w.getX() - 2) + " " + w.getY() + " " + w.getZ() + " " + (w.getX() + 2) + " " + (w.getY() + 2) + " " + w.getZ() + " minecraft:stone";
                         server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
+                        server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), wall));
                         // EXP from killing a mob (no mining going on) must not pop up
                         if (OreText.onMessage("+10 EXP [10/9000 EXP]", false) || OreText.count() != 0) fail("ore popup without mining");
                         return;
