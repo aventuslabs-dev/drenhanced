@@ -68,7 +68,7 @@ final class SelfTest {
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
     private static net.minecraft.world.entity.Entity barMob;
-    private static int maxCrits, maxThorns, holdTicks;
+    private static int maxCrits, maxThorns, holdTicks, holdTicks2;
     private static java.nio.file.Path captureFile;
     private static net.minecraft.world.entity.Entity rivalPlayer;
 
@@ -447,6 +447,7 @@ final class SelfTest {
                         for (var e : mc.level.entitiesForRendering()) {
                             if (e.getCustomName() != null && e.getCustomName().getString().startsWith("|")) barMob = e;
                         }
+                        if ((barMob == null || MobHp.trackOf(barMob) == null) && holdTicks2++ < 200) return; // wait until its plate was drawn
                         if (barMob != null) {
                             MobHp.onAttack(barMob);
                             DrState.onChat("50 DMG -> Rotting Thing [1400 HP]");
