@@ -523,6 +523,7 @@ final class SelfTest {
                     if (++waitTicks < 15) return;
                     if (!(mc.screen instanceof CooldownScreen)) fail("cooldown screen did not open");
                     else log("cooldown screen ok");
+                    log("TEMP shield item model: " + mc.getModelManager().getItemModel(net.minecraft.resources.ResourceLocation.withDefaultNamespace("shield")).getClass().getName());
                     // DR's gem pouch (an ink sac with a custom name) gets the gold bag model
                     var pouch = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.INK_SAC);
                     pouch.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal("Large Gem Pouch 30g"));
