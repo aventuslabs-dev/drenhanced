@@ -53,10 +53,10 @@ public final class ClientEvents {
             OreText.tick(mc);
             Capture.tick(mc);
         });
-        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
-            FloatingText.render(ctx.camera());
-            OreText.render(ctx.camera());
-        });
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_ENTITIES.register(ctx -> FloatingText.render(ctx.camera()));
+        // last in the world pass: clouds, weather and translucent layers come after entities and would
+        // otherwise paint over the see-through mining cards
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.LAST.register(ctx -> OreText.render(ctx.camera()));
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> addOrigin(stack, lines));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             lastSelectedSlot = -1;
