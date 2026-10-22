@@ -4,6 +4,7 @@
   "package": "com.twoandahalfdevs.dr_improvement_mod.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "ArmedEntityRenderStateMixin",
     "BossHealthOverlayMixin",
     "ChatAccessor",
     "ChatComponentMixin",

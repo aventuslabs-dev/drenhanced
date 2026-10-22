@@ -25,6 +25,7 @@ public final class DrConfig {
         public boolean hotbarAbilities = true;
         public boolean throttlePackets = true;
         public boolean legacyCombat = true;
+        public boolean dualWield = false;
         public int shadowmeldPoints = 0;      // 0-10
         public int justMyNaturePoints = 0;    // 0-5
         /** Player chat on the left, system/server messages in a second chat on the right. */

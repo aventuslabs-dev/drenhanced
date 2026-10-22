@@ -77,6 +77,11 @@ public class DrConfigScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Mining popups..."), b -> this.minecraft.setScreen(new OrePopupScreen(this)))
             .tooltip(Tooltip.create(Component.literal("Double / triple ore, gems, XP, ore respawn and more pop up on the ore you mined.")))
             .bounds(right, y, W, H).build());
+        y += GAP;
+        toggle(left, y, "Dual wield (visual)", c.dualWield, v -> {
+            c.dualWield = v;
+            DrConfig.save();
+        }, "Your offhand shows your weapon and your swings alternate right / left. Only you see it: the server and other players still see a normal swing. Key: Controls > DR Improvement Mod.");
 
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());

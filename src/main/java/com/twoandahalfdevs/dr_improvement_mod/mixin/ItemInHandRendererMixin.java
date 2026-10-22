@@ -11,6 +11,9 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.twoandahalfdevs.dr_improvement_mod.DualWield;
 
 /** No held-item "re-equip" dip every time you hit something. */
 @Mixin(ItemInHandRenderer.class)
@@ -28,8 +31,15 @@ public abstract class ItemInHandRendererMixin {
         LocalPlayer player = this.minecraft.player;
         if (player == null || !DrConfig.legacyCombat()) return;
         this.mainHandItem = player.getMainHandItem();
-        this.offHandItem = player.getOffhandItem();
+        this.offHandItem = DualWield.offhandShown(player);
         this.mainHandHeight = this.oMainHandHeight = 1.0F;
         this.offHandHeight = this.oOffHandHeight = 1.0F;
+    }
+
+    /** Dual wield (visual): the first-person offhand shows your main-hand weapon. */
+    @WrapOperation(method = "tick",
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/client/player/LocalPlayer;getOffhandItem()Lnet/minecraft/world/item/ItemStack;"))
+    private ItemStack drim$dualOffhand(LocalPlayer player, Operation<ItemStack> original) {
+        return DualWield.active(player) ? player.getMainHandItem() : original.call(player);
     }
 }

@@ -11,6 +11,9 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import com.twoandahalfdevs.dr_improvement_mod.DualWield;
+import net.minecraft.network.protocol.game.ServerboundSwingPacket;
+import net.minecraft.world.InteractionHand;
 
 @Mixin(LocalPlayer.class)
 public abstract class LocalPlayerMixin {
@@ -41,5 +44,21 @@ public abstract class LocalPlayerMixin {
         if (DrConfig.legacyCombat()) {
             cir.setReturnValue(false);
         }
+    }
+
+    /**
+     * Dual wield (visual): your swings alternate right / left on your screen. The server still gets the normal
+     * main-hand swing packet, so nothing about the hit changes and other players see your usual swing.
+     */
+    @Inject(method = "swing", at = @At("HEAD"), cancellable = true)
+    private void drim$dualSwing(InteractionHand hand, CallbackInfo ci) {
+        LocalPlayer self = (LocalPlayer) (Object) this;
+        if (hand != InteractionHand.MAIN_HAND || !DualWield.active(self)) return;
+        InteractionHand arm = DualWield.nextHand();
+        self.swing(arm, false); // the animation only (LivingEntity), no packet
+        // only flip arms when a new swing actually started (not mid-swing, e.g. every tick while mining)
+        if (self.swinging && self.swingTime == -1 && self.swingingArm == arm) DualWield.swung();
+        self.connection.send(new ServerboundSwingPacket(InteractionHand.MAIN_HAND));
+        ci.cancel();
     }
 }

@@ -84,6 +84,7 @@ final class SelfTest {
     private static int stage;
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
+    private static net.minecraft.world.item.ItemStack dualBefore = net.minecraft.world.item.ItemStack.EMPTY;
     private static net.minecraft.world.entity.Entity barMob;
     private static int maxCrits, maxThorns, holdTicks, holdTicks2;
     private static java.nio.file.Path captureFile;
@@ -726,6 +727,46 @@ final class SelfTest {
                     else log("mining popup screen ok");
                     Screenshot.grab(mc.gameDirectory, "drim-ore-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     mc.setScreen(null);
+                    stage = 15;
+                    waitTicks = 0;
+                }
+                case 15 -> { // dual wield (visual): offhand shows the weapon, swings alternate, nothing real changes
+                    ++waitTicks;
+                    var inv = mc.player.getInventory();
+                    if (waitTicks == 1) {
+                        dualBefore = inv.getItem(inv.selected).copy();
+                        inv.setItem(inv.selected, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD));
+                        DrConfig.data.dualWield = true;
+                        return;
+                    }
+                    if (waitTicks == 3) {
+                        mc.player.swinging = false;
+                        mc.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+                        var arm1 = mc.player.swingingArm;
+                        mc.player.swinging = false;
+                        mc.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+                        var arm2 = mc.player.swingingArm;
+                        boolean shown = DualWield.offhandShown(mc.player).is(net.minecraft.world.item.Items.DIAMOND_SWORD);
+                        boolean realOff = mc.player.getOffhandItem().is(net.minecraft.world.item.Items.DIAMOND_SWORD);
+                        log("dual wield: swings " + arm1 + " then " + arm2 + ", offhand shows sword " + shown + ", real offhand changed " + realOff);
+                        if (arm1 == arm2) fail("dual wield swings don't alternate");
+                        if (!shown) fail("dual wield offhand not showing the weapon");
+                        if (realOff) fail("dual wield changed the real offhand");
+                        return;
+                    }
+                    if (waitTicks == 10) {
+                        Screenshot.grab(mc.gameDirectory, "drim-dualwield.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                        mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);
+                        return;
+                    }
+                    if (waitTicks == 18) {
+                        Screenshot.grab(mc.gameDirectory, "drim-dualwield-f5.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                        return;
+                    }
+                    if (waitTicks < 20) return;
+                    mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
+                    DrConfig.data.dualWield = false;
+                    inv.setItem(inv.selected, dualBefore);
                     stage = 12;
                     waitTicks = 0;
                 }
