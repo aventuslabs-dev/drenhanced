@@ -179,6 +179,31 @@ final class SelfTest {
                         fail("DR 30-pipe bar: " + (drBar == null ? "null" : EnemyHp.describe(drBar)));
                     DrState.setPlayerLevel(90);
                     log("enemy hp parser ok -> " + EnemyHp.render(parsed, EnemyHp.Style.BAR_PERCENT, 12, true).getString());
+                    // DR redraws its pipes after the damage line: the plate must hold the exact HP through the lag,
+                    // pair once, and move by whole pipes afterwards instead of flipping to the bar's coarse value
+                    MobHp.Track lt = new MobHp.Track();
+                    lt.hp = 1500; lt.hpAt = 1000; lt.cur = 1500; lt.curExact = true;
+                    lt.max = 2000; lt.maxExact = true; lt.maxChecked = true;
+                    MobHp.pair(lt, 18, 20, 1300); MobHp.estimate(lt, 18, 20);          // old bar, not redrawn yet
+                    boolean lagOk = lt.pairFilled < 0 && lt.cur == 1500 && lt.curExact;
+                    lt.fracChanged = 1700; MobHp.pair(lt, 15, 20, 1700); MobHp.estimate(lt, 15, 20); // redrawn
+                    lagOk &= lt.pairFilled == 15 && lt.cur == 1500 && lt.curExact;
+                    lt.fracChanged = 9000; MobHp.pair(lt, 16, 20, 9000); MobHp.estimate(lt, 16, 20); // regen pipe
+                    lagOk &= lt.pairFilled == 15 && Math.round(lt.cur) == 1600 && !lt.curExact && lt.max == 2000;
+                    // learned max: pairing the new HP with the old bar must not reset the window frame after frame
+                    MobHp.Track wt = new MobHp.Track();
+                    wt.hp = 1000; wt.hpAt = 1000; wt.cur = 1000; wt.curExact = true;
+                    for (long ms = 1000; ms < 1400; ms += 16) MobHp.pair(wt, 16, 20, ms);   // old bar showing
+                    wt.fracChanged = 1400; MobHp.pair(wt, 10, 20, 1400);                   // redrawn
+                    for (long ms = 1416; ms < 3000; ms += 16) MobHp.pair(wt, 10, 20, ms);
+                    lagOk &= wt.max >= 1818 && wt.max <= 2223 && wt.pairFilled == 10;
+                    // plain name on a hurt mob: first-hit max 500 + 100 is wrong when the bar shows 5/20 pipes
+                    MobHp.Track ht = new MobHp.Track();
+                    ht.hp = 500; ht.hpAt = 1000; ht.cur = 500; ht.curExact = true; ht.max = 600; ht.maxExact = true;
+                    ht.fracChanged = 1200; MobHp.pair(ht, 5, 20, 1200); MobHp.pair(ht, 5, 20, 2600);
+                    lagOk &= !ht.maxExact && ht.max >= 1666 && ht.max <= 2500;
+                    log("mob hp bar lag: " + lt.cur + " / " + lt.max + ", learned " + wt.max + ", hurt-plain max " + ht.max);
+                    if (!lagOk) fail("mob hp numbers unstable across DR's bar redraw");
                     mc.setScreen(new DrConfigScreen(mc.screen));
                     stage = 1;
                 }
@@ -478,7 +503,7 @@ final class SelfTest {
                             DrState.onChat("50 DMG -> Rotting Thing [1400 HP]");
                         }
                     }
-                    if (waitTicks == 9) {
+                    if (waitTicks == 39) { // the bar never redraws here, so pairing waits out DR's redraw lag first
                         MobHp.Track bt = barMob == null ? null : MobHp.trackOf(barMob);
                         log("max from bar: " + (bt == null ? "no track" : MobHp.hpOf(bt) + " / " + MobHp.maxOf(bt) + (MobHp.maxExact(bt) ? " exact" : " est")));
                         if (bt == null || MobHp.hpOf(bt) != 1400 || MobHp.maxOf(bt) < 1866 || MobHp.maxOf(bt) > 2154 || MobHp.maxExact(bt))
@@ -522,7 +547,7 @@ final class SelfTest {
                         if (ot == null || MobHp.hpOf(ot) != 2225) fail("reordered cleave line not given to the neighbour");
                         if (ft == null || MobHp.hpOf(ft) != 2360 || MobHp.maxOf(ft) != 2400) fail("affixed mob line misrouted");
                     }
-                    if (++waitTicks < 10) return;
+                    if (++waitTicks < 40) return;
                     Screenshot.grab(mc.gameDirectory, "drim-chat-custom-open.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     mc.setScreen(new ChatLayoutScreen(null));
                     stage = 7;

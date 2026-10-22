@@ -73,6 +73,11 @@ public final class MobHp {
         int max = -1;
         boolean maxExact;
         double maxLo = -1, maxHi = -1; // max HP window learned from exact HP vs DR's |||| bar (HP varies per mob)
+        boolean maxChecked;      // first-hit max cross-checked against DR's bar
+        int pairFilled = -1, pairTotal; // DR's bar once it had caught up with `hp` (-1 = not yet)
+        double savedLo = -1, savedHi = -1; // max window before that pairing, so a better pairing can redo it
+        float cur = -1;          // best current HP: `hp`, moved by however far DR's bar has moved since the pairing
+        boolean curExact;
         long hitAt;
         Vec3 pos = Vec3.ZERO;
         float height = 2f;
@@ -119,7 +124,7 @@ public final class MobHp {
             t.elite = parts.elite();
             // just hit (DR hasn't swapped in its bar yet), or DR reverted the name mid-fight while it's still hurt
             if (t.hp >= 0 && (now - t.hpAt < 3000 || (t.confirmed && t.hp > 0 && t.max > 0 && t.hp < t.max && now - t.hitAt < 15_000))) {
-                if (t.max > 0) t.frac = Math.min(1f, t.hp / (float) t.max);
+                if (t.max > 0 && t.cur >= 0) t.frac = Math.min(1f, t.cur / t.max);
                 return new Display(t.label, t.level, t.elite, true, numbers(t, now), t);
             }
             t.plainAt = now;
@@ -132,20 +137,16 @@ public final class MobHp {
             return new Display(t.label, t.level, t.elite, false, "", t);
         }
         float f = (float) p.fraction();
-        // max HP for a mob we didn't see at full: pair the exact HP from the last damage line with the bar
-        // (once DR has had time to update it) and narrow the window hit by hit
-        if (!t.maxExact && t.hp > 0 && p.total() > 0 && now - t.hpAt > 250 && now - t.hpAt < 2000) {
-            learnMax(t, t.hp, p.filled(), p.total());
-        }
         if (f < 0.999f && t.firstDropAt == 0) t.firstDropAt = now;
         if (Math.abs(f - t.pipe) > 1e-4) {
             if (f < t.pipe) t.hitAt = now;
             t.pipe = f;
             t.fracChanged = now;
         }
-        boolean exact = t.hp >= 0 && t.max > 0 && (t.hpAt >= t.fracChanged - 1500
-            || (now - t.hpAt < 30_000 && p.total() > 0 && Math.abs(t.hp / (float) t.max - f) <= 1.5f / p.total() + 0.01f));
-        t.frac = exact ? Math.min(1f, t.hp / (float) t.max) : f;
+        pair(t, p.filled(), p.total(), now);
+        estimate(t, p.filled(), p.total());
+        // one source for both the bar and the numbers, so they can't disagree
+        t.frac = t.cur >= 0 && t.max > 0 ? Math.min(1f, t.cur / t.max) : f;
         Matcher m = LEVEL.matcher(p.after());
         if (m.find()) t.level = m.group(1);
 
@@ -393,13 +394,85 @@ public final class MobHp {
         t.hp = left;
         t.hpAt = now;
         t.hitAt = now;
+        t.pairFilled = -1; // wait for DR to redraw its bar for this hit
+        t.cur = left;
+        t.curExact = true;
         if (wasFull && (!t.maxExact || t.max < left + dmg)) {
             t.max = left + dmg;
             t.maxExact = true;
+            t.maxChecked = false;
         } else if (t.max >= 0 && left > t.max) {
             t.max = left; // regenerated or estimate was low
             t.maxExact = false;
         }
+    }
+
+    /** How long DR can take to redraw its |||| bar after the damage line. */
+    static final long PAIR_WAIT = 1500;
+
+    /**
+     * Pairs the exact HP from the last damage line with DR's bar once the bar has caught up: its first redraw
+     * after the line that fits, or whatever it shows after {@link #PAIR_WAIT}. Max HP is learned from that one
+     * pairing. (Learning every frame paired the new HP with the not-yet-redrawn bar, so the max estimate reset
+     * back and forth and the numbers jumped.) A later redraw inside the lag window that fits better replaces it.
+     */
+    static void pair(Track t, int filled, int total, long now) {
+        if (t.hp < 0 || total <= 0) return;
+        long since = now - t.hpAt;
+        if (t.pairFilled < 0) {
+            boolean redrawn = t.fracChanged > t.hpAt;
+            if (since < PAIR_WAIT && (!redrawn || (t.max > 0 && misfit(t, filled, total) > 1.5))) return;
+            t.savedLo = t.maxLo;
+            t.savedHi = t.maxHi;
+        } else {
+            if (since >= PAIR_WAIT || t.max <= 0 || total != t.pairTotal || filled == t.pairFilled) return;
+            if (misfit(t, filled, total) >= misfit(t, t.pairFilled, t.pairTotal) - 0.5) return;
+            t.maxLo = t.savedLo; // the first pairing was still the old bar: undo what it taught us
+            t.maxHi = t.savedHi;
+        }
+        t.pairFilled = filled;
+        t.pairTotal = total;
+        checkMax(t, filled, total);
+    }
+
+    /** Pipes between what DR's bar shows and what hp / max says it should show. */
+    static double misfit(Track t, int filled, int total) {
+        return Math.abs(t.hp / (double) t.max * total - filled);
+    }
+
+    static void checkMax(Track t, int filled, int total) {
+        if (t.maxExact) {
+            if (t.maxChecked) return;
+            t.maxChecked = true;
+            // remaining + damage is only the max if the mob really was full: DR also shows the plain name on a
+            // hurt mob ~8 s after combat. Then its bar shows fewer pipes than hp / max: learn from the bar instead.
+            if (t.hp / (double) t.max * total - filled <= 1.5) return;
+            t.maxExact = false;
+            t.maxLo = t.maxHi = t.savedLo = t.savedHi = -1;
+        }
+        learnMax(t, t.hp, filled, total);
+    }
+
+    /**
+     * Best current HP. Exact while DR's bar hasn't moved since it was paired with the damage line; after that
+     * (regen, other players' hits) the exact value moved by the same number of pipes, kept within a pipe of the
+     * bar. Never snaps to the bar's coarse value, which is what made the numbers flip back and forth.
+     */
+    static void estimate(Track t, int filled, int total) {
+        if (t.hp < 0) {
+            t.cur = -1;
+            t.curExact = false;
+            return;
+        }
+        t.cur = t.hp;
+        t.curExact = true;
+        if (t.pairFilled < 0 || t.max <= 0 || total <= 0 || t.pairTotal <= 0) return;
+        double moved = filled / (double) total - t.pairFilled / (double) t.pairTotal;
+        if (Math.abs(moved) < 1e-9) return;
+        double lo = Math.max(0, (filled - 1) / (double) total * t.max);
+        double hi = Math.min(t.max, (filled + 1) / (double) total * t.max);
+        t.cur = (float) Math.max(lo, Math.min(hi, t.hp + moved * t.max));
+        t.curExact = false;
     }
 
     /**
@@ -488,13 +561,11 @@ public final class MobHp {
     /** The number text for the bar, e.g. "1,840 / 2,400". "~" marks an estimate. */
     static String numbers(Track t, long now) {
         int pct = Math.round(t.frac * 100);
-        boolean freshHp = t.hp >= 0 && (t.hpAt >= t.fracChanged - 1500
-            || (t.max > 0 && Math.abs(t.frac - Math.min(1f, t.hp / (float) t.max)) < 1e-4f));
         int hp;
         boolean estimate;
-        if (freshHp) {
-            hp = t.hp;
-            estimate = false;
+        if (t.cur >= 0) {
+            hp = Math.round(t.cur);
+            estimate = !t.curExact;
         } else if (t.max > 0) {
             hp = Math.round(t.max * t.frac);
             estimate = true;
