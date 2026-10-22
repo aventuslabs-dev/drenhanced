@@ -1,1 +1,1 @@
-{"parent": "minecraft:item/handheld", "textures": {"layer0": "minecraft:item/offhand_katana"}, "display": {"firstperson_lefthand": {"rotation": [0, -30, -30], "translation": [-0.5, 3.5, 0], "scale": [0.46, 0.46, 0.46]}}}
+{"parent": "minecraft:item/handheld", "textures": {"layer0": "minecraft:item/offhand_katana"}, "display": {"firstperson_lefthand": {"rotation": [0, -45, 15], "translation": [-0.5, 2, 0], "scale": [0.42, 0.42, 0.42]}}}
