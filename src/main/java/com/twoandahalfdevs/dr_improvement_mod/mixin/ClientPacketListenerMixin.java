@@ -39,12 +39,16 @@ public abstract class ClientPacketListenerMixin {
         ci.cancel();
     }
 
-    @Inject(method = "handleSystemChat", at = @At("HEAD"))
+    @Inject(method = "handleSystemChat", at = @At("HEAD"), cancellable = true)
     private void drim$systemChat(ClientboundSystemChatPacket packet, CallbackInfo ci) {
         if (drim$offThread()) return;
         com.twoandahalfdevs.dr_improvement_mod.Capture.chat(packet.overlay() ? "ACTIONBAR_PKT" : "CHAT", packet.content());
+        String text = packet.content().getString();
+        boolean ore = com.twoandahalfdevs.dr_improvement_mod.OreText.onMessage(text, packet.overlay());
         if (packet.overlay()) return;
-        DrState.onChat(packet.content().getString());
+        DrState.onChat(text);
+        // the popup replaces DR's mining debug line, so it can stay out of chat
+        if (ore && com.twoandahalfdevs.dr_improvement_mod.OreText.hideFromChat()) ci.cancel();
     }
 
     @Inject(method = "handlePlayerChat", at = @At("HEAD"))

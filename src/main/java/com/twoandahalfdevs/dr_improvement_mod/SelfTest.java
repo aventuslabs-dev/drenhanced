@@ -63,6 +63,23 @@ final class SelfTest {
         {"\u00a7aGuild Chat: \u00a7cfalse", false},
     };
 
+    /** {DR mining line, expected popup kind or null}. */
+    private static final Object[][] ORE_CASES = {
+        {"+48 EXP [1205/9000 EXP]", OreText.Kind.EXP},
+        {"\u00a7e\u00a7l          DOUBLE ORE DROP\u00a7e (2x)", OreText.Kind.DOUBLE},
+        {"          TRIPLE ORE DROP (3x)", OreText.Kind.TRIPLE},
+        {"FOUND 3 GEM(S)", OreText.Kind.GEM},
+        {"You have found 12 Gems!", OreText.Kind.GEM},
+        {"Ore respawned!", OreText.Kind.RESPAWN},
+        {"Your pickaxe has leveled up to level 24!", OreText.Kind.LEVEL},
+        {"Durability saved!", OreText.Kind.DURABILITY},
+        {"TREASURE FIND!", OreText.Kind.TREASURE},
+        {"You failed to mine this ore.", OreText.Kind.FAIL},
+        {"120 DMG -> Skeleton [2400 HP]", null},
+        {"Large Gem Pouch 30g", null},
+        {"-35 HP (Steve)", null},
+    };
+
     private static final List<String> failures = new ArrayList<>();
     private static int stage;
     private static int waitTicks;
@@ -113,6 +130,14 @@ final class SelfTest {
                         if (got != (Boolean) c[1]) fail("chat classifier: '" + c[0] + "' -> " + (got ? "player" : "system"));
                     }
                     log("chat classifier ok (" + CHAT_CASES.length + " cases)");
+                    for (Object[] c : ORE_CASES) {
+                        OreText.Event e = OreText.classify((String) c[0]);
+                        Object got = e == null ? null : e.kind();
+                        if (got != c[1]) fail("ore parser: '" + c[0] + "' -> " + got + " (want " + c[1] + ")");
+                    }
+                    var xp = OreText.classify("+48 EXP [1205/9000 EXP]");
+                    if (xp == null || xp.amount() != 48 || xp.cur() != 1205 || xp.max() != 9000) fail("ore parser: EXP numbers " + xp);
+                    log("ore parser ok (" + ORE_CASES.length + " cases)");
                     for (String id : new String[]{"sodium", "immediatelyfast", "lithium", "entityculling"})
                         log(id + " loaded: " + net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded(id));
                     // enemy HP bar parser: 12 green + 8 gray pipes = 60%
@@ -562,7 +587,7 @@ final class SelfTest {
                     Screenshot.grab(mc.gameDirectory, "drim-bars-moved.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     captureFile = Capture.file();
                     log("capture: " + Capture.toggle().getString());
-                    stage = 12;
+                    stage = 13;
                     waitTicks = 0;
                 }
                 case 12 -> {
@@ -583,6 +608,53 @@ final class SelfTest {
                     DrConfig.data.leftChat = new DrConfig.ChatBox();
                     DrConfig.data.rightChat = new DrConfig.ChatBox();
                     stage = 99;
+                    waitTicks = 0;
+                }
+                case 13 -> { // mining popups on an ore in front of us
+                    ++waitTicks;
+                    var feet = mc.player.blockPosition();
+                    var ore = feet.offset(0, 1, 3);
+                    if (waitTicks == 1) {
+                        MinecraftServer server = mc.getSingleplayerServer();
+                        String cmd = "setblock " + ore.getX() + " " + ore.getY() + " " + ore.getZ() + " minecraft:coal_ore";
+                        server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
+                        // EXP from killing a mob (no mining going on) must not pop up
+                        if (OreText.onMessage("+10 EXP [10/9000 EXP]", false) || OreText.count() != 0) fail("ore popup without mining");
+                        return;
+                    }
+                    if (waitTicks == 8) {
+                        OreText.onDig(ore, net.minecraft.core.Direction.NORTH);
+                        if (!OreText.onMessage("+48 EXP [1205/9000 EXP]", false)) fail("EXP line not taken while mining");
+                        OreText.onMessage("FOUND 3 GEM(S)", false);
+                        OreText.onMessage("+52 EXP [1257/9000 EXP]", false); // merges into the first card
+                        // through the real packet path (mixin), including the hide-from-chat cancel
+                        MinecraftServer server = mc.getSingleplayerServer();
+                        for (String cmd : new String[]{
+                            "tellraw @a [{\"text\":\"          DOUBLE ORE DROP\",\"color\":\"yellow\",\"bold\":true},{\"text\":\" (2x)\",\"color\":\"yellow\"}]",
+                            "tellraw @a {\"text\":\"Ore respawned!\",\"color\":\"aqua\"}"}) {
+                            server.execute(() -> server.getCommands().performPrefixedCommand(server.createCommandSourceStack(), cmd));
+                        }
+                        return;
+                    }
+                    if (waitTicks < 22) return;
+                    log("ore popups: " + OreText.count() + " (exp " + OreText.countKind(OreText.Kind.EXP) + ", gem " + OreText.countKind(OreText.Kind.GEM)
+                        + ", double " + OreText.countKind(OreText.Kind.DOUBLE) + ", respawn " + OreText.countKind(OreText.Kind.RESPAWN) + ")");
+                    if (OreText.countKind(OreText.Kind.EXP) != 1) fail("repeated EXP on one ore should merge into one card");
+                    if (OreText.countKind(OreText.Kind.GEM) != 1) fail("gem popup missing");
+                    if (OreText.countKind(OreText.Kind.DOUBLE) != 1) fail("DOUBLE ORE from server chat not shown (packet path)");
+                    if (OreText.countKind(OreText.Kind.RESPAWN) != 1) fail("ore respawn popup missing");
+                    Screenshot.grab(mc.gameDirectory, "drim-ore-popups.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    mc.setScreen(new OrePopupScreen(null));
+                    stage = 14;
+                    waitTicks = 0;
+                }
+                case 14 -> {
+                    if (++waitTicks < 12) return;
+                    if (!(mc.screen instanceof OrePopupScreen)) fail("mining popup screen did not open");
+                    else log("mining popup screen ok");
+                    Screenshot.grab(mc.gameDirectory, "drim-ore-screen.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
+                    mc.setScreen(null);
+                    stage = 12;
                     waitTicks = 0;
                 }
                 default -> {

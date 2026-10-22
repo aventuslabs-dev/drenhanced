@@ -74,6 +74,9 @@ public class DrConfigScreen extends Screen {
             c.fullbright = v;
             DrConfig.save();
         }, "Everything fully lit: caves, night, dungeons. Toggle in game with G (rebind in Controls).");
+        addRenderableWidget(Button.builder(Component.literal("Mining popups..."), b -> this.minecraft.setScreen(new OrePopupScreen(this)))
+            .tooltip(Tooltip.create(Component.literal("Double / triple ore, gems, XP, ore respawn and more pop up on the ore you mined.")))
+            .bounds(right, y, W, H).build());
 
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());

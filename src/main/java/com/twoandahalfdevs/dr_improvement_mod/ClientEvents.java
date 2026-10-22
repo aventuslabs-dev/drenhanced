@@ -50,9 +50,13 @@ public final class ClientEvents {
         ClientTickEvents.END_CLIENT_TICK.register(mc -> {
             MobHp.tick();
             FloatingText.tick(mc);
+            OreText.tick(mc);
             Capture.tick(mc);
         });
-        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_ENTITIES.register(ctx -> FloatingText.render(ctx.camera()));
+        net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents.AFTER_ENTITIES.register(ctx -> {
+            FloatingText.render(ctx.camera());
+            OreText.render(ctx.camera());
+        });
         ItemTooltipCallback.EVENT.register((stack, context, flag, lines) -> addOrigin(stack, lines));
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
             lastSelectedSlot = -1;

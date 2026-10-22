@@ -77,6 +77,15 @@ public final class DrConfig {
         public boolean fctProcs = true;
         /** Other players' hits (DR shows everyone's): off = only your own numbers. */
         public boolean fctOthers = false;
+        /** Mining popups: DR's mining debug lines (EXP, double/triple ore, gems, respawn...) as cards on the ore. */
+        public boolean oreEnabled = true;
+        public double oreSize = 1.0;
+        public double oreDuration = 2.4;
+        /** Keep the mining lines that became popups out of chat. */
+        public boolean oreHideChat = true;
+        public boolean oreSounds = true;
+        public boolean oreShowExp = true;
+        public boolean oreShowFails = true;
         /** WoW-style cooldown bar above the hotbar. */
         public boolean cooldownBar = true;
         public int cdIconSize = 22;
@@ -93,6 +102,8 @@ public final class DrConfig {
             enemyHpBarLength = Math.max(4, Math.min(40, enemyHpBarLength));
             fctSize = Math.max(0.3, Math.min(4.0, fctSize));
             fctDuration = Math.max(0.4, Math.min(5.0, fctDuration));
+            oreSize = Math.max(0.4, Math.min(3.0, oreSize));
+            oreDuration = Math.max(0.8, Math.min(6.0, oreDuration));
             cdIconSize = Math.max(12, Math.min(48, cdIconSize));
             cdX = Math.max(-1000, Math.min(1000, cdX));
             cdY = Math.max(0, Math.min(1000, cdY));

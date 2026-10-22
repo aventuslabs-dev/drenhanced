@@ -2,6 +2,9 @@ package com.twoandahalfdevs.dr_improvement_mod.mixin;
 
 import com.twoandahalfdevs.dr_improvement_mod.DrConfig;
 import com.twoandahalfdevs.dr_improvement_mod.MobHp;
+import com.twoandahalfdevs.dr_improvement_mod.OreText;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -37,6 +40,17 @@ public abstract class MultiPlayerGameModeMixin {
         if (DrConfig.legacyCombat()) {
             cir.setReturnValue(false);
         }
+    }
+
+    /** Remember the block being mined so DR's mining lines can pop up on that ore. */
+    @Inject(method = "startDestroyBlock", at = @At("HEAD"))
+    private void drim$startDig(BlockPos pos, Direction face, CallbackInfoReturnable<Boolean> cir) {
+        OreText.onDig(pos, face);
+    }
+
+    @Inject(method = "continueDestroyBlock", at = @At("HEAD"))
+    private void drim$continueDig(BlockPos pos, Direction face, CallbackInfoReturnable<Boolean> cir) {
+        OreText.onDig(pos, face);
     }
 
     /** Remember who we hit so the next "DMG -> Name [HP]" line can be matched to that mob. */
