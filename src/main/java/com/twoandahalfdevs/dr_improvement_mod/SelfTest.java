@@ -582,23 +582,6 @@ final class SelfTest {
                     DrConfig.data.healthBar = new DrConfig.Bar();
                     DrConfig.data.leftChat = new DrConfig.ChatBox();
                     DrConfig.data.rightChat = new DrConfig.ChatBox();
-                    stage = 13; // TEMP
-                    waitTicks = 0;
-                }
-                case 13 -> { // TEMP: sword in hand
-                    mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN);
-                    DrConfig.data.splitChat = false;
-                    if (waitTicks == 0) {
-                        mc.player.getInventory().selected = 0;
-                        mc.player.getInventory().items.set(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD));
-                        mc.player.getInventory().offhand.set(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.SHIELD));
-                        mc.player.setXRot(10f);
-                    }
-                    if (waitTicks == 12) Screenshot.grab(mc.gameDirectory, "drim-off1.png", mc.getMainRenderTarget(), c -> { });
-                    if (++waitTicks > 20) { stage = 99; waitTicks = 0; }
-                    return;
-                }
-                case 98 -> {
                     stage = 99;
                     waitTicks = 0;
                 }
