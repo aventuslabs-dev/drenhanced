@@ -34,7 +34,7 @@ public final class OrePopupScreen extends Screen {
         toggle(right, y, "Hide from chat", c.oreHideChat, v -> c.oreHideChat = v,
             "Keep the mining lines that became popups out of chat.");
         y += ROW;
-        toggle(left, y, "XP gains", c.oreShowExp, v -> c.oreShowExp = v, "+XP card with a progress bar to the next pickaxe level. Repeats on one ore add up.");
+        toggle(left, y, "XP gains", c.oreShowExp, v -> c.oreShowExp = v, "+XP card with a progress bar to the next pickaxe level.");
         toggle(right, y, "Failed mines", c.oreShowFails, v -> c.oreShowFails = v, "A small grey \"Missed\" card when a mine fails.");
         y += ROW;
         toggle(left, y, "Sounds", c.oreSounds, v -> c.oreSounds = v, "A soft chime for triple ore and treasure, a fanfare for pickaxe level / tier up.");

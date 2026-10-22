@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 /**
  * Mining popups: DR's mining debug lines ("+48 EXP [1205/9000]", "DOUBLE ORE DROP (2x)", "FOUND 3 GEM(S)",
  * ore respawn, durability, level up...) become animated cards that pop off the ore you just mined, stacking
- * upwards like floating combat text. Repeats on the same ore merge into one card (XP adds up, "x3" counter).
+ * upwards like floating combat text. Every line gets its own card.
  */
 public final class OreText {
     private OreText() {}
@@ -70,8 +70,8 @@ public final class OreText {
         final Kind kind;
         final long anchor;
         Vec3 pos;
-        long born, refreshed, pulse;
-        int amount, count = 1, cur = -1, max = -1;
+        long born;
+        int amount, cur = -1, max = -1;
         String text;
         float stackY = -1, barShown = -1;
         long lastFrame;
@@ -80,7 +80,7 @@ public final class OreText {
             this.kind = e.kind;
             this.anchor = anchor;
             this.pos = pos;
-            this.born = this.refreshed = now;
+            this.born = now;
             this.amount = Math.max(0, e.amount);
             this.cur = e.cur;
             this.max = e.max;
@@ -106,8 +106,7 @@ public final class OreText {
     private static String lastOverlay = "";
     private static long lastOverlayAt;
 
-    private static final long MERGE_MS = 1600;
-    private static final int MAX_PER_STACK = 6;
+    private static final int MAX_PER_STACK = 8;
     private static final long FREE_ANCHOR = Long.MIN_VALUE;
 
     public static boolean enabled() {
@@ -239,20 +238,7 @@ public final class OreText {
             at = mc.player.getEyePosition().add(mc.player.getLookAngle().scale(2.5)).add(0, -0.3, 0);
         }
 
-        // same thing again on the same ore: merge into the existing card
-        for (Card c : cards) {
-            if (c.anchor == anchor && c.kind == e.kind && now - c.refreshed < MERGE_MS && c.kind != Kind.OTHER) {
-                c.count++;
-                if (e.amount > 0 && (c.kind == Kind.EXP || c.kind == Kind.GEM)) c.amount += e.amount;
-                if (e.max > 0) {
-                    c.cur = e.cur;
-                    c.max = e.max;
-                }
-                c.refreshed = c.pulse = now;
-                sound(e.kind);
-                return;
-            }
-        }
+        // every line gets its own card (no merging)
         cards.add(new Card(e, anchor, at, now));
         int n = 0;
         for (int i = cards.size() - 1; i >= 0; i--) {
@@ -301,7 +287,7 @@ public final class OreText {
                 spawn(q.event, now);
             }
         }
-        cards.removeIf(c -> now - c.refreshed > lifeMs(c));
+        cards.removeIf(c -> now - c.born > lifeMs(c));
     }
 
     // ------------------------------------------------------------------ drawing
@@ -368,14 +354,6 @@ public final class OreText {
         return null;
     }
 
-    /** "x2" next to the title: the drop multiplier, or how many times it happened in a row. */
-    private static String badge(Card c) {
-        if (c.kind == Kind.DOUBLE) return c.count > 1 ? "×2 · " + c.count : "×2";
-        if (c.kind == Kind.TRIPLE) return c.count > 1 ? "×3 · " + c.count : "×3";
-        if (c.kind == Kind.EXP || c.kind == Kind.GEM) return null; // the number itself adds up
-        return c.count > 1 ? "×" + c.count : null;
-    }
-
     private static String shorten(String s, int n) {
         if (s == null) return "";
         return s.length() <= n ? s : s.substring(0, n - 1) + "…";
@@ -384,7 +362,7 @@ public final class OreText {
     private static void drawCard(Card c, Font font, Camera camera, Vec3 cam, PoseStack pose, MultiBufferSource buffers, long now) {
         long age = now - c.born;
         long life = lifeMs(c);
-        long left = life - (now - c.refreshed);
+        long left = life - age;
         boolean rare = c.kind.rare;
 
         // pop in (back-out overshoot), small bump when merged, shrink + fade out at the end
@@ -392,8 +370,6 @@ public final class OreText {
         float pop = backOut(inT, rare ? 2.6f : 1.9f);
         float start = rare ? 0.35f : 0.55f;
         float scale = start + (1f - start) * pop;
-        float bumpT = c.pulse == 0 ? 1f : Math.min(1f, (now - c.pulse) / 220f);
-        scale *= 1f + 0.12f * (1f - bumpT) * (1f - bumpT);
         float outT = left < 380 ? 1f - Math.max(0, left) / 380f : 0f;
         scale *= 1f - 0.12f * outT;
         float alpha = Math.min(1f, age / 90f) * (1f - outT);
@@ -408,16 +384,13 @@ public final class OreText {
         String icon = c.kind.icon;
         FormattedCharSequence iconSeq = Component.literal(icon).getVisualOrderText();
         FormattedCharSequence titleSeq = Component.literal(title(c)).withStyle(ChatFormatting.BOLD).getVisualOrderText();
-        String b = badge(c);
-        FormattedCharSequence badgeSeq = b == null ? null : Component.literal(b).withStyle(ChatFormatting.BOLD).getVisualOrderText();
         String s = sub(c);
         FormattedCharSequence subSeq = s == null ? null : Component.literal(s).getVisualOrderText();
         float subScale = 0.7f;
 
         int iconW = font.width(iconSeq);
         int titleW = font.width(titleSeq);
-        int badgeW = badgeSeq == null ? 0 : font.width(badgeSeq) + 4;
-        float rowW = iconW + 4 + titleW + badgeW;
+        float rowW = iconW + 4 + titleW;
         float subW = subSeq == null ? 0 : font.width(subSeq) * subScale;
         float inner = Math.max(rowW, subW);
         float w = inner + 6 + 6; // 2px accent + padding
@@ -451,8 +424,8 @@ public final class OreText {
         } else {
             quad(vc, m, x0 + 2, y1 - 1, x1 - 1, y1, argb(alpha * 0.85f, edge), bright);         // bottom rim
         }
-        // glow ring when it appears (bigger and longer for rare finds), and again when it merges
-        float flash = Math.max(1f - Math.min(1f, age / (rare ? 650f : 300f)), c.pulse == 0 ? 0f : 0.7f * (1f - bumpT));
+        // glow ring when it appears (bigger and longer for rare finds)
+        float flash = 1f - Math.min(1f, age / (rare ? 650f : 300f));
         if (flash > 0.01f) {
             int g = argb(alpha * flash * 0.9f, accent);
             float r = rare ? 2 : 1;
@@ -468,7 +441,6 @@ public final class OreText {
         int ta = Math.max(8, Math.round(alpha * 255)) << 24;
         text(font, iconSeq, tx, ty, ta | accent, buffers, m);
         text(font, titleSeq, tx + iconW + 4, ty, ta | (c.kind == Kind.FAIL ? 0xC4C8CF : MobHp.mix(0xFF000000 | accent, 0xFFFFFF, 0.55f) & 0xFFFFFF), buffers, m);
-        if (badgeSeq != null) text(font, badgeSeq, tx + iconW + 4 + titleW + 4, ty, ta | accent, buffers, m);
         if (subSeq != null) {
             pose.pushPose();
             pose.translate(tx, ty + 10, 0);

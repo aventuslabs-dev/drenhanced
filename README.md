@@ -17,7 +17,7 @@ Saved to `config/dr_improvement_mod.json`.
 - **Useful info**: ultimate cooldown, usable/carried potions + potion cooldown, combat timer (PvE 8 s / PvP 15 s), Rogue Shadowmeld scaling and "It's Just My Nature" window.
 - **Hotbar abilities**: selecting an ability head uses it and returns to your previous slot.
 - **1.8 feel**: no double-tap sprint, no miss-swing delay, no client crit effects, no re-equip bob, no swing on drop.
-- **Mining popups**: DR's mining debug lines (double / triple ore, gems, XP with a progress bar, ore respawn, durability, pickaxe level / tier up, failed mines) pop off the ore you mined as animated cards that stack upward and merge repeats. Optional: hide those lines from chat, chimes for rare finds. Settings → *Mining popups...* (has a Test button).
+- **Mining popups**: DR's mining debug lines (double / triple ore, gems, XP with a progress bar, ore respawn, durability, pickaxe level / tier up, failed mines) pop off the ore you mined as animated cards that stack upward, one card per line. Optional: hide those lines from chat, chimes for rare finds. Settings → *Mining popups...* (has a Test button).
 - Guild nametags (light green), colour-blind glow, item origin in tooltips, packet debounce.
 
 ## Build

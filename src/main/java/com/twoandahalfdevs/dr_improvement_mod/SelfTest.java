@@ -626,7 +626,7 @@ final class SelfTest {
                         OreText.onDig(ore, net.minecraft.core.Direction.NORTH);
                         if (!OreText.onMessage("+48 EXP [1205/9000 EXP]", false)) fail("EXP line not taken while mining");
                         OreText.onMessage("FOUND 3 GEM(S)", false);
-                        OreText.onMessage("+52 EXP [1257/9000 EXP]", false); // merges into the first card
+                        OreText.onMessage("+52 EXP [1257/9000 EXP]", false); // its own card, no merging
                         // through the real packet path (mixin), including the hide-from-chat cancel
                         MinecraftServer server = mc.getSingleplayerServer();
                         for (String cmd : new String[]{
@@ -639,7 +639,7 @@ final class SelfTest {
                     if (waitTicks < 22) return;
                     log("ore popups: " + OreText.count() + " (exp " + OreText.countKind(OreText.Kind.EXP) + ", gem " + OreText.countKind(OreText.Kind.GEM)
                         + ", double " + OreText.countKind(OreText.Kind.DOUBLE) + ", respawn " + OreText.countKind(OreText.Kind.RESPAWN) + ")");
-                    if (OreText.countKind(OreText.Kind.EXP) != 1) fail("repeated EXP on one ore should merge into one card");
+                    if (OreText.countKind(OreText.Kind.EXP) != 2) fail("each EXP line should get its own card");
                     if (OreText.countKind(OreText.Kind.GEM) != 1) fail("gem popup missing");
                     if (OreText.countKind(OreText.Kind.DOUBLE) != 1) fail("DOUBLE ORE from server chat not shown (packet path)");
                     if (OreText.countKind(OreText.Kind.RESPAWN) != 1) fail("ore respawn popup missing");
