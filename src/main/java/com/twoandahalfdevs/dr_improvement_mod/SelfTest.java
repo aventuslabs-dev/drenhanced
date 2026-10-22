@@ -524,6 +524,15 @@ final class SelfTest {
                     if (++waitTicks < 15) return;
                     if (!(mc.screen instanceof CooldownScreen)) fail("cooldown screen did not open");
                     else log("cooldown screen ok");
+                    // off-hand defender follows the main-hand tier (only when a pack provides defender_t1..t5)
+                    if (ItemSkins.tierOf(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.WOODEN_AXE)) != 1
+                            || ItemSkins.tierOf(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.STONE_SWORD)) != 2
+                            || ItemSkins.tierOf(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_HOE)) != 3
+                            || ItemSkins.tierOf(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_AXE)) != 4
+                            || ItemSkins.tierOf(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GOLDEN_SHOVEL)) != 5
+                            || ItemSkins.tierOf(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BOW)) != 0)
+                        fail("weapon tier mapping wrong");
+                    log("tiered defenders in pack: " + ItemSkins.packHasTieredDefenders(mc));
                     // DR's gem pouch (an ink sac with a custom name) gets the gold bag model
                     var pouch = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.INK_SAC);
                     pouch.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal("Large Gem Pouch 30g"));
