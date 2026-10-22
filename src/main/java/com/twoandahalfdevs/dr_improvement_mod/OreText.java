@@ -302,6 +302,13 @@ public final class OreText {
         long now = System.currentTimeMillis();
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
         PoseStack pose = new PoseStack();
+        if (DrConfig.data.oreThroughWalls) {
+            // Through walls: wipe the depth buffer (this runs last in the world pass) so no block can cover a
+            // card, while the cards still draw with normal depth-tested rendering (see-through shaders wash them out).
+            buffers.endBatch();
+            com.mojang.blaze3d.systems.RenderSystem.depthMask(true);
+            org.lwjgl.opengl.GL11.glClear(org.lwjgl.opengl.GL11.GL_DEPTH_BUFFER_BIT);
+        }
 
         // group by ore: newest card sits on the ore, older ones get pushed up
         Map<Long, List<Card>> stacks = new LinkedHashMap<>();
@@ -405,10 +412,8 @@ public final class OreText {
         pose.scale(k, -k, k);
         Matrix4f m = pose.last().pose();
         int bright = LightTexture.FULL_BRIGHT;
-        boolean through = DrConfig.data.oreThroughWalls;
-        // see-through: no depth test, so walls and the ore don't cover the card (text is drawn after its panel)
-        VertexConsumer vc = buffers.getBuffer(through ? RenderType.textBackgroundSeeThrough() : RenderType.textBackground());
-        Font.DisplayMode mode = through ? Font.DisplayMode.SEE_THROUGH : Font.DisplayMode.POLYGON_OFFSET;
+        VertexConsumer vc = buffers.getBuffer(RenderType.textBackground());
+        Font.DisplayMode mode = Font.DisplayMode.POLYGON_OFFSET;
 
         int accent = c.kind.color;
         int edge = MobHp.mix(0xFF000000 | accent, 0x000000, 0.55f) & 0xFFFFFF;
