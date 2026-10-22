@@ -214,6 +214,18 @@ final class SelfTest {
                     rs.barAt = 10_300; rs.pipeTotal = 30; rs.pipe = 0.5f;
                     double lowerShown = MobHp.fitPenalty(rs, 400, 5000, 10_300);
                     lagOk &= regenFit < 0 && lower >= MobHp.NO_FIT && lowerShown < MobHp.NO_FIT;
+                    // a fresh Lv 95 mob given a nearly dead neighbour's line ("579 -> [769]" = max 1,348): DR's first
+                    // bar shows far more HP, so that line and its max are dropped; a right first line is kept
+                    MobHp.Track wf = new MobHp.Track();
+                    wf.startedFull = true; wf.confirmed = true; wf.maxExact = true; wf.max = 1348; wf.hp = 769; wf.firstLeft = 769;
+                    MobHp.Track rf = new MobHp.Track();
+                    rf.startedFull = true; rf.confirmed = true; rf.maxExact = true; rf.max = 2400; rf.hp = 2280; rf.firstLeft = 2280;
+                    lagOk &= MobHp.firstBarWrong(wf, 28 / 30f, 30) && !MobHp.firstBarWrong(rf, 19 / 20f, 20);
+                    // given a line but still on its plain name 2.5 s later, no bar ever: it wasn't hit
+                    wf.firstLineAt = 10_000; wf.barAt = 0;
+                    lagOk &= !MobHp.neverShowedBar(wf, 11_000) && MobHp.neverShowedBar(wf, 12_600);
+                    MobHp.forgetHp(wf);
+                    lagOk &= wf.hp < 0 && wf.max < 0 && !wf.maxExact && !wf.confirmed;
                     log("mob hp routing: regen chunk " + regenFit + ", lower " + lower + ", lower on bar " + lowerShown);
                     log("mob hp bar lag: " + lt.cur + " / " + lt.max + ", learned " + wt.max + ", hurt-plain max " + ht.max);
                     if (!lagOk) fail("mob hp tracking logic wrong (bar lag / routing)");

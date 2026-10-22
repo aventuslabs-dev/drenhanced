@@ -83,6 +83,9 @@ public final class MobHp {
         int missHp = -1;         // last line that didn't fit while we were hitting this mob
         long missAt;
         int missCount;           // such lines in a row, each continuing the one before
+        long firstLineAt;        // when the first damage line was given to it (0 = none since last forget)
+        int firstLeft = -1;      // HP in that line
+        boolean firstBarChecked; // DR's first bar after that line was compared with it
         long hitAt;
         Vec3 pos = Vec3.ZERO;
         float height = 2f;
@@ -127,6 +130,7 @@ public final class MobHp {
             t.label = parts.name();
             t.level = parts.level();
             t.elite = parts.elite();
+            if (neverShowedBar(t, now)) forgetHp(t);
             // just hit (DR hasn't swapped in its bar yet), or DR reverted the name mid-fight while it's still hurt
             if (t.hp >= 0 && (now - t.hpAt < 3000 || (t.confirmed && t.hp > 0 && t.max > 0 && t.hp < t.max && now - t.hitAt < 15_000))) {
                 if (t.max > 0 && t.cur >= 0) t.frac = Math.min(1f, t.cur / t.max);
@@ -149,6 +153,10 @@ public final class MobHp {
             if (f < t.pipe) t.hitAt = now;
             t.pipe = f;
             t.fracChanged = now;
+        }
+        if (t.firstLineAt > 0 && !t.firstBarChecked) {
+            t.firstBarChecked = true;
+            if (firstBarWrong(t, f, p.total())) forgetHp(t);
         }
         pair(t, p.filled(), p.total(), now);
         estimate(t, p.filled(), p.total());
@@ -414,6 +422,11 @@ public final class MobHp {
         // exact max = remaining + damage, but only on the first hit against a mob we first saw undamaged
         boolean wasFull = Boolean.TRUE.equals(t.startedFull) && !t.confirmed
             && (t.firstDropAt == 0 || now - t.firstDropAt < 2000);
+        if (!t.confirmed) {
+            t.firstLineAt = now;
+            t.firstLeft = left;
+            t.firstBarChecked = false;
+        }
         t.confirmed = true;
         t.hp = left;
         t.hpAt = now;
@@ -429,6 +442,37 @@ public final class MobHp {
             t.max = left; // regenerated or estimate was low
             t.maxExact = false;
         }
+    }
+
+    /**
+     * DR swaps a fresh mob's plain name for its bar when it's hit, showing its HP after that hit, and later hits
+     * only lower it. If the first bar after the first line we gave it shows clearly more HP than that line, the
+     * line was another mob's of the same name, and so is the "exact" max (remaining + damage) built from it.
+     */
+    static boolean firstBarWrong(Track t, float f, int total) {
+        if (!t.maxExact || t.max <= 0 || t.firstLeft < 0 || total <= 0 || !Boolean.TRUE.equals(t.startedFull)) return false;
+        return f > t.firstLeft / (float) t.max + 1.5f / total + 0.01f;
+    }
+
+    /** Got a damage line, yet 2.5 s on it still shows its plain name and never showed a bar: it wasn't hit. */
+    static boolean neverShowedBar(Track t, long now) {
+        return t.confirmed && t.firstLineAt > 0 && t.barAt < t.firstLineAt - 2000 && now - t.firstLineAt > 2500;
+    }
+
+    /** Drop everything learned from damage lines (they were another mob's). */
+    static void forgetHp(Track t) {
+        t.confirmed = false;
+        t.hp = -1;
+        t.max = -1;
+        t.maxExact = t.maxChecked = false;
+        t.maxLo = t.maxHi = t.savedLo = t.savedHi = -1;
+        t.pairFilled = -1;
+        t.cur = -1;
+        t.curExact = false;
+        t.firstLineAt = 0;
+        t.firstLeft = -1;
+        t.missAt = 0;
+        t.missCount = 0;
     }
 
     /** How long DR can take to redraw its |||| bar after the damage line. */
