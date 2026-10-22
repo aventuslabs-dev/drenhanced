@@ -81,8 +81,11 @@ public final class DrConfig {
         public boolean oreEnabled = true;
         public double oreSize = 1.0;
         public double oreDuration = 2.4;
-        /** Keep the mining lines that became popups out of chat. */
-        public boolean oreHideChat = true;
+        /** Keep the mining lines that became popups out of chat. Off: the debug lines stay, popups are extra.
+         *  (New key, so configs saved with the old default "oreHideChat": true start with it off.) */
+        public boolean oreHideChatLines = false;
+        /** Draw the popups through blocks, so a wall or the ore itself never hides them. */
+        public boolean oreThroughWalls = true;
         public boolean oreSounds = true;
         public boolean oreShowExp = true;
         public boolean oreShowFails = true;

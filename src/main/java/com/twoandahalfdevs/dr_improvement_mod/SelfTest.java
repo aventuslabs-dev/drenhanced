@@ -643,6 +643,11 @@ final class SelfTest {
                     if (OreText.countKind(OreText.Kind.GEM) != 1) fail("gem popup missing");
                     if (OreText.countKind(OreText.Kind.DOUBLE) != 1) fail("DOUBLE ORE from server chat not shown (packet path)");
                     if (OreText.countKind(OreText.Kind.RESPAWN) != 1) fail("ore respawn popup missing");
+                    // the popup is an addon: DR's debug line must still be in chat (left or right box)
+                    java.util.function.Predicate<net.minecraft.client.GuiMessage> isDouble = g -> g.content().getString().contains("DOUBLE ORE DROP");
+                    boolean inChat = ((ChatAccessor) mc.gui.getChat()).drim$messages().stream().anyMatch(isDouble)
+                        || (SplitChat.right() != null && ((ChatAccessor) SplitChat.right()).drim$messages().stream().anyMatch(isDouble));
+                    if (!inChat) fail("mining debug line was removed from chat (should stay by default)");
                     Screenshot.grab(mc.gameDirectory, "drim-ore-popups.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                     mc.setScreen(new OrePopupScreen(null));
                     stage = 14;

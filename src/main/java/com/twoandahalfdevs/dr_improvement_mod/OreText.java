@@ -144,7 +144,7 @@ public final class OreText {
     }
 
     public static boolean hideFromChat() {
-        return enabled() && DrConfig.data.oreHideChat;
+        return enabled() && DrConfig.data.oreHideChatLines;
     }
 
     private static final Pattern MINING_WORD = Pattern.compile("\\bORES?\\b|PICK|MINING|MINED|\\bMINE\\b");
@@ -405,7 +405,10 @@ public final class OreText {
         pose.scale(k, -k, k);
         Matrix4f m = pose.last().pose();
         int bright = LightTexture.FULL_BRIGHT;
-        VertexConsumer vc = buffers.getBuffer(RenderType.textBackground());
+        boolean through = DrConfig.data.oreThroughWalls;
+        // see-through: no depth test, so walls and the ore don't cover the card (text is drawn after its panel)
+        VertexConsumer vc = buffers.getBuffer(through ? RenderType.textBackgroundSeeThrough() : RenderType.textBackground());
+        Font.DisplayMode mode = through ? Font.DisplayMode.SEE_THROUGH : Font.DisplayMode.POLYGON_OFFSET;
 
         int accent = c.kind.color;
         int edge = MobHp.mix(0xFF000000 | accent, 0x000000, 0.55f) & 0xFFFFFF;
@@ -439,20 +442,20 @@ public final class OreText {
         float tx = x0 + 6;
         float ty = y0 + 4;
         int ta = Math.max(8, Math.round(alpha * 255)) << 24;
-        text(font, iconSeq, tx, ty, ta | accent, buffers, m);
-        text(font, titleSeq, tx + iconW + 4, ty, ta | (c.kind == Kind.FAIL ? 0xC4C8CF : MobHp.mix(0xFF000000 | accent, 0xFFFFFF, 0.55f) & 0xFFFFFF), buffers, m);
+        text(font, iconSeq, tx, ty, ta | accent, buffers, m, mode);
+        text(font, titleSeq, tx + iconW + 4, ty, ta | (c.kind == Kind.FAIL ? 0xC4C8CF : MobHp.mix(0xFF000000 | accent, 0xFFFFFF, 0.55f) & 0xFFFFFF), buffers, m, mode);
         if (subSeq != null) {
             pose.pushPose();
             pose.translate(tx, ty + 10, 0);
             pose.scale(subScale, subScale, 1f);
-            text(font, subSeq, 0, 0, ta | 0x9AA3AF, buffers, pose.last().pose());
+            text(font, subSeq, 0, 0, ta | 0x9AA3AF, buffers, pose.last().pose(), mode);
             pose.popPose();
         }
         pose.popPose();
     }
 
-    private static void text(Font font, FormattedCharSequence seq, float x, float y, int color, MultiBufferSource buffers, Matrix4f m) {
-        font.drawInBatch(seq, x, y, color, true, m, buffers, Font.DisplayMode.POLYGON_OFFSET, 0, LightTexture.FULL_BRIGHT);
+    private static void text(Font font, FormattedCharSequence seq, float x, float y, int color, MultiBufferSource buffers, Matrix4f m, Font.DisplayMode mode) {
+        font.drawInBatch(seq, x, y, color, true, m, buffers, mode, 0, LightTexture.FULL_BRIGHT);
     }
 
     private static void quad(VertexConsumer vc, Matrix4f m, float x0, float y0, float x1, float y1, int argb, int light) {
