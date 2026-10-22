@@ -202,8 +202,21 @@ final class SelfTest {
                     ht.hp = 500; ht.hpAt = 1000; ht.cur = 500; ht.curExact = true; ht.max = 600; ht.maxExact = true;
                     ht.fracChanged = 1200; MobHp.pair(ht, 5, 20, 1200); MobHp.pair(ht, 5, 20, 2600);
                     lagOk &= !ht.maxExact && ht.max >= 1666 && ht.max <= 2500;
+                    // routing, from a real capture: DR regens a 34k boss in chunks (808 DMG 30605 -> 30011, 0.2 s
+                    // apart) = same mob; a line far below a mob's HP is another mob of that name, unless DR's bar
+                    // already shows it (other players hitting it)
+                    MobHp.Track rb = new MobHp.Track();
+                    rb.hp = 30605; rb.hpAt = 10_000; rb.max = 34000; rb.maxExact = true;
+                    double regenFit = MobHp.fitPenalty(rb, 808, 30011, 10_200);
+                    MobHp.Track rs = new MobHp.Track();
+                    rs.hp = 8000; rs.hpAt = 10_000; rs.max = 10000; rs.maxExact = true;
+                    double lower = MobHp.fitPenalty(rs, 400, 5000, 10_300);
+                    rs.barAt = 10_300; rs.pipeTotal = 30; rs.pipe = 0.5f;
+                    double lowerShown = MobHp.fitPenalty(rs, 400, 5000, 10_300);
+                    lagOk &= regenFit < 0 && lower >= MobHp.NO_FIT && lowerShown < MobHp.NO_FIT;
+                    log("mob hp routing: regen chunk " + regenFit + ", lower " + lower + ", lower on bar " + lowerShown);
                     log("mob hp bar lag: " + lt.cur + " / " + lt.max + ", learned " + wt.max + ", hurt-plain max " + ht.max);
-                    if (!lagOk) fail("mob hp numbers unstable across DR's bar redraw");
+                    if (!lagOk) fail("mob hp tracking logic wrong (bar lag / routing)");
                     mc.setScreen(new DrConfigScreen(mc.screen));
                     stage = 1;
                 }

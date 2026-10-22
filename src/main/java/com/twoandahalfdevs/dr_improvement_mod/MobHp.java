@@ -78,6 +78,11 @@ public final class MobHp {
         double savedLo = -1, savedHi = -1; // max window before that pairing, so a better pairing can redo it
         float cur = -1;          // best current HP: `hp`, moved by however far DR's bar has moved since the pairing
         boolean curExact;
+        long barAt;              // last frame DR's |||| bar was on screen
+        int pipeTotal;           // pipes in that bar
+        int missHp = -1;         // last line that didn't fit while we were hitting this mob
+        long missAt;
+        int missCount;           // such lines in a row, each continuing the one before
         long hitAt;
         Vec3 pos = Vec3.ZERO;
         float height = 2f;
@@ -137,6 +142,8 @@ public final class MobHp {
             return new Display(t.label, t.level, t.elite, false, "", t);
         }
         float f = (float) p.fraction();
+        t.barAt = now;
+        t.pipeTotal = p.total();
         if (f < 0.999f && t.firstDropAt == 0) t.firstDropAt = now;
         if (Math.abs(f - t.pipe) > 1e-4) {
             if (f < t.pipe) t.hitAt = now;
@@ -382,10 +389,22 @@ public final class MobHp {
         Track clicked = source == null && now - lastAttackAt < 1500 ? tracks.get(lastAttacked) : null;
         Track t = bestMatch(target, dmg, left, now, clicked);
         if (t == null) return;
-        if (t == clicked) t.swing = swingCounter;
         FloatingText.fromChat(dmg, t.pos, t.height, source);
-        // nothing tracked fits (the real mob is out of view): show the number, but don't corrupt another mob's HP
-        if (t != clicked && fitPenalty(t, dmg, left, now) >= 200) return;
+        // Nothing tracked fits (the real mob is behind you or out of range): show the number, but don't put
+        // another mob's HP on this plate. That's what made the bar jump between mobs. Only for the mob you're
+        // hitting: three misfits in a row that continue each other mean our history of it was wrong, so take it.
+        if (fitPenalty(t, dmg, left, now) >= NO_FIT) {
+            if (t != clicked) return;
+            boolean chain = t.missAt > 0 && now - t.missAt < 3000
+                && Math.abs(t.missHp - dmg - left) <= 60 + Math.max(t.missHp, left) * 0.02;
+            t.missCount = chain ? t.missCount + 1 : 1;
+            t.missHp = left;
+            t.missAt = now;
+            if (t.missCount < 3) return;
+        }
+        t.missAt = 0;
+        t.missCount = 0;
+        if (t == clicked) t.swing = swingCounter;
 
         // exact max = remaining + damage, but only on the first hit against a mob we first saw undamaged
         boolean wasFull = Boolean.TRUE.equals(t.startedFull) && !t.confirmed
@@ -529,7 +548,10 @@ public final class MobHp {
         return best;
     }
 
-    /** How badly "dmg -> [left HP]" fits what we know about this mob's HP. Negative = fits exactly. */
+    /** Penalty at or above which a line doesn't continue a mob's HP: it belongs to another mob of that name. */
+    static final double NO_FIT = 150;
+
+    /** How badly "dmg -> [left HP]" fits what we know about this mob's HP. Negative = fits. */
     static double fitPenalty(Track t, int dmg, int left, long now) {
         if (t.max > 0 && t.maxExact && left > t.max) return 300;            // more HP than it can have
         if (t.hp < 0 || now - t.hpAt > 60_000) {
@@ -539,11 +561,22 @@ public final class MobHp {
         long expect = (long) t.hp - dmg;
         double secs = Math.max(0, (now - t.hpAt) / 1000.0);
         int ref = t.max > 0 ? t.max : Math.max(left, t.hp);
-        double regen = 60 + secs * Math.max(100, ref * 0.015);                // DR mobs regen ~1% max HP per second
+        // DR regenerates mobs in chunks of up to ~1.2% max HP, even between hits 0.1 s apart (captured on a
+        // 34k boss: +200..400 between consecutive lines), on top of ~1.5% max per second
+        double regen = 60 + ref * 0.02 + secs * Math.max(100, ref * 0.015);
         long diff = left - expect;
-        if (diff >= -Math.max(3, ref / 200) && diff <= regen) return -100;     // continues its HP (plus regen)
+        if (diff >= -Math.max(3, ref / 200) && diff <= regen)                  // continues its HP (plus regen):
+            return -100 + 30 * Math.max(0, diff) / regen;                       // the closer, the better
         if (diff > regen) return 200;                                           // HP went up too much: other mob
-        return Math.min(100, -diff / 50.0);                                     // lower than expected: unseen damage
+        // Lower than expected. DR prints every hit you land (captures: never lower on a lone mob), so this is
+        // another mob of the same name, unless DR's own bar already shows that HP (other players hitting it).
+        return barShows(t, left, now) ? 20 : 200;
+    }
+
+    /** DR's |||| bar (on screen right now) already shows {@code left} HP, give or take a pipe. */
+    static boolean barShows(Track t, int left, long now) {
+        if (t.max <= 0 || t.pipeTotal <= 0 || now - t.barAt > 1000) return false;
+        return Math.abs(left / (double) t.max - t.pipe) <= 1.5 / t.pipeTotal + 0.02;
     }
 
     public static void tick() {
