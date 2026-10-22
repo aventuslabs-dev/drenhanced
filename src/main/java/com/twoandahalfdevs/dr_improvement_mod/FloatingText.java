@@ -37,7 +37,7 @@ public final class FloatingText {
     public enum Kind {OUT, CRIT, IN, HEAL, THORNS, OTHER}
 
     private static final class Num {
-        final String text;
+        String text;
         Kind kind;
         String label;      // proc above the number, e.g. "Shattered"
         final int amount;
@@ -66,6 +66,18 @@ public final class FloatingText {
     private record Holo(int amount, Vec3 pos, long at) {}
 
     private static final List<Holo> holoWait = new ArrayList<>();
+    /** Your hits shown without their hologram (it hadn't arrived): its late hologram is the same hit. */
+    private static final List<Holo> shownMine = new ArrayList<>();
+    /** How late DR's hologram (or your chat line) may come and still be the same hit. */
+    private static final long LATE_MS = 2000;
+
+    /** A number shown as another player's hit that was really this one of yours (its hologram came early). */
+    private static Num earlyOther(Pending p, long now) {
+        for (Num n : nums) {
+            if (n.kind == Kind.OTHER && n.amount == p.amount && now - n.born < LATE_MS && n.pos.distanceToSqr(p.pos) < 8 * 8) return n;
+        }
+        return null;
+    }
     /** How long a hologram and your chat line may be apart and still be the same hit. */
     private static final long PAIR_MS = 450;
 
@@ -154,14 +166,36 @@ public final class FloatingText {
                 holoWait.remove(match);
                 it.remove();
                 if (enabled()) spawn(p.amount, p.kind, p.label, match.pos, now);
-            } else if (now - p.at > PAIR_MS) { // no hologram (or it was culled): show it over the mob
+            } else if (now - p.at > PAIR_MS) { // no hologram yet (late or culled): show it over the mob
                 it.remove();
-                if (enabled()) spawn(p.amount, p.kind, p.label, p.pos, now);
+                if (!enabled()) continue;
+                Num early = earlyOther(p, now);
+                if (early != null) { // DR's hologram for it came early and was shown as someone else's: make it yours
+                    early.kind = p.kind;
+                    early.label = p.label;
+                    early.text = textFor(p.kind, p.amount);
+                    continue;
+                }
+                spawn(p.amount, p.kind, p.label, p.pos, now);
+                shownMine.add(new Holo(p.amount, p.pos, p.at));
             }
         }
-        // holograms nobody claimed: another player's hit
+        shownMine.removeIf(c -> now - c.at > LATE_MS);
+        // holograms nobody claimed: another player's hit, unless it's the late hologram of a hit we already showed
         for (Iterator<Holo> it = holoWait.iterator(); it.hasNext(); ) {
             Holo h = it.next();
+            Holo mine = null;
+            for (Holo c : shownMine) {
+                if (c.amount == h.amount && Math.abs(h.at - c.at) < LATE_MS && h.pos.distanceToSqr(c.pos) < 8 * 8) {
+                    mine = c;
+                    break;
+                }
+            }
+            if (mine != null) {
+                shownMine.remove(mine);
+                it.remove();
+                continue;
+            }
             if (now - h.at > PAIR_MS) {
                 it.remove();
                 if (enabled() && DrConfig.data.fctOthers) spawn(h.amount, Kind.OTHER, null, h.pos, now);
@@ -180,16 +214,9 @@ public final class FloatingText {
         String label = source == null && now - procAt < 150 ? procLabel : source;
         if (source == null && label != null) procAt = 0;
         Kind kind = crit && DrConfig.data.fctBigHits ? Kind.CRIT : source != null ? Kind.THORNS : Kind.OUT;
-        if (crit) {
-            critAmounts.put(amount, now);
-            // the hologram for this hit may already be on screen: upgrade it
-            for (Num n : nums) {
-                if (n.amount == amount && n.kind == Kind.OUT && now - n.born < 800) {
-                    n.kind = Kind.CRIT;
-                    n.label = label;
-                }
-            }
-        }
+        // (No upgrading numbers already on screen: your hits only ever come from these lines, so a recent number
+        // with the same amount is an earlier hit, and making it a crit showed one crit twice.)
+        if (crit) critAmounts.put(amount, now);
         pending.add(new Pending(amount, pos.add(0, height + 0.4, 0), kind, label, now));
     }
 
@@ -261,13 +288,7 @@ public final class FloatingText {
     private static void spawn(int amount, Kind kind, String label, Vec3 at, long now) {
         if (kind == Kind.HEAL && !DrConfig.data.fctHeals) return;
         if (kind == Kind.IN && !DrConfig.data.fctIncoming) return;
-        String text = switch (kind) {
-            case HEAL -> "+" + NUM.format(amount);
-            case IN -> "-" + NUM.format(amount);
-            case CRIT -> NUM.format(amount) + "!";
-            case THORNS -> NUM.format(amount);
-            default -> NUM.format(amount);
-        };
+        String text = textFor(kind, amount);
         double a = RNG.nextDouble() * Math.PI * 2;
         double r = 0.25 + RNG.nextDouble() * 0.35;
         Num num = new Num(text, amount, kind, at.add((RNG.nextDouble() - 0.5) * 0.4, (RNG.nextDouble() - 0.5) * 0.2, (RNG.nextDouble() - 0.5) * 0.4),
@@ -275,6 +296,15 @@ public final class FloatingText {
         num.label = label;
         nums.add(num);
         if (nums.size() > 60) nums.remove(0);
+    }
+
+    private static String textFor(Kind kind, int amount) {
+        return switch (kind) {
+            case HEAL -> "+" + NUM.format(amount);
+            case IN -> "-" + NUM.format(amount);
+            case CRIT -> NUM.format(amount) + "!";
+            default -> NUM.format(amount);
+        };
     }
 
     private static int parse(String s) {
@@ -287,7 +317,14 @@ public final class FloatingText {
 
     /** DR's own hologram is replaced by ours, so don't draw it. */
     public static boolean isHidden(Entity e) {
-        return enabled() && DrConfig.data.fctHideDr && hidden.contains(e.getId());
+        if (!enabled() || !DrConfig.data.fctHideDr) return false;
+        if (hidden.contains(e.getId())) return true;
+        if (seen.contains(e.getId())) return false;
+        // DR's text displays spawn empty and get their "-842 ❤" a moment later. Hide it from the first frame
+        // that text is there, not from the next tick, or DR's number flashes next to ours (looks doubled).
+        Component name = e instanceof ArmorStand ? e.getCustomName()
+            : e instanceof net.minecraft.world.entity.Display.TextDisplay td ? textOf(td) : null;
+        return name != null && HOLO.matcher(SplitChat.strip(name.getString()).trim()).find();
     }
 
     private static long lifeMillis() {

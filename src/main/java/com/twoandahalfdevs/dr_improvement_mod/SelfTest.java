@@ -484,6 +484,10 @@ final class SelfTest {
                     if (waitTicks == 0) {
                         // a real crit: DR's "* CRIT *" line right before the damage line
                         if (hpTarget != null) MobHp.onAttack(hpTarget); // as if we just swung at it
+                        // a normal hit and then a crit with the same amount (Rogue hits repeat): one crit number, not two
+                        FloatingText.fromChat(777, mc.player.position().add(2, 0, 2), 1.8, null);
+                        DrState.onChat("                                    * CRIT *");
+                        FloatingText.fromChat(777, mc.player.position().add(2, 0, 2), 1.8, null);
                         DrState.onChat("                                    * CRIT *");
                         DrState.onChat("1105 DMG -> Spooky Skeleton [1175 HP]");
                         DrState.onChat("36 DMG (Thorns) -> Spooky Skeleton [1139 HP]");
@@ -494,6 +498,7 @@ final class SelfTest {
                     if (waitTicks == 19) {
                         log("crit numbers: " + maxCrits + ", thorns numbers: " + maxThorns);
                         if (maxCrits < 1) fail("crit not shown as crit");
+                        if (maxCrits > 2) fail("one crit shown twice (" + maxCrits + " crit numbers for 2 crits)");
                         if (maxThorns < 1) fail("thorns damage not shown");
                     }
                     if (++waitTicks < 20) return;
