@@ -45,12 +45,12 @@ public abstract class MultiPlayerGameModeMixin {
     /** Remember the block being mined so DR's mining lines can pop up on that ore. */
     @Inject(method = "startDestroyBlock", at = @At("HEAD"))
     private void drim$startDig(BlockPos pos, Direction face, CallbackInfoReturnable<Boolean> cir) {
-        OreText.onDig(pos, face);
+        if (OreText.isMiningDig(pos)) OreText.onDig(pos, face);
     }
 
     @Inject(method = "continueDestroyBlock", at = @At("HEAD"))
     private void drim$continueDig(BlockPos pos, Direction face, CallbackInfoReturnable<Boolean> cir) {
-        OreText.onDig(pos, face);
+        if (OreText.isMiningDig(pos)) OreText.onDig(pos, face);
     }
 
     /** Remember who we hit so the next "DMG -> Name [HP]" line can be matched to that mob. */

@@ -115,6 +115,19 @@ public final class OreText {
 
     // ------------------------------------------------------------------ input
 
+    /**
+     * A real mining swing: a pickaxe in hand, or an ore block. Left-clicking the ground mid-fight is neither,
+     * and counting it made the EXP from a mob kill pop up as mining EXP.
+     */
+    public static boolean isMiningDig(BlockPos pos) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return false;
+        if (mc.player.getMainHandItem().is(net.minecraft.tags.ItemTags.PICKAXES)) return true;
+        if (mc.level == null || pos == null) return false;
+        String id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(mc.level.getBlockState(pos).getBlock()).getPath();
+        return id.endsWith("_ore") || id.equals("ancient_debris");
+    }
+
     /** MultiPlayerGameMode start/continueDestroyBlock: remember the block being mined. */
     public static void onDig(BlockPos pos, Direction face) {
         if (pos == null) return;
@@ -152,6 +165,8 @@ public final class OreText {
     /** DR shows the same kind of text for combat (EXP, gems from mobs): only count it right after you mined. */
     private static boolean allowed(Event e, long now) {
         long since = now - digAt;
+        // hit a mob since your last mining swing: its kill EXP ("+ 15145 EXP (EXP BUFF) [...]") isn't mining
+        if (e.kind == Kind.EXP && MobHp.lastAttackAt() >= digAt) return false;
         boolean mining = MINING_WORD.matcher(e.text.toUpperCase(Locale.ROOT)).find();
         return switch (e.kind) {
             case EXP, OTHER -> since <= 3500;

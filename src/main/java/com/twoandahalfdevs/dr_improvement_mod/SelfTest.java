@@ -669,6 +669,14 @@ final class SelfTest {
                         if (!OreText.onMessage("+48 EXP [1205/9000 EXP]", false)) fail("EXP line not taken while mining");
                         OreText.onMessage("FOUND 3 GEM(S)", false);
                         OreText.onMessage("+52 EXP [1257/9000 EXP]", false); // its own card, no merging
+                        // you hit a mob after mining: its kill EXP (real DR line) is not a mining card
+                        MobHp.onAttack(mc.player);
+                        if (OreText.onMessage("     + 15145 EXP (EXP BUFF) [225174/292870]", false)) fail("mob kill EXP shown as mining EXP");
+                        // clicking plain ground with no pickaxe is not mining
+                        if (!mc.player.getMainHandItem().is(net.minecraft.tags.ItemTags.PICKAXES) && OreText.isMiningDig(feet.below()))
+                            fail("ground click counted as mining");
+                        if (!OreText.isMiningDig(ore)) fail("ore block not counted as mining");
+                        OreText.onDig(ore, net.minecraft.core.Direction.NORTH); // back to mining for the lines below
                         // through the real packet path (mixin), including the hide-from-chat cancel
                         MinecraftServer server = mc.getSingleplayerServer();
                         for (String cmd : new String[]{

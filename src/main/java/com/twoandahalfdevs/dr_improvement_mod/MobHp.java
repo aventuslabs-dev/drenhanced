@@ -367,6 +367,11 @@ public final class MobHp {
 
     private static int swingCounter;
 
+    /** When you last hit an entity (ms). */
+    public static long lastAttackAt() {
+        return lastAttackAt;
+    }
+
     public static void onAttack(Entity e) {
         lastAttacked = e.getId();
         lastAttackAt = System.currentTimeMillis();
