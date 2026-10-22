@@ -237,6 +237,8 @@ final class SelfTest {
                             .append(Component.literal(" \u25aa ").withStyle(net.minecraft.ChatFormatting.DARK_GRAY))
                             .append(Component.literal("PvM Combat: [3s]").withStyle(net.minecraft.ChatFormatting.RED, net.minecraft.ChatFormatting.BOLD)), false);
                         mc.player.getInventory().items.set(1, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ENDER_PEARL, 8));
+                        mc.player.getInventory().items.set(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_AXE)); // TEMP
+                        mc.player.getInventory().offhand.set(0, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.SHIELD)); // TEMP
                         mc.player.getCooldowns().addCooldown(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.ENDER_PEARL), 200);
                     }
                     // wait (up to 10 s) until the test mob's plate has been drawn once, so its track exists

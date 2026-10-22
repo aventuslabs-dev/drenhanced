@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:item/defender",
+  "display": {
+    "firstperson_lefthand":  { "rotation": [0, 90, -55], "translation": [4.5, 2.5, 1.5], "scale": [0.55, 0.55, 0.55] },
+    "firstperson_righthand": { "rotation": [0, -90, 55], "translation": [4.5, 2.5, 1.5], "scale": [0.55, 0.55, 0.55] },
+    "thirdperson_lefthand":  { "rotation": [-20, 90, -65], "translation": [0, 4.5, 1.5], "scale": [0.75, 0.75, 0.75] },
+    "thirdperson_righthand": { "rotation": [-20, -90, 65], "translation": [0, 4.5, 1.5], "scale": [0.75, 0.75, 0.75] }
+  }
+}
