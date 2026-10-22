@@ -589,7 +589,7 @@ final class SelfTest {
                     mc.options.chatVisibility().set(net.minecraft.world.entity.player.ChatVisiblity.HIDDEN);
                     DrConfig.data.splitChat = false;
                     int n = waitTicks / 14 + 1;
-                    if (n > 7) { stage = 99; waitTicks = 0; return; }
+                    if (n > 9) { stage = 99; waitTicks = 0; return; }
                     if (waitTicks % 14 == 0) {
                         var st = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD);
                         st.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
