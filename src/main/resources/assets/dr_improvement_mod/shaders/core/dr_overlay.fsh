@@ -25,6 +25,7 @@ uniform float healthX;
 uniform float healthY;
 uniform float healthScale;
 uniform float healthAlpha;
+uniform float midHealthAlpha; // green HP bar right above the mana bar (moves with it)
 
 vec2 st;
 
@@ -33,14 +34,15 @@ vec2 place(vec2 centre, float ox, float oy, float scale) {
     return centre + (uv - centre - vec2(ox, oy)) / max(scale, 0.05);
 }
 
-const float OPACITY = 0.75;
+const float OPACITY = 1.0; // full colour; each bar's Opacity slider fades it if wanted
 const vec4 COLOR_ENERGY_BASE  = vec4(0.8, 0.0, 0.2, OPACITY);
 const vec4 COLOR_ENERGY_BASE2 = vec4(0.6, 0.0, 0.15, OPACITY);
 const vec4 COLOR_ENERGY       = vec4(1.0, 1.0, 0.12, OPACITY);  // RuneScape run-energy neon yellow
 const vec4 COLOR_ENERGY2      = vec4(0.9, 0.95, 0.0, OPACITY);
 
-const vec4 COLOR_HP_BASE = vec4(0.8, 0.0, 0.2, 0.85);
-const vec4 COLOR_HP      = vec4(0.0, 0.75, 0.6, 0.85);
+const vec4 COLOR_HP_BASE = vec4(0.8, 0.0, 0.2, 1.0);
+const vec4 COLOR_HP      = vec4(0.0, 0.75, 0.6, 1.0);
+const vec4 COLOR_MIDHP   = vec4(0.18, 0.86, 0.29, 1.0); // health green
 
 const vec4 COLOR_MANA_BASE = vec4(0.8, 0.0, 0.2, OPACITY);
 const vec4 COLOR_MANA      = vec4(0.37, 0.725, 1.0, OPACITY);
@@ -65,6 +67,7 @@ const float MANA_BAR_SIZE      = 0.073;
 const float MANA_BAR_START     = 0.5 - MANA_BAR_SIZE / 2.0;
 const float MANA_BAR_Y         = 0.42;
 const float MANA_BAR_THICKNESS = 0.005;
+const float MIDHP_BAR_Y        = MANA_BAR_Y + 0.017; // just above the mana bar
 
 float udSegment(vec2 a, vec2 b) {
     a.x *= aspectRatio;
@@ -93,6 +96,11 @@ float energyArc(bool flip) {
 
 float manaBar() {
     vec2 start = vec2(MANA_BAR_START + MANA_BAR_THICKNESS / 2.0, MANA_BAR_Y);
+    return udSegment(start, start + vec2(MANA_BAR_SIZE - MANA_BAR_THICKNESS, 0.0)) - MANA_BAR_THICKNESS;
+}
+
+float midHealthBar() {
+    vec2 start = vec2(MANA_BAR_START + MANA_BAR_THICKNESS / 2.0, MIDHP_BAR_Y);
     return udSegment(start, start + vec2(MANA_BAR_SIZE - MANA_BAR_THICKNESS, 0.0)) - MANA_BAR_THICKNESS;
 }
 
@@ -139,7 +147,7 @@ vec4 shadeLinear(float len, bool filled, float start, float size, float percent,
 }
 
 void main() {
-    vec4 colT = vec4(0.0), colB = vec4(0.0), colM = vec4(0.0), colH = vec4(0.0);
+    vec4 colT = vec4(0.0), colB = vec4(0.0), colM = vec4(0.0), colH = vec4(0.0), colMH = vec4(0.0);
 
     if (energyAlpha > 0.0) {
         st = place(vec2(0.5, 0.5), energyX, energyY, energyScale);
@@ -169,6 +177,16 @@ void main() {
         colM.a *= manaAlpha;
     }
 
+    if (midHealthAlpha > 0.0) {
+        st = place(vec2(0.5, MANA_BAR_Y), manaX, manaY, manaScale); // same placement as the mana bar
+        float hLen = midHealthBar();
+        float hPerc = clamp(healthPercent, 0.0, 1.0);
+        vec4 hp = shadeLinear(hLen, false, MANA_BAR_START, MANA_BAR_SIZE, hPerc, COLOR_MIDHP, COLOR_MANA_BASE, ENERGY_BAR_OUTLINE);
+        vec4 hpFilled = shadeLinear(hLen, true, MANA_BAR_START, MANA_BAR_SIZE, hPerc, COLOR_MIDHP, COLOR_MANA_BASE, ENERGY_BAR_OUTLINE);
+        colMH = mix(hp, hpFilled, hPerc > 0.0 ? hpFilled.a : 0.0);
+        colMH.a *= midHealthAlpha;
+    }
+
     if (healthAlpha > 0.0) {
         st = place(vec2(0.5, HEALTH_BAR_Y), healthX, healthY, healthScale);
         float hLen = healthBar();
@@ -181,13 +199,15 @@ void main() {
 
     fragColor = vec4(0.0);
     if (colT.a > 0.0) {
-        fragColor = vec4(colT.rgb, colT.a * 0.85);
+        fragColor = colT;
     } else if (colB.a > 0.0) {
-        fragColor = vec4(colB.rgb, colB.a * 0.85);
+        fragColor = colB;
     } else if (colM.a > 0.0) {
-        fragColor = vec4(colM.rgb, colM.a * 0.85);
+        fragColor = colM;
+    } else if (colMH.a > 0.0) {
+        fragColor = colMH;
     } else if (colH.a > 0.0) {
-        fragColor = vec4(colH.rgb, colH.a * 0.95);
+        fragColor = colH;
     }
 
     if (fragColor.a <= 0.0) {

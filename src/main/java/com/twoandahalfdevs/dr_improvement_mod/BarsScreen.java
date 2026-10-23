@@ -67,6 +67,11 @@ public final class BarsScreen extends Screen {
             else c.healthBar = new DrConfig.Bar();
             rebuildWidgets();
         }).bounds(x, y, W, H).build());
+        if (tab == 1) {
+            y += ROW;
+            addRenderableWidget(CycleButton.onOffBuilder(c.midHealthBar)
+                .create(x, y, W, H, Component.literal("Green HP bar above"), (btn, v) -> c.midHealthBar = v));
+        }
         y += ROW + 4;
         addRenderableWidget(CycleButton.onOffBuilder(c.customBars)
             .create(x, y, W, H, Component.literal("Custom bars"), (btn, v) -> c.customBars = v));

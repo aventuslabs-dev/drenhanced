@@ -56,6 +56,8 @@ public final class OverlayRenderer {
         place(shader, "energy", DrConfig.data.energyBar);
         place(shader, "mana", DrConfig.data.manaBar);
         place(shader, "health", DrConfig.data.healthBar);
+        DrConfig.Bar mb = DrConfig.data.manaBar;
+        shader.safeGetUniform("midHealthAlpha").set(mb.enabled && DrConfig.data.midHealthBar ? (float) mb.opacity : 0f);
 
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();

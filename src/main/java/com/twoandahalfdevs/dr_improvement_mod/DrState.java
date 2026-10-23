@@ -49,6 +49,8 @@ public final class DrState {
     /** Current mana (0 until DR has sent it). */
     public static int mana() {
         if (xpLevel < 0) return 0;
+        // DR sends mana as the XP level, 0-100, total always 0 (from a real session: 100 -> 60 on a cast, +1/tick regen)
+        if (totalMoves == 0) return xpLevel;
         if (levelMoves > totalMoves) return xpLevel;
         if (totalMoves > levelMoves) return xpTotal;
         return Math.max(0, Math.max(xpLevel, xpTotal) <= 100 ? Math.max(xpLevel, xpTotal) : Math.min(xpLevel, xpTotal));

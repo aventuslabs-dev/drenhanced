@@ -796,9 +796,9 @@ final class SelfTest {
                         for (String ln : new String[]{"DMG: +355 - 373", "Cost: 40 Mana | Cooldown: 5.0s | Range: 4", "Damage Multiplier: 300% | Max Targets: 3"}) bl.add(Component.literal(ln));
                         bash.set(net.minecraft.core.component.DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(bl));
                         inv.setItem(3, bash);
-                        DrState.onXp(0.5f, 0, 100); // DR mana: total moves, level stays
-                        DrState.onXp(0.5f, 0, 60);
-                        DrState.onXp(0.5f, 0, 100);
+                        DrState.onXp(0.5f, 100, 0); // DR mana = the XP level (real session: 100 -> 60 on a cast, +1 regen)
+                        DrState.onXp(0.5f, 60, 0);
+                        DrState.onXp(0.5f, 100, 0);
                         if (DrState.mana() != 100 || DrState.manaMax() != 100) fail("mana not read from the XP packet: " + DrState.mana());
                         skillSlotBefore = inv.selected;
                         skillCastsBefore = AutoSkill.casts;
