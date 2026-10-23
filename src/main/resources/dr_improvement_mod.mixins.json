@@ -15,6 +15,7 @@
     "EntityRenderDispatcherMixin",
     "EntityRendererMixin",
     "EntityRenderStateMixin",
+    "GameModeInvoker",
     "GuiAccessor",
     "GuiGraphicsMixin",
     "GuiMixin",

@@ -765,6 +765,13 @@ final class SelfTest {
                             && AutoClicker.shouldBlock(0.05f, 0.06f, 0f);
                         log("energy guard: " + guardOk + ", swing cost estimate " + AutoClicker.costEstimate());
                         if (!guardOk) fail("energy guard thresholds wrong");
+                        // cost learning from DR's real energy drops (capture: 0.104 and 0.15 a swing, regen in between)
+                        AutoClicker.onEnergy(0.50f, 0.396f);
+                        AutoClicker.onEnergy(0.396f, 0.42f); // regen tick: ignored
+                        AutoClicker.onEnergy(0.42f, 0.27f);
+                        AutoClicker.onEnergy(0.27f, 0.166f);
+                        log("energy guard learned cost " + AutoClicker.costEstimate());
+                        if (Math.abs(AutoClicker.costEstimate() - 0.15f) > 0.002f) fail("swing cost not learned from DR's energy drops");
                         // gem pouch text in the shapes DR has used
                         var p1 = GemPouch.parse("Small Gem Pouch 45g", "A small linen pouch that holds 100g");
                         var p2 = GemPouch.parse("Large Gem Pouch", "Gems: 200 / 200");

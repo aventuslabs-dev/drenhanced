@@ -17,9 +17,12 @@ public final class AutoClicker {
     private static boolean wasDown;
 
     // energy guard: learn what one swing costs from the energy drop right after it
-    private static float costEstimate = 0.06f; // fraction of the bar; DR swings cost a few %, refined in play
-    private static float preSwing = -1;
-    private static long swingAt;
+    // From a real capture (axe, Warrior): swings cost 10.4% or 15% of the bar. Start safe, learn the real cost.
+    private static float costEstimate = 0.15f;
+    private static final float[] recentCosts = new float[8];
+    private static int costCount;
+    /** Swings let through that DR hasn't charged for yet (with ~250 ms ping, 2-3 are always in flight at 12 CPS). */
+    private static final java.util.ArrayDeque<Long> inFlight = new java.util.ArrayDeque<>();
     private static long lastBlockedMsg;
     static int clicks; // swings the clicker fired (self-test)
 
@@ -68,13 +71,15 @@ public final class AutoClicker {
     public static boolean allowSwing(Minecraft mc) {
         if (AutoSkill.busy()) return false; // mid auto-skill switch: the artifact is in hand for this one tick
         if (!DrConfig.data.energyGuard || !DrState.onDr() || mining(mc)) return true;
-        float energy = DrState.energy();
+        long now = System.currentTimeMillis();
+        long lag = lagMillis(mc);
+        while (!inFlight.isEmpty() && now - inFlight.peekFirst() > lag) inFlight.pollFirst();
+        // what energy will really be once DR has charged the swings still on their way, and this one
+        float energy = DrState.energy() - costEstimate * inFlight.size();
         if (!shouldBlock(energy, costEstimate, DrConfig.data.energyFloor / 100f)) {
-            preSwing = energy;
-            swingAt = System.currentTimeMillis();
+            inFlight.addLast(now);
             return true;
         }
-        long now = System.currentTimeMillis();
         if (mc.player != null && now - lastBlockedMsg > 1500 && !enabled()) {
             lastBlockedMsg = now;
             mc.player.displayClientMessage(Component.literal("§eLow energy §7- swing held back"), true);
@@ -87,12 +92,30 @@ public final class AutoClicker {
         return energy - cost < floor;
     }
 
-    /** DR energy update: if it dropped right after a swing we let through, that drop is the swing's cost. */
+    /** Round trip to the server plus a tick: how long a swing takes to show up in DR's energy. */
+    static long lagMillis(Minecraft mc) {
+        int ping = 150;
+        try {
+            var info = mc.getConnection() == null || mc.player == null ? null : mc.getConnection().getPlayerInfo(mc.player.getUUID());
+            if (info != null && info.getLatency() > 0) ping = info.getLatency();
+        } catch (RuntimeException ignored) {
+        }
+        return Math.min(1000, ping + 100);
+    }
+
+    /**
+     * DR energy update. A real drop (not regen: those come every ~50 ms in between) is one swing being charged:
+     * learn its cost and take it off the in-flight list. The cost is the highest of the last 8, so heavier swings
+     * (DR's 15% ones) are always covered.
+     */
     public static void onEnergy(float before, float after) {
-        if (preSwing < 0 || System.currentTimeMillis() - swingAt > 400) return;
-        float drop = preSwing - after;
-        preSwing = -1;
-        if (drop > 0.005f && drop < 0.5f) costEstimate = costEstimate * 0.7f + drop * 0.3f;
+        float drop = before - after;
+        if (drop < 0.03f || drop > 0.5f) return;
+        if (!inFlight.isEmpty()) inFlight.pollFirst();
+        recentCosts[costCount++ % recentCosts.length] = drop;
+        float max = 0;
+        for (int i = 0; i < Math.min(costCount, recentCosts.length); i++) max = Math.max(max, recentCosts[i]);
+        costEstimate = max;
     }
 
     static float costEstimate() {
