@@ -84,7 +84,7 @@ final class SelfTest {
     private static int stage;
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
-    private static int clicksBefore, skillSlotBefore, skillCastsBefore;
+    private static int clicksBefore, skillSlotBefore, skillCastsBefore, skillSwitchesBefore;
     private static boolean skillSawSwitch;
     private static net.minecraft.world.item.ItemStack dualBefore = net.minecraft.world.item.ItemStack.EMPTY;
     private static net.minecraft.world.entity.Entity barMob;
@@ -815,6 +815,7 @@ final class SelfTest {
                         if (!hpOk) fail("HP not read from DR's boss bar");
                         skillSlotBefore = inv.selected;
                         skillCastsBefore = AutoSkill.casts;
+                        skillSwitchesBefore = ClientEvents.abilitySwitches;
                         AutoSkill.onAttack(mc.player); // as if we just hit a mob next to us
                         // auto clicker: hold attack for 20 ticks (1 s) at 10 CPS
                         DrConfig.data.autoClicker = true;
@@ -823,12 +824,12 @@ final class SelfTest {
                         mc.options.keyAttack.setDown(true);
                         return;
                     }
-                    if (waitTicks == 4) skillSawSwitch = inv.selected == 3;
+                    if (waitTicks == 4) skillSawSwitch = ClientEvents.abilitySwitches > skillSwitchesBefore; // sent, then back the same tick
                     if (waitTicks == 6) {
                         boolean back = inv.selected == skillSlotBefore;
                         int cast = AutoSkill.casts - skillCastsBefore;
                         AutoSkill.onAttack(mc.player); // hit again right away: on cooldown, no second cast
-                        log("auto skill: casts " + cast + ", switched to artifact " + skillSawSwitch + ", back on weapon " + back);
+                        log("auto skill: casts " + cast + ", switch sent to server " + skillSawSwitch + ", back on weapon " + back);
                         if (cast != 1 || !skillSawSwitch || !back) fail("auto skill cast / switch back wrong");
                     }
                     if (waitTicks == 9 && AutoSkill.casts - skillCastsBefore != 1) fail("auto skill recast while on cooldown");

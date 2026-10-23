@@ -34,6 +34,7 @@ public final class ClientEvents {
     private static final Pattern ORIGIN = Pattern.compile("(.*) \\((.*)/.*\\)");
 
     private static int lastSelectedSlot = -1;
+    static int abilitySwitches; // switches to an ability slot sent to the server (self-test)
     private static boolean openConfigNextTick;
 
     /** Opens the settings screen. Default K; rebind under Options > Controls > DR Improvement Mod. */
@@ -205,6 +206,7 @@ public final class ClientEvents {
             // (It used to right-click it too; by then DR had already switched you back, so that right-clicked
             // the weapon instead: "You do not have a weapon ability equipped!" after every cast.)
             ((com.twoandahalfdevs.dr_improvement_mod.mixin.GameModeInvoker) mc.gameMode).drim$sendCarried();
+            abilitySwitches++;
             player.getInventory().selected = previous;
             lastSelectedSlot = previous;
         }
