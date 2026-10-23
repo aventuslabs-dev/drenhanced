@@ -224,6 +224,7 @@ public final class ClientEvents {
         if (DrConfig.usefulInfo()) {
             HudRenderer.draw(g);
         }
+        OverlayRenderer.drawText(g);
         if (DrConfig.data.cooldownBar && !(mc.screen instanceof CooldownScreen)) {
             CooldownBar.draw(g);
         }

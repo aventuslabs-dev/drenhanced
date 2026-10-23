@@ -71,6 +71,9 @@ public final class BarsScreen extends Screen {
             y += ROW;
             addRenderableWidget(CycleButton.onOffBuilder(c.midHealthBar)
                 .create(x, y, W, H, Component.literal("Green HP bar above"), (btn, v) -> c.midHealthBar = v));
+            y += ROW;
+            addRenderableWidget(CycleButton.onOffBuilder(c.barText)
+                .create(x, y, W, H, Component.literal("HP / mana numbers"), (btn, v) -> c.barText = v));
         }
         y += ROW + 4;
         addRenderableWidget(CycleButton.onOffBuilder(c.customBars)

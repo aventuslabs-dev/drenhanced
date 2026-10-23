@@ -800,6 +800,12 @@ final class SelfTest {
                         DrState.onXp(0.5f, 60, 0);
                         DrState.onXp(0.5f, 100, 0);
                         if (DrState.mana() != 100 || DrState.manaMax() != 100) fail("mana not read from the XP packet: " + DrState.mana());
+                        DrState.onClassBar("Lv 85 Rogue - HP 13179 / 13706 - XP 71%");
+                        boolean hpOk = DrState.hp() == 13179 && DrState.hpMax() == 13706;
+                        DrState.onClassBar("Lv 85 Rogue - HP 13706 - XP 71%");
+                        hpOk &= DrState.hp() == 13706 && DrState.hpMax() == 13706;
+                        DrState.onClassBar("Lv 85 Rogue - HP 9864 / 13706 - XP 82%"); // leave it hurt for the screenshot
+                        if (!hpOk) fail("HP not read from DR's boss bar");
                         skillSlotBefore = inv.selected;
                         skillCastsBefore = AutoSkill.casts;
                         AutoSkill.onAttack(mc.player); // as if we just hit a mob next to us

@@ -122,7 +122,19 @@ public final class DrState {
     public static void onClassBar(String plain) {
         Matcher m = PLAYER_LV.matcher(plain);
         if (m.find()) playerLevel = parse(m.group(1));
+        Matcher h = BAR_HP.matcher(plain); // "HP 13179 / 13706", or just "HP 13706" at full health
+        if (h.find()) {
+            hpMax = parse(h.group(h.group(2) != null ? 2 : 1));
+            hp = parse(h.group(1));
+        }
     }
+
+    private static final Pattern BAR_HP = Pattern.compile("HP ([\\d,]+)(?: / ([\\d,]+))?");
+    private static int hp = -1, hpMax = -1;
+
+    /** Your real HP and max HP from DR's boss bar (-1 until seen). */
+    public static int hp() { return hp; }
+    public static int hpMax() { return hpMax; }
     public static boolean isRogue() { return playerClass.contains("Rogue"); }
 
     // ---- Action bar: ultimate + potion cooldowns ----

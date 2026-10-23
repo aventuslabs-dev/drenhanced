@@ -29,6 +29,7 @@ public final class DrConfig {
         public boolean autoClicker = false;
         public boolean pouchIndicator = true;
         public boolean midHealthBar = true; // green HP bar above the mana bar
+        public boolean barText = true;      // HP / mana numbers left of those bars
         public boolean autoSkills = true;
         public java.util.List<String> autoSkillSkip = new java.util.ArrayList<>();
         public int autoCps = 12;

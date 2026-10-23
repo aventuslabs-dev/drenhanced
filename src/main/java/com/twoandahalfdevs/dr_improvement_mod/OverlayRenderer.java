@@ -29,6 +29,44 @@ public final class OverlayRenderer {
 
     private static boolean failed;
 
+    // must match dr_overlay.fsh
+    private static final double MANA_BAR_Y = 0.42, MANA_BAR_START = 0.5 - 0.073 / 2.0, MIDHP_GAP = 0.017, BAR_H = 0.012;
+
+    /** HP and mana numbers to the left of the centre bars (drawn with the HUD text, after the shader bars). */
+    public static void drawText(net.minecraft.client.gui.GuiGraphics g) {
+        Minecraft mc = Minecraft.getInstance();
+        DrConfig.Data c = DrConfig.data;
+        DrConfig.Bar mb = c.manaBar;
+        if (mc.player == null || mc.options.hideGui || failed || !c.customBars || !mb.enabled || !c.barText) return;
+        int gw = g.guiWidth(), gh = g.guiHeight();
+        double sc = mb.scale;
+        // the bars' left end and centre lines, in screen fractions (uv: y up), then GUI pixels
+        double left = 0.5 + (MANA_BAR_START - 0.5) * sc + mb.x / 100.0;
+        double manaY = MANA_BAR_Y + mb.y / 100.0;
+        double hpY = MANA_BAR_Y + MIDHP_GAP * sc + mb.y / 100.0;
+        float ts = (float) Math.max(0.5, Math.min(1.0, BAR_H * 1.3 * sc * gh / 8.0)); // text about as tall as a bar row
+        int alpha = (int) Math.round(255 * mb.opacity) << 24;
+        int xRight = (int) Math.round(left * gw) - 3;
+        var font = mc.font;
+        java.text.NumberFormat nf = java.text.NumberFormat.getIntegerInstance(java.util.Locale.US);
+        if (c.midHealthBar) {
+            int hp = DrState.hp(), max = DrState.hpMax();
+            String t;
+            if (hp >= 0 && max > 0) t = nf.format(hp) + " / " + nf.format(max);
+            else t = Math.round(mc.player.getHealth() / Math.max(1f, mc.player.getMaxHealth()) * 100) + "%";
+            label(g, font, t, xRight, (1 - hpY) * gh, ts, alpha | 0x5BE36E);
+        }
+        label(g, font, DrState.mana() + " / " + DrState.manaMax(), xRight, (1 - manaY) * gh, ts, alpha | 0x6FC0FF);
+    }
+
+    private static void label(net.minecraft.client.gui.GuiGraphics g, net.minecraft.client.gui.Font font, String t, int xRight, double cy, float s, int color) {
+        g.pose().pushPose();
+        g.pose().translate(xRight - font.width(t) * s, cy - 4 * s, 0);
+        g.pose().scale(s, s, 1f);
+        g.drawString(font, t, 0, 0, color, true);
+        g.pose().popPose();
+    }
+
     public static void draw() {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
