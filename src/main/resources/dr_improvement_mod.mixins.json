@@ -18,6 +18,7 @@
     "GuiAccessor",
     "GuiGraphicsMixin",
     "GuiMixin",
+    "GuiHotbarMixin",
     "ItemInHandRendererMixin",
     "ItemModelResolverMixin",
     "LivingEntityAccessor",

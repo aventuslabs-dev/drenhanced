@@ -38,9 +38,14 @@ public final class DualWield {
         return e != null && e == Minecraft.getInstance().player;
     }
 
+    /** Your main hand as drawn (the weapon, also during an auto-skill switch). */
+    public static ItemStack mainShown(Player p) {
+        return p instanceof net.minecraft.client.player.LocalPlayer lp ? AutoSkill.shownMainHand(lp, p.getMainHandItem()) : p.getMainHandItem();
+    }
+
     /** What your offhand is drawn holding. */
     public static ItemStack offhandShown(Player p) {
-        return active(p) ? p.getMainHandItem() : p.getOffhandItem();
+        return active(p) ? mainShown(p) : p.getOffhandItem();
     }
 
     /** Arm for the next swing animation. */

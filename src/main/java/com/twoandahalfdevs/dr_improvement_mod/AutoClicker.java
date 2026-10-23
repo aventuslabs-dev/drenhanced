@@ -39,6 +39,7 @@ public final class AutoClicker {
 
     /** Every client tick: while attack is held, swing at the configured rate (max one per tick = 20 CPS). */
     public static void tick(Minecraft mc) {
+        if (AutoSkill.busy()) return;
         boolean down = mc.options.keyAttack.isDown() && mc.screen == null && mc.player != null && mc.player.isAlive();
         if (!enabled() || !down || mining(mc)) {
             owed = 0;
@@ -65,6 +66,7 @@ public final class AutoClicker {
 
     /** Minecraft#startAttack HEAD: false = refuse this swing. */
     public static boolean allowSwing(Minecraft mc) {
+        if (AutoSkill.busy()) return false; // mid auto-skill switch: the artifact is in hand for this one tick
         if (!DrConfig.data.energyGuard || !DrState.onDr() || mining(mc)) return true;
         float energy = DrState.energy();
         if (!shouldBlock(energy, costEstimate, DrConfig.data.energyFloor / 100f)) {

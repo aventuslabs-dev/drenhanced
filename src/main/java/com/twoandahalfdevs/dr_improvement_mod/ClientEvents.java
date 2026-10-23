@@ -113,6 +113,25 @@ public final class ClientEvents {
         // /drcd hide|show NAME, /drcd list: choose what the cooldown bar shows
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             var nameArg = com.mojang.brigadier.arguments.StringArgumentType.greedyString();
+            dispatcher.register(ClientCommandManager.literal("drskill")
+                .executes(ctx -> { ctx.getSource().sendFeedback(AutoSkill.list()); return 1; })
+                .then(ClientCommandManager.literal("skip").then(ClientCommandManager.argument("name", nameArg).executes(ctx -> {
+                    String n = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "name").trim();
+                    if (DrConfig.data.autoSkillSkip.stream().noneMatch(x -> x.equalsIgnoreCase(n))) DrConfig.data.autoSkillSkip.add(n);
+                    DrConfig.save();
+                    ctx.getSource().sendFeedback(net.minecraft.network.chat.Component.literal("\u00a76[DR] \u00a7f" + n + " won't be auto-cast."));
+                    return 1;
+                })))
+                .then(ClientCommandManager.literal("use").then(ClientCommandManager.argument("name", nameArg).executes(ctx -> {
+                    String n = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "name").trim();
+                    DrConfig.data.autoSkillSkip.removeIf(x -> x.equalsIgnoreCase(n));
+                    DrConfig.save();
+                    ctx.getSource().sendFeedback(net.minecraft.network.chat.Component.literal("\u00a76[DR] \u00a7f" + n + " will be auto-cast."));
+                    return 1;
+                }))));
+        });
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            var nameArg = com.mojang.brigadier.arguments.StringArgumentType.greedyString();
             dispatcher.register(ClientCommandManager.literal("drcd")
                 .executes(ctx -> { ctx.getSource().sendFeedback(cdList()); return 1; })
                 .then(ClientCommandManager.literal("list").executes(ctx -> { ctx.getSource().sendFeedback(cdList()); return 1; }))
@@ -150,6 +169,7 @@ public final class ClientEvents {
         while (FULLBRIGHT.consumeClick()) FullBright.toggle();
         while (DUAL_WIELD.consumeClick()) DualWield.toggle();
         while (AUTO_CLICKER.consumeClick()) AutoClicker.toggle();
+        AutoSkill.tick(mc);
         AutoClicker.tick(mc);
         boolean keyPressed = false;
         while (OPEN_CONFIG.consumeClick()) {

@@ -28,6 +28,8 @@ public final class DrConfig {
         public boolean dualWield = false;
         public boolean autoClicker = false;
         public boolean pouchIndicator = true;
+        public boolean autoSkills = true;
+        public java.util.List<String> autoSkillSkip = new java.util.ArrayList<>();
         public int autoCps = 12;
         public boolean energyGuard = true;
         public int energyFloor = 10; // % of the energy bar to always keep

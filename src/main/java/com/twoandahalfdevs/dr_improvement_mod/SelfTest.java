@@ -84,7 +84,8 @@ final class SelfTest {
     private static int stage;
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
-    private static int clicksBefore;
+    private static int clicksBefore, skillSlotBefore, skillCastsBefore;
+    private static boolean skillSawSwitch;
     private static net.minecraft.world.item.ItemStack dualBefore = net.minecraft.world.item.ItemStack.EMPTY;
     private static net.minecraft.world.entity.Entity barMob;
     private static int maxCrits, maxThorns, holdTicks, holdTicks2;
@@ -782,6 +783,23 @@ final class SelfTest {
                         var half = pouch.copy();
                         half.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal("Small Gem Pouch 40g"));
                         inv.setItem(7, half);
+                        // auto skills: the artifact from the tooltip, in slot 4; hit -> one-tick switch and back
+                        var art = AutoSkill.parse("Artifact: Shoulder Bash", "DMG: +355 - 373 (353-371, 371-388)\n\nCost: 40 Mana | Cooldown: 5.0s | Range: 4\nDamage Multiplier: 300% | Max Targets: 3\n\nLunge forward, damaging and knocking away\nenemies you hit.\nEpic [Lv 100]");
+                        var dash = AutoSkill.parse("Artifact: Dash", "Cost: 20 Mana | Cooldown: 8.0s\nDash forward.");
+                        log("auto skill parse: " + art + " / " + dash);
+                        if (art == null || !"Shoulder Bash".equals(art.name()) || art.cost() != 40 || art.cooldown() != 5.0 || art.range() != 4 || !art.damage())
+                            fail("artifact tooltip not read");
+                        if (dash == null || dash.damage()) fail("non-damage artifact would be auto-cast");
+                        var bash = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BLAZE_POWDER);
+                        bash.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal("Artifact: Shoulder Bash"));
+                        java.util.List<Component> bl = new java.util.ArrayList<>();
+                        for (String ln : new String[]{"DMG: +355 - 373", "Cost: 40 Mana | Cooldown: 5.0s | Range: 4", "Damage Multiplier: 300% | Max Targets: 3"}) bl.add(Component.literal(ln));
+                        bash.set(net.minecraft.core.component.DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(bl));
+                        inv.setItem(3, bash);
+                        mc.player.totalExperience = 100; // DR mana
+                        skillSlotBefore = inv.selected;
+                        skillCastsBefore = AutoSkill.casts;
+                        AutoSkill.onAttack(mc.player); // as if we just hit a mob next to us
                         // auto clicker: hold attack for 20 ticks (1 s) at 10 CPS
                         DrConfig.data.autoClicker = true;
                         DrConfig.data.autoCps = 10;
@@ -789,6 +807,15 @@ final class SelfTest {
                         mc.options.keyAttack.setDown(true);
                         return;
                     }
+                    if (waitTicks == 4) skillSawSwitch = inv.selected == 3;
+                    if (waitTicks == 6) {
+                        boolean back = inv.selected == skillSlotBefore;
+                        int cast = AutoSkill.casts - skillCastsBefore;
+                        AutoSkill.onAttack(mc.player); // hit again right away: on cooldown, no second cast
+                        log("auto skill: casts " + cast + ", switched to artifact " + skillSawSwitch + ", back on weapon " + back);
+                        if (cast != 1 || !skillSawSwitch || !back) fail("auto skill cast / switch back wrong");
+                    }
+                    if (waitTicks == 9 && AutoSkill.casts - skillCastsBefore != 1) fail("auto skill recast while on cooldown");
                     if (waitTicks == 10) {
                         Screenshot.grab(mc.gameDirectory, "drim-dualwield.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                         mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);

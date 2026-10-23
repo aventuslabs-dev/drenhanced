@@ -57,5 +57,6 @@ public abstract class MultiPlayerGameModeMixin {
     @Inject(method = "attack", at = @At("HEAD"))
     private void drim$attack(Player player, Entity target, CallbackInfo ci) {
         MobHp.onAttack(target);
+        com.twoandahalfdevs.dr_improvement_mod.AutoSkill.onAttack(target);
     }
 }

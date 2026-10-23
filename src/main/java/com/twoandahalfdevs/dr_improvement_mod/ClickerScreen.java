@@ -19,7 +19,7 @@ public final class ClickerScreen extends Screen {
     private final Screen parent;
 
     public ClickerScreen(Screen parent) {
-        super(Component.literal("Auto clicker / energy"));
+        super(Component.literal("Auto clicker / skills / energy"));
         this.parent = parent;
     }
 
@@ -35,6 +35,9 @@ public final class ClickerScreen extends Screen {
         toggle(left, y, "Energy guard", c.energyGuard, v -> c.energyGuard = v,
             "Refuses a swing (yours or the clicker's) that would drop your energy under the floor, so you never run dry. Learns what a swing costs as you fight.");
         slider(right, y, c.energyFloor, 0, 50, 1, v -> "Keep energy above: " + Math.round(v) + "%", v -> c.energyFloor = (int) Math.round(v));
+        y += ROW;
+        toggle(left, y, "Auto skills", c.autoSkills, v -> c.autoSkills = v,
+            "When you hit a mob and a damage artifact on your hotbar is ready (cooldown, mana, range), it's cast for you. Your weapon stays in hand. /drskill to see or skip artifacts.");
         y += ROW + 6;
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(width / 2 - 100, y, 200, H).build());
     }
