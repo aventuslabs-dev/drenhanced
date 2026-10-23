@@ -835,6 +835,17 @@ final class SelfTest {
                         if (cast != 1 || !skillSawSwitch || !back) fail("auto skill cast / switch back wrong");
                     }
                     if (waitTicks == 9 && AutoSkill.casts - skillCastsBefore != 1) fail("auto skill recast while on cooldown");
+                    if (waitTicks == 7 && hpTarget instanceof net.minecraft.world.entity.LivingEntity hm) {
+                        // instant hit feedback: red flash on the swing itself, and a predicted bar drop
+                        DrConfig.data.hitPrediction = true;
+                        HitFeedback.onAttack(mc.player, hm);
+                        MobHp.Track pt = new MobHp.Track();
+                        pt.max = 1000; pt.frac = 0.8f; pt.predHits = 1; pt.predAt = System.currentTimeMillis();
+                        float pf = MobHp.predicted(pt, System.currentTimeMillis());
+                        log("hit feedback: flash " + hm.hurtTime + ", predicted bar " + pt.frac + " -> " + pf + " (typical hit " + MobHp.typicalHit() + ")");
+                        if (hm.hurtTime <= 0) fail("no instant hurt flash");
+                        if (MobHp.typicalHit() > 0 && !(pf < pt.frac)) fail("bar not predicted down on swing");
+                    }
                     if (waitTicks == 7 && hpTarget instanceof net.minecraft.world.entity.LivingEntity mob) {
                         // a server position update (3-tick ease in vanilla) must land in 1 tick with less smoothing
                         DrConfig.data.snappyMobs = true;

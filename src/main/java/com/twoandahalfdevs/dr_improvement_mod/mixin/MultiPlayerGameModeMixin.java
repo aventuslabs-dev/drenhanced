@@ -58,5 +58,6 @@ public abstract class MultiPlayerGameModeMixin {
     private void drim$attack(Player player, Entity target, CallbackInfo ci) {
         MobHp.onAttack(target);
         com.twoandahalfdevs.dr_improvement_mod.AutoSkill.onAttack(target);
+        com.twoandahalfdevs.dr_improvement_mod.HitFeedback.onAttack(player, target);
     }
 }

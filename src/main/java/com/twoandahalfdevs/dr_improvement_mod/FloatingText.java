@@ -166,7 +166,8 @@ public final class FloatingText {
                 holoWait.remove(match);
                 it.remove();
                 if (enabled()) spawn(p.amount, p.kind, p.label, match.pos, now);
-            } else if (now - p.at > PAIR_MS) { // no hologram yet (late or culled): show it over the mob
+            } else { // no hologram yet: show it over the mob right away (DR fills its hologram's text ~250 ms
+                     // later; that late hologram is then recognised as this hit and swallowed)
                 it.remove();
                 if (!enabled()) continue;
                 Num early = earlyOther(p, now);

@@ -83,6 +83,8 @@ public final class MobHp {
         int missHp = -1;         // last line that didn't fit while we were hitting this mob
         long missAt;
         int missCount;           // such lines in a row, each continuing the one before
+        int predHits;            // your swings at it that DR hasn't reported yet (hit prediction)
+        long predAt;
         long firstLineAt;        // when the first damage line was given to it (0 = none since last forget)
         int firstLeft = -1;      // HP in that line
         boolean firstBarChecked; // DR's first bar after that line was compared with it
@@ -162,6 +164,7 @@ public final class MobHp {
         estimate(t, p.filled(), p.total());
         // one source for both the bar and the numbers, so they can't disagree
         t.frac = t.cur >= 0 && t.max > 0 ? Math.min(1f, t.cur / t.max) : f;
+        t.frac = predicted(t, now);
         Matcher m = LEVEL.matcher(p.after());
         if (m.find()) t.level = m.group(1);
 
@@ -374,6 +377,17 @@ public final class MobHp {
     }
 
     private static int swingCounter;
+    /** Your recent hit sizes, for the instant (predicted) bar drop before DR's damage line arrives. */
+    private static final int[] myHits = new int[10];
+    private static int myHitCount;
+
+    static int typicalHit() {
+        int n = Math.min(myHitCount, myHits.length);
+        if (n == 0) return -1;
+        int[] c = java.util.Arrays.copyOf(myHits, n);
+        java.util.Arrays.sort(c);
+        return c[n / 2]; // median: crits and blocks don't skew it
+    }
 
     /** When you last hit an entity (ms). */
     public static long lastAttackAt() {
@@ -384,6 +398,11 @@ public final class MobHp {
         lastAttacked = e.getId();
         lastAttackAt = System.currentTimeMillis();
         swingCounter++;
+        Track pt = tracks.get(e.getId());
+        if (pt != null && DrConfig.data.hitPrediction) {
+            pt.predHits = Math.min(3, pt.predHits + 1);
+            pt.predAt = lastAttackAt;
+        }
     }
 
     public static void onChat(String raw) {
@@ -417,7 +436,11 @@ public final class MobHp {
         }
         t.missAt = 0;
         t.missCount = 0;
-        if (t == clicked) t.swing = swingCounter;
+        if (t == clicked) {
+            t.swing = swingCounter;
+            if (dmg > 0 && source == null) myHits[myHitCount++ % myHits.length] = dmg;
+        }
+        if (t.predHits > 0) t.predHits--; // DR reported one of the swings we showed early
 
         // exact max = remaining + damage, but only on the first hit against a mob we first saw undamaged
         boolean wasFull = Boolean.TRUE.equals(t.startedFull) && !t.confirmed
@@ -473,6 +496,22 @@ public final class MobHp {
         t.firstLeft = -1;
         t.missAt = 0;
         t.missCount = 0;
+    }
+
+    /**
+     * Hit prediction: the bar drops by your usual hit the moment you swing, instead of a ping later when DR's
+     * damage line arrives; that line then sets the exact value. Expires if DR never confirms (miss / dodge).
+     */
+    static float predicted(Track t, long now) {
+        if (t.predHits <= 0 || t.max <= 0 || !DrConfig.data.hitPrediction) return t.frac;
+        long window = AutoClicker.lagMillis(Minecraft.getInstance()) + 400;
+        if (now - t.predAt > window) {
+            t.predHits = 0;
+            return t.frac;
+        }
+        int hit = typicalHit();
+        if (hit <= 0) return t.frac;
+        return Math.max(0f, t.frac - t.predHits * hit / (float) t.max);
     }
 
     /** How long DR can take to redraw its |||| bar after the damage line. */
