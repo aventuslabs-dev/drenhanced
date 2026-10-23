@@ -26,6 +26,10 @@ public final class DrConfig {
         public boolean throttlePackets = true;
         public boolean legacyCombat = true;
         public boolean dualWield = false;
+        public boolean autoClicker = false;
+        public int autoCps = 12;
+        public boolean energyGuard = true;
+        public int energyFloor = 10; // % of the energy bar to always keep
         public int shadowmeldPoints = 0;      // 0-10
         public int justMyNaturePoints = 0;    // 0-5
         /** Player chat on the left, system/server messages in a second chat on the right. */
@@ -105,6 +109,8 @@ public final class DrConfig {
         void clamp() {
             enemyHpBarLength = Math.max(4, Math.min(40, enemyHpBarLength));
             fctSize = Math.max(0.3, Math.min(4.0, fctSize));
+            autoCps = Math.max(1, Math.min(20, autoCps));
+            energyFloor = Math.max(0, Math.min(50, energyFloor));
             fctDuration = Math.max(0.4, Math.min(5.0, fctDuration));
             oreSize = Math.max(0.4, Math.min(3.0, oreSize));
             oreDuration = Math.max(0.8, Math.min(6.0, oreDuration));

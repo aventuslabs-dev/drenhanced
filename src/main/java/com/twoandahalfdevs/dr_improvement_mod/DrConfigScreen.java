@@ -82,6 +82,9 @@ public class DrConfigScreen extends Screen {
             c.dualWield = v;
             DrConfig.save();
         }, "With an axe or shovel in hand, your offhand shows it too and your swings alternate right / left. Only you see it: the server and other players still see a normal swing. Key: Controls > DR Improvement Mod.");
+        addRenderableWidget(Button.builder(Component.literal("Auto clicker / energy..."), b -> this.minecraft.setScreen(new ClickerScreen(this)))
+            .tooltip(Tooltip.create(Component.literal("Hold-to-click auto clicker (1-20 CPS) and an energy guard that never lets you swing yourself to 0 energy.")))
+            .bounds(right, y, W, H).build());
 
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());

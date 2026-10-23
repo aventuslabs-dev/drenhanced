@@ -22,8 +22,19 @@ public final class DrState {
 
     public static void onEnergy(float progress) {
         prevExp = interpolatedEnergy();
+        AutoClicker.onEnergy(latestExp, progress);
         latestExp = progress;
         expUpdateNanos = System.nanoTime();
+    }
+
+    /** Latest energy from the server, 0..1. */
+    public static float energy() {
+        return latestExp;
+    }
+
+    /** On DungeonRealms (its class / HP boss bar has been read). */
+    public static boolean onDr() {
+        return !"???".equals(playerClass);
     }
 
     /** Fills up over ~50 ms, drains over ~10 ms. */

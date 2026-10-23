@@ -84,6 +84,7 @@ final class SelfTest {
     private static int stage;
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
+    private static int clicksBefore;
     private static net.minecraft.world.item.ItemStack dualBefore = net.minecraft.world.item.ItemStack.EMPTY;
     private static net.minecraft.world.entity.Entity barMob;
     private static int maxCrits, maxThorns, holdTicks, holdTicks2;
@@ -758,6 +759,16 @@ final class SelfTest {
                             && !DualWield.dualItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BOW))
                             && !DualWield.dualItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GOLDEN_PICKAXE));
                         if (!only) fail("dual wield should be axes and shovels only");
+                        // energy guard: 30% energy, 6% a swing, keep 10% -> swing; 14% -> refused (would land at 8%)
+                        boolean guardOk = !AutoClicker.shouldBlock(0.30f, 0.06f, 0.10f) && AutoClicker.shouldBlock(0.14f, 0.06f, 0.10f)
+                            && AutoClicker.shouldBlock(0.05f, 0.06f, 0f);
+                        log("energy guard: " + guardOk + ", swing cost estimate " + AutoClicker.costEstimate());
+                        if (!guardOk) fail("energy guard thresholds wrong");
+                        // auto clicker: hold attack for 20 ticks (1 s) at 10 CPS
+                        DrConfig.data.autoClicker = true;
+                        DrConfig.data.autoCps = 10;
+                        clicksBefore = AutoClicker.clicks;
+                        mc.options.keyAttack.setDown(true);
                         return;
                     }
                     if (waitTicks == 10) {
@@ -769,7 +780,12 @@ final class SelfTest {
                         Screenshot.grab(mc.gameDirectory, "drim-dualwield-f5.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                         return;
                     }
-                    if (waitTicks < 20) return;
+                    if (waitTicks < 23) return;
+                    mc.options.keyAttack.setDown(false);
+                    int fired = AutoClicker.clicks - clicksBefore;
+                    log("auto clicker: " + fired + " clicks in 20 ticks at 10 CPS");
+                    if (fired < 9 || fired > 11) fail("auto clicker rate wrong: " + fired);
+                    DrConfig.data.autoClicker = false;
                     mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
                     DrConfig.data.dualWield = false;
                     inv.setItem(inv.selected, dualBefore);

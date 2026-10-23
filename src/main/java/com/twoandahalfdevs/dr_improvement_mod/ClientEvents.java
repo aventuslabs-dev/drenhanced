@@ -45,8 +45,12 @@ public final class ClientEvents {
     private static final KeyMapping DUAL_WIELD = new KeyMapping(
         "key.dr_improvement_mod.dualwield", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.dr_improvement_mod");
 
+    private static final KeyMapping AUTO_CLICKER = new KeyMapping(
+        "key.dr_improvement_mod.autoclicker", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "key.categories.dr_improvement_mod");
+
     public static void register() {
         KeyBindingHelper.registerKeyBinding(DUAL_WIELD);
+        KeyBindingHelper.registerKeyBinding(AUTO_CLICKER);
         net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents.CHAT.register(SplitChat::onSent);
         KeyBindingHelper.registerKeyBinding(OPEN_CONFIG);
         KeyBindingHelper.registerKeyBinding(FULLBRIGHT);
@@ -145,6 +149,8 @@ public final class ClientEvents {
     private static void onClientTick(Minecraft mc) {
         while (FULLBRIGHT.consumeClick()) FullBright.toggle();
         while (DUAL_WIELD.consumeClick()) DualWield.toggle();
+        while (AUTO_CLICKER.consumeClick()) AutoClicker.toggle();
+        AutoClicker.tick(mc);
         boolean keyPressed = false;
         while (OPEN_CONFIG.consumeClick()) {
             keyPressed = true;

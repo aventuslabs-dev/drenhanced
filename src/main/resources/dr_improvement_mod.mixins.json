@@ -21,6 +21,8 @@
     "ItemModelResolverMixin",
     "LivingEntityAccessor",
     "LocalPlayerMixin",
+    "MinecraftInvoker",
+    "MinecraftMixin",
     "MultiPlayerGameModeMixin",
     "OptionInstanceMixin",
     "OptionsMixin",
