@@ -202,10 +202,10 @@ public final class ClientEvents {
         }
         ItemStack stack = player.getInventory().getItem(selected);
         if (stack.is(Items.PLAYER_HEAD) || AutoSkill.read(stack) != null) {
-            // DR casts an ability / artifact when you switch to it: send the switch now, then come straight back.
-            // (It used to right-click it too; by then DR had already switched you back, so that right-clicked
-            // the weapon instead: "You do not have a weapon ability equipped!" after every cast.)
-            ((com.twoandahalfdevs.dr_improvement_mod.mixin.GameModeInvoker) mc.gameMode).drim$sendCarried();
+            // DR casts an ability / artifact on use (right-click) while it's held: switch, use, come straight back.
+            // DR may also print "You do not have a weapon ability equipped!" here; harmless (capture 17:50 showed
+            // that switching alone never casts).
+            mc.gameMode.useItem(player, InteractionHand.MAIN_HAND);
             abilitySwitches++;
             player.getInventory().selected = previous;
             lastSelectedSlot = previous;
