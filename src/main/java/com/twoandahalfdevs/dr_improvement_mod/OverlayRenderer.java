@@ -88,7 +88,10 @@ public final class OverlayRenderer {
         Window window = mc.getWindow();
         float maxHealth = player.getMaxHealth();
         shader.safeGetUniform("energyPercent").set(DrState.interpolatedEnergy());
-        shader.safeGetUniform("healthPercent").set(maxHealth > 0f ? player.getHealth() / maxHealth : 0f);
+        // DR's real HP from its boss bar when known (same numbers as the text), else the synced entity health
+        float hpFrac = DrState.hp() >= 0 && DrState.hpMax() > 0 ? DrState.hp() / (float) DrState.hpMax()
+            : maxHealth > 0f ? player.getHealth() / maxHealth : 0f;
+        shader.safeGetUniform("healthPercent").set(hpFrac);
         shader.safeGetUniform("manaPercent").set(DrState.mana() / (float) DrState.manaMax());
         shader.safeGetUniform("aspectRatio").set((float) window.getWidth() / Math.max(1, window.getHeight()));
         place(shader, "energy", DrConfig.data.energyBar);
