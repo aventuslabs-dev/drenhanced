@@ -27,6 +27,41 @@ public final class DrState {
         expUpdateNanos = System.nanoTime();
     }
 
+    // ---- Mana: DR sends it in the XP packet too, as the level number or the total; learn which from what moves
+    private static int xpLevel = -1, xpTotal = -1, levelMoves, totalMoves, manaMax = 100;
+    private static int xpLogged;
+
+    /** Every DR XP packet: progress = energy; mana is whichever of level / total keeps changing (casts, regen). */
+    public static void onXp(float progress, int level, int total) {
+        if (xpLevel >= 0 && level != xpLevel) levelMoves++;
+        if (xpTotal >= 0 && total != xpTotal) totalMoves++;
+        boolean changed = level != xpLevel || total != xpTotal;
+        xpLevel = level;
+        xpTotal = total;
+        manaMax = Math.max(manaMax, mana());
+        if (changed && xpLogged++ < 80) {
+            org.slf4j.LoggerFactory.getLogger("dr_improvement_mod").info("DRIM xp: progress={} level={} total={} -> mana {} / {} (level moved {}, total moved {})",
+                progress, level, total, mana(), manaMax, levelMoves, totalMoves);
+        }
+        Capture.xp(progress, level, total);
+    }
+
+    /** Current mana (0 until DR has sent it). */
+    public static int mana() {
+        if (xpLevel < 0) return 0;
+        if (levelMoves > totalMoves) return xpLevel;
+        if (totalMoves > levelMoves) return xpTotal;
+        return Math.max(0, Math.max(xpLevel, xpTotal) <= 100 ? Math.max(xpLevel, xpTotal) : Math.min(xpLevel, xpTotal));
+    }
+
+    public static boolean manaKnown() {
+        return xpLevel >= 0;
+    }
+
+    public static int manaMax() {
+        return manaMax;
+    }
+
     /** Latest energy from the server, 0..1. */
     public static float energy() {
         return latestExp;

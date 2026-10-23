@@ -75,7 +75,7 @@ public final class AutoSkill {
         DrState.Ability ab = DrState.abilities.get(a.name());
         if (ab != null && !ab.active() && ab.remaining() > 0.05) return false;
         if (p.getCooldowns().isOnCooldown(s)) return false;
-        if (DrState.onDr() && p.totalExperience < a.cost()) return false; // DR's mana = the XP total
+        if (DrState.onDr() && DrState.manaKnown() && DrState.mana() < a.cost()) return false;
         return !DrConfig.data.autoSkillSkip.stream().anyMatch(x -> x.equalsIgnoreCase(a.name()));
     }
 

@@ -35,7 +35,9 @@ public abstract class ClientPacketListenerMixin {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
         DrState.onEnergy(packet.getExperienceProgress());
-        mc.player.setExperienceValues(packet.getTotalExperience() / 100f, packet.getExperienceLevel(), packet.getTotalExperience());
+        DrState.onXp(packet.getExperienceProgress(), packet.getExperienceLevel(), packet.getTotalExperience());
+        int mana = DrState.mana();
+        mc.player.setExperienceValues(mana / (float) DrState.manaMax(), mana, mana);
         ci.cancel();
     }
 

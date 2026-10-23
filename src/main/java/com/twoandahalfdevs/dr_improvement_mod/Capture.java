@@ -177,6 +177,17 @@ public final class Capture {
         }
     }
 
+    private static String lastXp = "";
+
+    /** DR's XP packet (energy / mana live here), logged when it changes. */
+    public static void xp(float progress, int level, int total) {
+        if (!active()) return;
+        String t = String.format(java.util.Locale.ROOT, "progress=%.3f level=%d total=%d", progress, level, total);
+        if (t.equals(lastXp)) return;
+        lastXp = t;
+        write("XP", t, null);
+    }
+
     private static void pollNames(Minecraft mc) {
         Set<Integer> alive = new HashSet<>();
         for (Entity e : mc.level.entitiesForRendering()) {

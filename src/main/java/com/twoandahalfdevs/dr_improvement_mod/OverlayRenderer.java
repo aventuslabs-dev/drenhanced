@@ -51,7 +51,7 @@ public final class OverlayRenderer {
         float maxHealth = player.getMaxHealth();
         shader.safeGetUniform("energyPercent").set(DrState.interpolatedEnergy());
         shader.safeGetUniform("healthPercent").set(maxHealth > 0f ? player.getHealth() / maxHealth : 0f);
-        shader.safeGetUniform("manaPercent").set(player.experienceLevel / 100f);
+        shader.safeGetUniform("manaPercent").set(DrState.mana() / (float) DrState.manaMax());
         shader.safeGetUniform("aspectRatio").set((float) window.getWidth() / Math.max(1, window.getHeight()));
         place(shader, "energy", DrConfig.data.energyBar);
         place(shader, "mana", DrConfig.data.manaBar);
