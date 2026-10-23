@@ -85,6 +85,7 @@ final class SelfTest {
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
     private static net.minecraft.world.phys.Vec3 lerpGoal;
+    private static int maxFct;
     private static int clicksBefore, skillSlotBefore, skillCastsBefore, skillSwitchesBefore;
     private static boolean skillSawSwitch;
     private static net.minecraft.world.item.ItemStack dualBefore = net.minecraft.world.item.ItemStack.EMPTY;
@@ -378,8 +379,9 @@ final class SelfTest {
                             .append(Component.literal(" dropped: ").withStyle(net.minecraft.ChatFormatting.GREEN))
                             .append(Component.literal("SHOW").withStyle(net.minecraft.ChatFormatting.AQUA, net.minecraft.ChatFormatting.BOLD)));
                     }
+                    maxFct = Math.max(maxFct, FloatingText.count()); // numbers now show at once and fade before tick 60
                     if (waitTicks < 60) return;
-                    int fct = FloatingText.count();
+                    int fct = maxFct;
                     boolean holoHidden = false;
                     for (var e : mc.level.entitiesForRendering()) {
                         Component dt = FloatingText.displayText(e);
