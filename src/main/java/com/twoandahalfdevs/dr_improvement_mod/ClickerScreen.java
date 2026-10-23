@@ -41,7 +41,7 @@ public final class ClickerScreen extends Screen {
         slider(right, y, c.autoSkillMinMana, 0, 100, 1, v -> "Auto cast at: " + Math.round(v) + "+ mana", v -> c.autoSkillMinMana = (int) Math.round(v));
         y += ROW;
         toggle(left, y, "Less mob smoothing", c.snappyMobs, v -> c.snappyMobs = v,
-            "Draws mobs at their latest server position (1 tick) instead of easing them over 3. About 100 ms less lag on what you see, so your swings land where the server has the mob. Movement looks a bit jerkier.");
+            "Mobs catch up to their server position by the time DR's next update for them is due, instead of always easing over 3 ticks. Up to ~100 ms less lag on what you see while staying smooth.");
         toggle(right, y, "Instant hit feedback", c.hitPrediction, v -> c.hitPrediction = v,
             "Low-ping feel: the mob flashes red, sparks fly and its HP bar drops the moment you swing, instead of a ping later. DR's real numbers correct it when they arrive.");
         y += ROW + 6;

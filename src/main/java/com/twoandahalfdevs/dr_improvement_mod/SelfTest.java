@@ -856,8 +856,8 @@ final class SelfTest {
                     }
                     if (waitTicks == 9 && lerpGoal != null && hpTarget != null) {
                         double off = hpTarget.position().distanceTo(lerpGoal);
-                        log("less mob smoothing: " + String.format(java.util.Locale.ROOT, "%.2f", off) + " blocks from the server position after 1-2 ticks");
-                        if (off > 0.05) fail("mob still easing toward its server position");
+                        log("less mob smoothing: " + String.format(java.util.Locale.ROOT, "%.2f", off) + " blocks from the server position after 2 ticks");
+                        if (off > 0.05) fail("mob still easing toward its server position after 2 ticks");
                         lerpGoal = null;
                     }
                     if (waitTicks == 10) {
