@@ -75,7 +75,8 @@ public final class AutoSkill {
         DrState.Ability ab = DrState.abilities.get(a.name());
         if (ab != null && !ab.active() && ab.remaining() > 0.05) return false;
         if (p.getCooldowns().isOnCooldown(s)) return false;
-        if (DrState.onDr() && DrState.manaKnown() && DrState.mana() < a.cost()) return false;
+        // only with enough mana for it AND at least your threshold, so mana is left for skills you press yourself
+        if (DrState.onDr() && DrState.manaKnown() && DrState.mana() < Math.max(a.cost(), DrConfig.data.autoSkillMinMana)) return false;
         return !DrConfig.data.autoSkillSkip.stream().anyMatch(x -> x.equalsIgnoreCase(a.name()));
     }
 

@@ -38,6 +38,7 @@ public final class ClickerScreen extends Screen {
         y += ROW;
         toggle(left, y, "Auto skills", c.autoSkills, v -> c.autoSkills = v,
             "When you hit a mob and a damage artifact on your hotbar is ready (cooldown, mana, range), it's cast for you. Your weapon stays in hand. /drskill to see or skip artifacts.");
+        slider(right, y, c.autoSkillMinMana, 0, 100, 1, v -> "Auto cast at: " + Math.round(v) + "+ mana", v -> c.autoSkillMinMana = (int) Math.round(v));
         y += ROW + 6;
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(width / 2 - 100, y, 200, H).build());
     }

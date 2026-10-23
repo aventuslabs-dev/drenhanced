@@ -31,6 +31,7 @@ public final class DrConfig {
         public boolean midHealthBar = true; // green HP bar above the mana bar
         public boolean barText = true;      // HP / mana numbers left of those bars
         public boolean autoSkills = true;
+        public int autoSkillMinMana = 50; // no auto cast below this much mana
         public java.util.List<String> autoSkillSkip = new java.util.ArrayList<>();
         public int autoCps = 12;
         public boolean energyGuard = true;
@@ -116,6 +117,7 @@ public final class DrConfig {
             fctSize = Math.max(0.3, Math.min(4.0, fctSize));
             autoCps = Math.max(1, Math.min(20, autoCps));
             energyFloor = Math.max(0, Math.min(50, energyFloor));
+            autoSkillMinMana = Math.max(0, Math.min(100, autoSkillMinMana));
             fctDuration = Math.max(0.4, Math.min(5.0, fctDuration));
             oreSize = Math.max(0.4, Math.min(3.0, oreSize));
             oreDuration = Math.max(0.8, Math.min(6.0, oreDuration));

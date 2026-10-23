@@ -797,6 +797,7 @@ final class SelfTest {
                         if (art == null || !"Shoulder Bash".equals(art.name()) || art.cost() != 40 || art.cooldown() != 5.0 || art.range() != 4 || !art.damage())
                             fail("artifact tooltip not read");
                         if (dash == null || dash.damage()) fail("non-damage artifact would be auto-cast");
+                        DrConfig.data.autoSkillMinMana = 50; // the cast below runs at 100 mana
                         var bash = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BLAZE_POWDER);
                         bash.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal("Artifact: Shoulder Bash"));
                         java.util.List<Component> bl = new java.util.ArrayList<>();
