@@ -28,8 +28,9 @@ public abstract class LivingEntityLerpMixin {
         long last = drim$lastLerp;
         drim$lastLerp = now;
         if (!DrConfig.data.snappyMobs || steps <= 1 || (Object) this instanceof Player) return steps;
-        if (last > 0) {
-            float gap = Math.max(1f, Math.min(3f, (now - last) / 50f));
+        // learn the update rate only while it's moving (a pause before it starts moving isn't the rate)
+        if (last > 0 && now - last <= 175) {
+            float gap = Math.max(1f, (now - last) / 50f);
             drim$gapTicks += (gap - drim$gapTicks) * 0.3f;
         }
         return Math.max(1, Math.min(steps, Math.round(drim$gapTicks)));
