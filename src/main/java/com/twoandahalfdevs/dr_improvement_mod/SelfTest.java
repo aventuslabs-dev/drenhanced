@@ -735,7 +735,7 @@ final class SelfTest {
                     var inv = mc.player.getInventory();
                     if (waitTicks == 1) {
                         dualBefore = inv.getItem(inv.selected).copy();
-                        inv.setItem(inv.selected, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD));
+                        inv.setItem(inv.selected, new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GOLDEN_AXE));
                         DrConfig.data.dualWield = true;
                         return;
                     }
@@ -746,12 +746,18 @@ final class SelfTest {
                         mc.player.swinging = false;
                         mc.player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
                         var arm2 = mc.player.swingingArm;
-                        boolean shown = DualWield.offhandShown(mc.player).is(net.minecraft.world.item.Items.DIAMOND_SWORD);
-                        boolean realOff = mc.player.getOffhandItem().is(net.minecraft.world.item.Items.DIAMOND_SWORD);
-                        log("dual wield: swings " + arm1 + " then " + arm2 + ", offhand shows sword " + shown + ", real offhand changed " + realOff);
+                        boolean shown = DualWield.offhandShown(mc.player).is(net.minecraft.world.item.Items.GOLDEN_AXE);
+                        boolean realOff = mc.player.getOffhandItem().is(net.minecraft.world.item.Items.GOLDEN_AXE);
+                        log("dual wield: swings " + arm1 + " then " + arm2 + ", offhand shows axe " + shown + ", real offhand changed " + realOff);
                         if (arm1 == arm2) fail("dual wield swings don't alternate");
                         if (!shown) fail("dual wield offhand not showing the weapon");
                         if (realOff) fail("dual wield changed the real offhand");
+                        boolean only = DualWield.dualItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GOLDEN_AXE))
+                            && DualWield.dualItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.IRON_SHOVEL))
+                            && !DualWield.dualItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.DIAMOND_SWORD))
+                            && !DualWield.dualItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.BOW))
+                            && !DualWield.dualItem(new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.GOLDEN_PICKAXE));
+                        if (!only) fail("dual wield should be axes and shovels only");
                         return;
                     }
                     if (waitTicks == 10) {

@@ -6,7 +6,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.ProjectileWeaponItem;
+import net.minecraft.tags.ItemTags;
 
 /**
  * Visual-only dual wield: your offhand is drawn holding a copy of your main-hand weapon, and your attack swings
@@ -23,11 +23,14 @@ public final class DualWield {
         return DrConfig.data.dualWield;
     }
 
-    /** On, and the main hand holds something worth mirroring (not a bow / crossbow, not an empty fist). */
+    /** On, and you're holding an axe or a shovel (DR's axe / polearm weapons). Swords, bows and the rest stay normal. */
     public static boolean active(Player p) {
         if (!enabled() || p == null) return false;
-        ItemStack main = p.getMainHandItem();
-        return !main.isEmpty() && !(main.getItem() instanceof ProjectileWeaponItem);
+        return dualItem(p.getMainHandItem());
+    }
+
+    static boolean dualItem(ItemStack s) {
+        return !s.isEmpty() && (s.is(ItemTags.AXES) || s.is(ItemTags.SHOVELS));
     }
 
     /** Is this you (the only player whose hands we redraw)? */

@@ -81,7 +81,7 @@ public class DrConfigScreen extends Screen {
         toggle(left, y, "Dual wield (visual)", c.dualWield, v -> {
             c.dualWield = v;
             DrConfig.save();
-        }, "Your offhand shows your weapon and your swings alternate right / left. Only you see it: the server and other players still see a normal swing. Key: Controls > DR Improvement Mod.");
+        }, "With an axe or shovel in hand, your offhand shows it too and your swings alternate right / left. Only you see it: the server and other players still see a normal swing. Key: Controls > DR Improvement Mod.");
 
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());
