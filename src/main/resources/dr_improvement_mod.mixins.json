@@ -23,6 +23,7 @@
     "ItemInHandRendererMixin",
     "ItemModelResolverMixin",
     "LivingEntityAccessor",
+    "LivingEntityLerpMixin",
     "LocalPlayerMixin",
     "MinecraftInvoker",
     "MinecraftMixin",

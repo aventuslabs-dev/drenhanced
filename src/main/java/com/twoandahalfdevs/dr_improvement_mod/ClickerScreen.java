@@ -19,7 +19,7 @@ public final class ClickerScreen extends Screen {
     private final Screen parent;
 
     public ClickerScreen(Screen parent) {
-        super(Component.literal("Auto clicker / skills / energy"));
+        super(Component.literal("Combat: clicker / skills / energy / lag"));
         this.parent = parent;
     }
 
@@ -39,6 +39,9 @@ public final class ClickerScreen extends Screen {
         toggle(left, y, "Auto skills", c.autoSkills, v -> c.autoSkills = v,
             "When you hit a mob and a damage artifact on your hotbar is ready (cooldown, mana, range), it's cast for you. Your weapon stays in hand. /drskill to see or skip artifacts.");
         slider(right, y, c.autoSkillMinMana, 0, 100, 1, v -> "Auto cast at: " + Math.round(v) + "+ mana", v -> c.autoSkillMinMana = (int) Math.round(v));
+        y += ROW;
+        toggle(left, y, "Less mob smoothing", c.snappyMobs, v -> c.snappyMobs = v,
+            "Draws mobs at their latest server position (1 tick) instead of easing them over 3. About 100 ms less lag on what you see, so your swings land where the server has the mob. Movement looks a bit jerkier.");
         y += ROW + 6;
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(width / 2 - 100, y, 200, H).build());
     }

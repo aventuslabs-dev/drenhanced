@@ -31,6 +31,7 @@ public final class DrConfig {
         public boolean midHealthBar = true; // green HP bar above the mana bar
         public boolean barText = true;      // HP / mana numbers left of those bars
         public boolean autoSkills = true;
+        public boolean snappyMobs = true; // mobs drawn at their latest server position (less ping lag)
         public int autoSkillMinMana = 50; // no auto cast below this much mana
         public java.util.List<String> autoSkillSkip = new java.util.ArrayList<>();
         public int autoCps = 12;

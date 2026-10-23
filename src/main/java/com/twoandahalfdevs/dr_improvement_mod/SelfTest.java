@@ -84,6 +84,7 @@ final class SelfTest {
     private static int stage;
     private static int waitTicks;
     private static net.minecraft.world.entity.Entity hpTarget;
+    private static net.minecraft.world.phys.Vec3 lerpGoal;
     private static int clicksBefore, skillSlotBefore, skillCastsBefore, skillSwitchesBefore;
     private static boolean skillSawSwitch;
     private static net.minecraft.world.item.ItemStack dualBefore = net.minecraft.world.item.ItemStack.EMPTY;
@@ -834,6 +835,18 @@ final class SelfTest {
                         if (cast != 1 || !skillSawSwitch || !back) fail("auto skill cast / switch back wrong");
                     }
                     if (waitTicks == 9 && AutoSkill.casts - skillCastsBefore != 1) fail("auto skill recast while on cooldown");
+                    if (waitTicks == 7 && hpTarget instanceof net.minecraft.world.entity.LivingEntity mob) {
+                        // a server position update (3-tick ease in vanilla) must land in 1 tick with less smoothing
+                        DrConfig.data.snappyMobs = true;
+                        lerpGoal = mob.position().add(0, 0, 2);
+                        mob.lerpTo(lerpGoal.x, lerpGoal.y, lerpGoal.z, mob.getYRot(), mob.getXRot(), 3);
+                    }
+                    if (waitTicks == 9 && lerpGoal != null && hpTarget != null) {
+                        double off = hpTarget.position().distanceTo(lerpGoal);
+                        log("less mob smoothing: " + String.format(java.util.Locale.ROOT, "%.2f", off) + " blocks from the server position after 1-2 ticks");
+                        if (off > 0.05) fail("mob still easing toward its server position");
+                        lerpGoal = null;
+                    }
                     if (waitTicks == 10) {
                         Screenshot.grab(mc.gameDirectory, "drim-dualwield.png", mc.getMainRenderTarget(), c -> log("screenshot: " + c.getString()));
                         mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);
