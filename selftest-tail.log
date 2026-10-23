@@ -1,0 +1,300 @@
+[10:30:41] [Render thread/INFO] (Minecraft) Preparing spawn area: 18%
+[10:30:41] [Render thread/INFO] (Minecraft) Preparing spawn area: 18%
+[10:30:42] [Render thread/INFO] (Minecraft) Preparing spawn area: 51%
+[10:30:42] [Render thread/INFO] (Minecraft) Preparing spawn area: 51%
+[10:30:42] [Render thread/INFO] (Minecraft) Time elapsed: 3096 ms
+[10:30:42] [Server thread/INFO] (Minecraft) Changing view distance to 12, from 10
+[10:30:42] [Server thread/INFO] (Minecraft) Changing simulation distance to 12, from 0
+[10:30:43] [Server thread/INFO] (Minecraft) Player929[local:E:54258dde] logged in with entity id 21 at (-9.5, 65.0, -2.5)
+[10:30:43] [Server thread/INFO] (Minecraft) Player929 joined the game
+[10:30:43] [Render thread/INFO] (ChunkBuilder) Started 1 worker threads
+[10:30:43] [Render thread/INFO] (Minecraft) Loaded 2 advancements
+[10:30:43] [Render thread/INFO] (dr_improvement_mod) DRIM xp: progress=0.0 level=0 total=0 -> mana 0 / 100 (level moved 0, total moved 0)
+[10:30:45] [Render thread/INFO] (dr_improvement_mod) capture: §6[DR] §fCapture §astarted§f, writing to §edr_capture/capture-20261023-103045.log§f. Play normally, then run §e/drcapture§f again to stop.
+[10:30:45] [Render thread/INFO] (Minecraft) [STDOUT]: capture: §6[DR] §fCapture §astarted§f, writing to §edr_capture/capture-20261023-103045.log§f. Play normally, then run §e/drcapture§f again to stop.
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [G] Player929: guild chat stays left
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] <Player929> plain player chat
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] You must wait before consuming another potion.
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] You must wait before consuming another potion. (x2)
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] You must wait before consuming another potion. (x3)
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] §b<5R> §e§lSomeNick§f: typed by me
+[10:30:45] [Server thread/INFO] (Minecraft) Set the time to 6000
+[10:30:45] [Server thread/INFO] (Minecraft) Gamerule doDaylightCycle is now set to: false
+[10:30:45] [Server thread/INFO] (Minecraft) Successfully filled 547 block(s)
+[10:30:45] [Server thread/INFO] (Minecraft) Successfully filled 361 block(s)
+[10:30:45] [Server thread/INFO] (Minecraft) Teleported Player929 to -9.500000, 65.000000, -2.500000
+[10:30:45] [Server thread/INFO] (Minecraft) Summoned new Spooky Skeleton [Lv 90]
+[10:30:45] [Server thread/INFO] (Minecraft) Summoned new Spooky Skeleton [Lv 90]
+[10:30:45] [Server thread/INFO] (Minecraft) Summoned new ♨ Spooky Skeleton [Lv 90]
+[10:30:45] [Server thread/INFO] (Minecraft) Summoned new Rotten Zombie [Lv 95]
+[10:30:45] [Server thread/INFO] (Minecraft) Summoned new |||||||||||||||||||| [Lv 91]
+[10:30:45] [Server thread/INFO] (Minecraft) [Not Secure] <Player929> hello from the left side
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Set the time to 6000]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Gamerule doDaylightCycle is now set to: false]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Successfully filled 547 block(s)]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Successfully filled 361 block(s)]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Player929: Teleported Player929 to -9.500000, 65.000000, -2.500000]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] 120 DMG -> Skeleton [2400 HP]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] +48 EXP [1205/9000]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] You have found 12 Gems!
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Summoned new Spooky Skeleton [Lv 90]]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Summoned new Spooky Skeleton [Lv 90]] (x2)
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Summoned new ♨ Spooky Skeleton [Lv 90]]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Summoned new Rotten Zombie [Lv 95]]
+[10:30:45] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Summoned new |||||||||||||||||||| [Lv 91]]
+[10:30:45] [Render thread/INFO] (Minecraft) [CHAT] <Player929> hello from the left side
+[10:30:46] [Server thread/INFO] (Minecraft) Modified entity data of |||||||||||||||||||| [Lv 90]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Modified entity data of |||||||||||||||||||| [Lv 90]]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT]                                 * CRIT *
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT]                            * SHATTERED *
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] 1105 DMG -> Fiendish Skeleton [6238 HP]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] 523 DMG -> Fiendish Skeleton [5715 HP]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] 36 DMG (Thorns) -> Fiendish Skeleton [5679 HP]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] +96 HP (Leeching Poison) [620 Overhealth]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] +130 HP (Life Steal) [750 Overhealth]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] +11 HP (Healing) [761 Overhealth]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] -45 HP (Fiendish Skeleton's Thorns) [22937 HP]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT]    + 48 EXP (EXP BUFF) [1205/9000]
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT]                                    99G
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] ╶╶╶╶◃◃▭▭⭋♢▹▹╶╶╶╶
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] Beacon Buff: +17% vs. MONSTERS (2m)
+[10:30:46] [Render thread/INFO] (Minecraft) [System] [CHAT] Fire Imp dropped: SHOW
+[10:30:47] [Server thread/ERROR] (Minecraft) Display entityNot a string
+[10:30:47] [Server thread/INFO] (Minecraft) Summoned new Text Display
+[10:30:47] [Server thread/INFO] (Minecraft) Summoned new +125 ❤
+[10:30:47] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Summoned new Text Display]
+[10:30:47] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Summoned new +125 ❤]
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) player plate ok
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: player plate ok
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) abilities: [The Fast, Dash] combat=1.673
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: abilities: [The Fast, Dash] combat=1.673
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) countdown: 3.50, narrowed 2.65 (window 0.94s), restarted 7.50
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: countdown: 3.50, narrowed 2.65 (window 0.94s), restarted 7.50
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) class switch: warrior [Berserk], back to rogue [The Fast, Dash]
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: class switch: warrior [Berserk], back to rogue [The Fast, Dash]
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) player plate: Lv 103 Rogue
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: player plate: Lv 103 Rogue
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) guild badge: 5R/NEUTRAL, marked enemy ENEMY, ally ALLY
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: guild badge: 5R/NEUTRAL, marked enemy ENEMY, ally ALLY
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) feed: 24 entries; last hit = 10:30 ⚔ 36 → Fiendish Skeleton Thorns  5,679 HP; heal = 10:30 ✚ +237 healed  Leeching Poison 96 · Life Steal 130 · Healing 11
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: feed: 24 entries; last hit = 10:30 ⚔ 36 → Fiendish Skeleton Thorns  5,679 HP; heal = 10:30 ✚ +237 healed  Leeching Poison 96 · Life Steal 130 · Healing 11
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) floating text: 2 numbers on screen, DR hologram hidden=true
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: floating text: 2 numbers on screen, DR hologram hidden=true
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) other players' numbers drawn: 0
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: other players' numbers drawn: 0
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) heal numbers (from your chat only): 1
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: heal numbers (from your chat only): 1
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) mob hp track: 2280 / 2400 (exact)
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: mob hp track: 2280 / 2400 (exact)
+[10:30:47] [Render thread/INFO] (dr_improvement_mod) left chat: 5 messages, right chat: 29 messages
+[10:30:47] [Render thread/INFO] (Minecraft) [STDOUT]: left chat: 5 messages, right chat: 29 messages
+[10:30:47] [IO-Worker-3/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-splitchat.png
+[10:30:47] [IO-Worker-3/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-splitchat.png
+[10:30:48] [Render thread/INFO] (dr_improvement_mod) crit numbers: 2, thorns numbers: 1
+[10:30:48] [Render thread/INFO] (Minecraft) [STDOUT]: crit numbers: 2, thorns numbers: 1
+[10:30:48] [Server thread/INFO] (Minecraft) Modified entity data of Spooky Skeleton [Lv 90]
+[10:30:48] [IO-Worker-6/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-splitchat-open.png
+[10:30:48] [IO-Worker-6/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-splitchat-open.png
+[10:30:48] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Modified entity data of Spooky Skeleton [Lv 90]]
+[10:30:49] [Render thread/INFO] (dr_improvement_mod) after name revert: 1139 / 2400
+[10:30:49] [Render thread/INFO] (Minecraft) [STDOUT]: after name revert: 1139 / 2400
+[10:30:49] [Render thread/INFO] (dr_improvement_mod) after cleave: clicked 939 / 2400, other 2310 / 2400
+[10:30:49] [Render thread/INFO] (Minecraft) [STDOUT]: after cleave: clicked 939 / 2400, other 2310 / 2400
+[10:30:49] [Render thread/INFO] (dr_improvement_mod) after reordered cleave: clicked 745 / 2400, other 2225 / 2400, affix 2360 / 2400
+[10:30:49] [Render thread/INFO] (Minecraft) [STDOUT]: after reordered cleave: clicked 745 / 2400, other 2225 / 2400, affix 2360 / 2400
+[10:30:50] [Render thread/INFO] (dr_improvement_mod) max from bar: 1400 / 2010 est
+[10:30:50] [Render thread/INFO] (Minecraft) [STDOUT]: max from bar: 1400 / 2010 est
+[10:30:50] [IO-Worker-5/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-chat-custom-open.png
+[10:30:50] [IO-Worker-5/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-chat-custom-open.png
+[10:30:51] [Render thread/INFO] (dr_improvement_mod) chat layout screen ok
+[10:30:51] [Render thread/INFO] (Minecraft) [STDOUT]: chat layout screen ok
+[10:30:51] [IO-Worker-5/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-chat-layout-screen.png
+[10:30:51] [IO-Worker-5/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-chat-layout-screen.png
+[10:30:51] [Server thread/INFO] (Minecraft) Saving and pausing game...
+[10:30:51] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[drim-selftest]'/minecraft:overworld
+[10:30:51] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[drim-selftest]'/minecraft:the_nether
+[10:30:51] [Server thread/INFO] (Minecraft) Saving chunks for level 'ServerLevel[drim-selftest]'/minecraft:the_end
+[10:30:52] [IO-Worker-1/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-enemyhp-screen.png
+[10:30:52] [IO-Worker-1/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-enemyhp-screen.png
+[10:30:53] [Render thread/INFO] (dr_improvement_mod) cooldown screen ok
+[10:30:53] [Render thread/INFO] (Minecraft) [STDOUT]: cooldown screen ok
+[10:30:53] [IO-Worker-6/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-cooldown-screen.png
+[10:30:53] [IO-Worker-6/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-cooldown-screen.png
+[10:30:53] [Render thread/INFO] (dr_improvement_mod) DRIM pouch: Large Gem Pouch 30g || 
+[10:30:53] [Render thread/INFO] (dr_improvement_mod) bars screen ok
+[10:30:53] [Render thread/INFO] (Minecraft) [STDOUT]: bars screen ok
+[10:30:53] [IO-Worker-2/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-bars-screen.png
+[10:30:53] [IO-Worker-2/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-bars-screen.png
+[10:30:54] [Render thread/INFO] (dr_improvement_mod) capture: §6[DR] §fCapture §cstopped§f: 70 lines in §edr_capture/capture-20261023-103045.log
+[10:30:54] [Render thread/INFO] (Minecraft) [STDOUT]: capture: §6[DR] §fCapture §cstopped§f: 70 lines in §edr_capture/capture-20261023-103045.log
+[10:30:54] [Server thread/INFO] (Minecraft) Changed the block at -10, 66, 0
+[10:30:54] [Server thread/INFO] (Minecraft) Successfully filled 15 block(s)
+[10:30:54] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Changed the block at -10, 66, 0]
+[10:30:54] [Render thread/INFO] (Minecraft) [System] [CHAT] [Server: Successfully filled 15 block(s)]
+[10:30:54] [IO-Worker-1/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-bars-moved.png
+[10:30:54] [IO-Worker-1/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-bars-moved.png
+[10:30:54] [Render thread/INFO] (Minecraft) [System] [CHAT]           DOUBLE ORE DROP (2x)
+[10:30:54] [Render thread/INFO] (Minecraft) [System] [CHAT] Ore respawned!
+[10:30:55] [Render thread/INFO] (dr_improvement_mod) ore popups: 5 (exp 2, gem 1, double 1, respawn 1)
+[10:30:55] [Render thread/INFO] (Minecraft) [STDOUT]: ore popups: 5 (exp 2, gem 1, double 1, respawn 1)
+[10:30:55] [IO-Worker-6/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-ore-popups.png
+[10:30:55] [IO-Worker-6/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-ore-popups.png
+[10:30:55] [Render thread/INFO] (dr_improvement_mod) mining popup screen ok
+[10:30:55] [Render thread/INFO] (Minecraft) [STDOUT]: mining popup screen ok
+[10:30:56] [IO-Worker-5/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-ore-screen.png
+[10:30:56] [IO-Worker-5/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-ore-screen.png
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) dual wield: swings MAIN_HAND then OFF_HAND, offhand shows axe true, real offhand changed false
+[10:30:56] [Render thread/INFO] (Minecraft) [STDOUT]: dual wield: swings MAIN_HAND then OFF_HAND, offhand shows axe true, real offhand changed false
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) energy guard: true, swing cost estimate 0.15
+[10:30:56] [Render thread/INFO] (Minecraft) [STDOUT]: energy guard: true, swing cost estimate 0.15
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) energy guard learned cost 0.14999998
+[10:30:56] [Render thread/INFO] (Minecraft) [STDOUT]: energy guard learned cost 0.14999998
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) gem pouch: Fill[gems=45, max=100] Fill[gems=200, max=200] Fill[gems=0, max=150] Fill[gems=1000, max=1000]
+[10:30:56] [Render thread/INFO] (Minecraft) [STDOUT]: gem pouch: Fill[gems=45, max=100] Fill[gems=200, max=200] Fill[gems=0, max=150] Fill[gems=1000, max=1000]
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) auto skill parse: Artifact[name=Shoulder Bash, cost=40, cooldown=5.0, range=4.0, damage=true] / Artifact[name=Dash, cost=20, cooldown=8.0, range=4.0, damage=false]
+[10:30:56] [Render thread/INFO] (Minecraft) [STDOUT]: auto skill parse: Artifact[name=Shoulder Bash, cost=40, cooldown=5.0, range=4.0, damage=true] / Artifact[name=Dash, cost=20, cooldown=8.0, range=4.0, damage=false]
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) DRIM xp: progress=0.5 level=100 total=0 -> mana 100 / 100 (level moved 1, total moved 0)
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) DRIM xp: progress=0.5 level=60 total=0 -> mana 60 / 100 (level moved 2, total moved 0)
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) DRIM xp: progress=0.5 level=100 total=0 -> mana 100 / 100 (level moved 3, total moved 0)
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) DRIM pouch: Small Gem Pouch 40g || A small linen pouch that holds 100g|
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) DRIM pouch: Small Gem Pouch 100g || A small linen pouch that holds 100g|
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) auto skill: casts 1, switch sent to server true, back on weapon true
+[10:30:56] [Render thread/INFO] (Minecraft) [STDOUT]: auto skill: casts 1, switch sent to server true, back on weapon true
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) hit feedback: flash 10, predicted bar 0.8 -> 0.6 (typical hit 200)
+[10:30:56] [Render thread/INFO] (Minecraft) [STDOUT]: hit feedback: flash 10, predicted bar 0.8 -> 0.6 (typical hit 200)
+[10:30:56] [Render thread/INFO] (dr_improvement_mod) less mob smoothing: 0.00 blocks from the server position after 2 ticks
+[10:30:56] [Render thread/INFO] (Minecraft) [STDOUT]: less mob smoothing: 0.00 blocks from the server position after 2 ticks
+[10:30:56] [IO-Worker-3/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-dualwield.png
+[10:30:56] [IO-Worker-3/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-dualwield.png
+[10:30:56] [IO-Worker-5/INFO] (dr_improvement_mod) screenshot: Saved screenshot as drim-dualwield-f5.png
+[10:30:56] [IO-Worker-5/INFO] (Minecraft) [STDOUT]: screenshot: Saved screenshot as drim-dualwield-f5.png
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) auto clicker: 9 clicks in 20 ticks at 10 CPS
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: auto clicker: 9 clicks in 20 ticks at 10 CPS
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) capture file: 70 lines
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: capture file: 70 lines
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.010 | INFO | DR Improvement Mod capture started. Format: time | type | plain text | raw JSON
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.010 | INFO | DR Improvement Mod capture started. Format: time | type | plain text | raw JSON
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.017 | ROUTE | LEFT  [G] Player929: guild chat stays left
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.017 | ROUTE | LEFT  [G] Player929: guild chat stays left
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.018 | ROUTE | LEFT  <Player929> plain player chat
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.018 | ROUTE | LEFT  <Player929> plain player chat
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.019 | ROUTE | RIGHT You must wait before consuming another potion.
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.019 | ROUTE | RIGHT You must wait before consuming another potion.
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.020 | ROUTE | RIGHT You must wait before consuming another potion.
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.020 | ROUTE | RIGHT You must wait before consuming another potion.
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.020 | ROUTE | RIGHT You must wait before consuming another potion.
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.020 | ROUTE | RIGHT You must wait before consuming another potion.
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.021 | ROUTE | LEFT  §b<5R> §e§lSomeNick§f: typed by me
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.021 | ROUTE | LEFT  §b<5R> §e§lSomeNick§f: typed by me
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.227 | CHAT | [Server: Set the time to 6000] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.time.set","with":[6000]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.227 | CHAT | [Server: Set the time to 6000] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.time.set","with":[6000]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.238 | ROUTE | RIGHT [Server: Set the time to 6000]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.238 | ROUTE | RIGHT [Server: Set the time to 6000]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.240 | CHAT | [Server: Gamerule doDaylightCycle is now set to: false] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.gamerule.set","with":["doDaylightCycle","false"]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.240 | CHAT | [Server: Gamerule doDaylightCycle is now set to: false] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.gamerule.set","with":["doDaylightCycle","false"]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.241 | ROUTE | RIGHT [Server: Gamerule doDaylightCycle is now set to: false]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.241 | ROUTE | RIGHT [Server: Gamerule doDaylightCycle is now set to: false]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.255 | CHAT | [Server: Successfully filled 547 block(s)] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.fill.success","with":[547]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.255 | CHAT | [Server: Successfully filled 547 block(s)] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.fill.success","with":[547]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.256 | ROUTE | RIGHT [Server: Successfully filled 547 block(s)]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.256 | ROUTE | RIGHT [Server: Successfully filled 547 block(s)]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.261 | CHAT | [Server: Successfully filled 361 block(s)] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.fill.success","with":[361]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.261 | CHAT | [Server: Successfully filled 361 block(s)] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.fill.success","with":[361]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.262 | ROUTE | RIGHT [Server: Successfully filled 361 block(s)]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.262 | ROUTE | RIGHT [Server: Successfully filled 361 block(s)]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.266 | CHAT | [Player929: Teleported Player929 to -9.500000, 65.000000, -2.500000] | {"translate":"chat.type.admin","with":[{"text":"Player929","hoverEvent":{"contents":{"type":"minecraft:player","id":[155468897,-1779942068,-1261936192,696033679],"name":"Player929"},"action":"show_entity"},"insertion":"Player929","clickEvent":{"action":"suggest_command","value":"/tell Player929 "}},{"translate":"commands.teleport.success.location.single","with":[{"text":"Player929","hoverEvent":{"contents":{"type":"minecraft:player","id":[155468897,-1779942068,-1261936192,696033679],"name":"Player929"},"action":"show_entity"},"insertion":"Player929","clickEvent":{"action":"suggest_command","value":"/tell Player929 "}},"-9.500000","65.000000","-2.500000"]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.266 | CHAT | [Player929: Teleported Player929 to -9.500000, 65.000000, -2.500000] | {"translate":"chat.type.admin","with":[{"text":"Player929","hoverEvent":{"contents":{"type":"minecraft:player","id":[155468897,-1779942068,-1261936192,696033679],"name":"Player929"},"action":"show_entity"},"insertion":"Player929","clickEvent":{"action":"suggest_command","value":"/tell Player929 "}},{"translate":"commands.teleport.success.location.single","with":[{"text":"Player929","hoverEvent":{"contents":{"type":"minecraft:player","id":[155468897,-1779942068,-1261936192,696033679],"name":"Player929"},"action":"show_entity"},"insertion":"Player929","clickEvent":{"action":"suggest_command","value":"/tell Player929 "}},"-9.500000","65.000000","-2.500000"]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.267 | ROUTE | LEFT  [Player929: Teleported Player929 to -9.500000, 65.000000, -2.500000]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.267 | ROUTE | LEFT  [Player929: Teleported Player929 to -9.500000, 65.000000, -2.500000]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.267 | CHAT | 120 DMG -> Skeleton [2400 HP] | {"text":"120 DMG -> Skeleton [2400 HP]","color":"red"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.267 | CHAT | 120 DMG -> Skeleton [2400 HP] | {"text":"120 DMG -> Skeleton [2400 HP]","color":"red"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.268 | ROUTE | RIGHT 120 DMG -> Skeleton [2400 HP]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.268 | ROUTE | RIGHT 120 DMG -> Skeleton [2400 HP]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.268 | CHAT | +48 EXP [1205/9000] | {"text":"+48 EXP [1205/9000]","color":"yellow"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.268 | CHAT | +48 EXP [1205/9000] | {"text":"+48 EXP [1205/9000]","color":"yellow"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.268 | ROUTE | RIGHT +48 EXP [1205/9000]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.268 | ROUTE | RIGHT +48 EXP [1205/9000]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.269 | CHAT | You have found 12 Gems! | {"text":"You have found 12 Gems!","color":"green"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.269 | CHAT | You have found 12 Gems! | {"text":"You have found 12 Gems!","color":"green"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.269 | ROUTE | RIGHT You have found 12 Gems!
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.269 | ROUTE | RIGHT You have found 12 Gems!
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.273 | CHAT | [Server: Summoned new Spooky Skeleton [Lv 90]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[0,0,0,1001],"name":{"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}},"action":"show_entity"},"insertion":"00000000-0000-0000-0000-0000000003e9","bold":true,"color":"red"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.273 | CHAT | [Server: Summoned new Spooky Skeleton [Lv 90]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[0,0,0,1001],"name":{"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}},"action":"show_entity"},"insertion":"00000000-0000-0000-0000-0000000003e9","bold":true,"color":"red"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.274 | ROUTE | RIGHT [Server: Summoned new Spooky Skeleton [Lv 90]]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.274 | ROUTE | RIGHT [Server: Summoned new Spooky Skeleton [Lv 90]]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.278 | CHAT | [Server: Summoned new Spooky Skeleton [Lv 90]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[-1237494638,1830242627,-1493904210,-1263854108],"name":{"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}},"action":"show_entity"},"insertion":"b63d5492-6d17-4943-a6f4-d4aeb4ab1de4","bold":true,"color":"red"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.278 | CHAT | [Server: Summoned new Spooky Skeleton [Lv 90]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[-1237494638,1830242627,-1493904210,-1263854108],"name":{"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}},"action":"show_entity"},"insertion":"b63d5492-6d17-4943-a6f4-d4aeb4ab1de4","bold":true,"color":"red"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.279 | ROUTE | RIGHT [Server: Summoned new Spooky Skeleton [Lv 90]]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.279 | ROUTE | RIGHT [Server: Summoned new Spooky Skeleton [Lv 90]]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.285 | CHAT | [Server: Summoned new ♨ Spooky Skeleton [Lv 90]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"♨ ","extra":[{"text":"Spooky Skeleton","color":"yellow"},{"text":" [Lv 90]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[931279852,471943519,-1570392852,1147558149],"name":{"text":"♨ ","extra":[{"text":"Spooky Skeleton","color":"yellow"},{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}},"action":"show_entity"},"insertion":"378233ec-1c21-495f-a265-b4ec44665905","bold":true,"color":"red"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.285 | CHAT | [Server: Summoned new ♨ Spooky Skeleton [Lv 90]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"♨ ","extra":[{"text":"Spooky Skeleton","color":"yellow"},{"text":" [Lv 90]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[931279852,471943519,-1570392852,1147558149],"name":{"text":"♨ ","extra":[{"text":"Spooky Skeleton","color":"yellow"},{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}},"action":"show_entity"},"insertion":"378233ec-1c21-495f-a265-b4ec44665905","bold":true,"color":"red"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.286 | ROUTE | RIGHT [Server: Summoned new ♨ Spooky Skeleton [Lv 90]]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.286 | ROUTE | RIGHT [Server: Summoned new ♨ Spooky Skeleton [Lv 90]]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.291 | CHAT | [Server: Summoned new Rotten Zombie [Lv 95]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"Rotten Zombie","extra":[{"text":" [Lv 95]","color":"gray"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[-1380613329,-1427616257,-1425981241,307825830],"name":{"text":"Rotten Zombie","extra":[{"text":" [Lv 95]","color":"gray"}],"color":"white"}},"action":"show_entity"},"insertion":"adb5832f-aae8-4dff-ab01-40c712590ca6","color":"white"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.291 | CHAT | [Server: Summoned new Rotten Zombie [Lv 95]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"Rotten Zombie","extra":[{"text":" [Lv 95]","color":"gray"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[-1380613329,-1427616257,-1425981241,307825830],"name":{"text":"Rotten Zombie","extra":[{"text":" [Lv 95]","color":"gray"}],"color":"white"}},"action":"show_entity"},"insertion":"adb5832f-aae8-4dff-ab01-40c712590ca6","color":"white"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.291 | ROUTE | RIGHT [Server: Summoned new Rotten Zombie [Lv 95]]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.291 | ROUTE | RIGHT [Server: Summoned new Rotten Zombie [Lv 95]]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.292 | CHAT | [Server: Summoned new |||||||||||||||||||| [Lv 91]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"||||||||||||||","extra":[{"text":"||||||","color":"gray"},{"text":" [Lv 91]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[-452906824,-1779808488,-1592953831,-1200828699],"name":{"text":"||||||||||||||","extra":[{"text":"||||||","color":"gray"},{"text":" [Lv 91]","color":"white"}],"color":"green"}},"action":"show_entity"},"insertion":"e50130b8-95ea-4718-a10d-7419b86ccee5","color":"green"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.292 | CHAT | [Server: Summoned new |||||||||||||||||||| [Lv 91]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.summon.success","with":[{"text":"||||||||||||||","extra":[{"text":"||||||","color":"gray"},{"text":" [Lv 91]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[-452906824,-1779808488,-1592953831,-1200828699],"name":{"text":"||||||||||||||","extra":[{"text":"||||||","color":"gray"},{"text":" [Lv 91]","color":"white"}],"color":"green"}},"action":"show_entity"},"insertion":"e50130b8-95ea-4718-a10d-7419b86ccee5","color":"green"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.293 | ROUTE | RIGHT [Server: Summoned new |||||||||||||||||||| [Lv 91]]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.293 | ROUTE | RIGHT [Server: Summoned new |||||||||||||||||||| [Lv 91]]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.293 | PLAYERCHAT | hello from the left side | "hello from the left side"
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.293 | PLAYERCHAT | hello from the left side | "hello from the left side"
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.298 | ROUTE | LEFT  <Player929> hello from the left side
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.298 | ROUTE | LEFT  <Player929> hello from the left side
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.315 | NAME | villager#94 d=5.4 | Spooky Skeleton [Lv 90] | {"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.315 | NAME | villager#94 d=5.4 | Spooky Skeleton [Lv 90] | {"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.315 | NAME | villager#95 d=6.9 | Spooky Skeleton [Lv 90] | {"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.315 | NAME | villager#95 d=6.9 | Spooky Skeleton [Lv 90] | {"text":"Spooky Skeleton","extra":[{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.315 | NAME | villager#96 d=8.6 | ♨ Spooky Skeleton [Lv 90] | {"text":"♨ ","extra":[{"text":"Spooky Skeleton","color":"yellow"},{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.315 | NAME | villager#96 d=8.6 | ♨ Spooky Skeleton [Lv 90] | {"text":"♨ ","extra":[{"text":"Spooky Skeleton","color":"yellow"},{"text":" [Lv 90]","color":"white"}],"bold":true,"color":"red"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.316 | NAME | villager#97 d=8.0 | Rotten Zombie [Lv 95] | {"text":"Rotten Zombie","extra":[{"text":" [Lv 95]","color":"gray"}],"color":"white"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.316 | NAME | villager#97 d=8.0 | Rotten Zombie [Lv 95] | {"text":"Rotten Zombie","extra":[{"text":" [Lv 95]","color":"gray"}],"color":"white"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.319 | NAME | villager#98 d=5.4 | |||||||||||||||||||| [Lv 91] | {"text":"||||||||||||||","extra":[{"text":"||||||","color":"gray"},{"text":" [Lv 91]","color":"white"}],"color":"green"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.319 | NAME | villager#98 d=5.4 | |||||||||||||||||||| [Lv 91] | {"text":"||||||||||||||","extra":[{"text":"||||||","color":"gray"},{"text":" [Lv 91]","color":"white"}],"color":"green"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:45.885 | NAME | player#106 d=10.5 | [5R] Rival [Lv 103 ROG] | {"text":"","extra":[{"text":"[5R] ","color":"dark_aqua"},"Rival",{"text":" [Lv 103 ROG]","color":"aqua"}],"hoverEvent":{"contents":{"type":"minecraft:player","id":[-415698193,-155039727,-1959124245,1283768783],"name":"Rival"},"action":"show_entity"},"insertion":"Rival","clickEvent":{"action":"suggest_command","value":"/tell Rival "},"color":"red"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:45.885 | NAME | player#106 d=10.5 | [5R] Rival [Lv 103 ROG] | {"text":"","extra":[{"text":"[5R] ","color":"dark_aqua"},"Rival",{"text":" [Lv 103 ROG]","color":"aqua"}],"hoverEvent":{"contents":{"type":"minecraft:player","id":[-415698193,-155039727,-1959124245,1283768783],"name":"Rival"},"action":"show_entity"},"insertion":"Rival","clickEvent":{"action":"suggest_command","value":"/tell Rival "},"color":"red"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.088 | ACTIONBAR | The Fast: [7s] ▪ Dash [4s] ▪ MONSTER SLAYER [1m 59s] ▪ [4/5] Potions: [59s] ▪ PvM Combat: [3s] | {"text":"","extra":[{"text":"The Fast: [7s]","color":"green"},{"text":" ▪ ","color":"dark_gray"},{"text":"Dash [4s]","color":"red"},{"text":" ▪ ","color":"dark_gray"},{"text":"MONSTER SLAYER [1m 59s]","color":"gold"},{"text":" ▪ ","color":"dark_gray"},{"text":"[4/5] Potions: [59s]","color":"red"},{"text":" ▪ ","color":"dark_gray"},{"text":"PvM Combat: [3s]","bold":true,"color":"red"}]}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.088 | ACTIONBAR | The Fast: [7s] ▪ Dash [4s] ▪ MONSTER SLAYER [1m 59s] ▪ [4/5] Potions: [59s] ▪ PvM Combat: [3s] | {"text":"","extra":[{"text":"The Fast: [7s]","color":"green"},{"text":" ▪ ","color":"dark_gray"},{"text":"Dash [4s]","color":"red"},{"text":" ▪ ","color":"dark_gray"},{"text":"MONSTER SLAYER [1m 59s]","color":"gold"},{"text":" ▪ ","color":"dark_gray"},{"text":"[4/5] Potions: [59s]","color":"red"},{"text":" ▪ ","color":"dark_gray"},{"text":"PvM Combat: [3s]","bold":true,"color":"red"}]}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.427 | CHAT | [Server: Modified entity data of |||||||||||||||||||| [Lv 90]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.data.entity.modified","with":[{"text":"|||||||||||||||||||","extra":[{"text":"|","color":"gray"},{"text":" [Lv 90]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[0,0,0,1001],"name":{"text":"|||||||||||||||||||","extra":[{"text":"|","color":"gray"},{"text":" [Lv 90]","color":"white"}],"color":"green"}},"action":"show_entity"},"insertion":"00000000-0000-0000-0000-0000000003e9","color":"green"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.427 | CHAT | [Server: Modified entity data of |||||||||||||||||||| [Lv 90]] | {"translate":"chat.type.admin","with":["Server",{"translate":"commands.data.entity.modified","with":[{"text":"|||||||||||||||||||","extra":[{"text":"|","color":"gray"},{"text":" [Lv 90]","color":"white"}],"hoverEvent":{"contents":{"type":"minecraft:villager","id":[0,0,0,1001],"name":{"text":"|||||||||||||||||||","extra":[{"text":"|","color":"gray"},{"text":" [Lv 90]","color":"white"}],"color":"green"}},"action":"show_entity"},"insertion":"00000000-0000-0000-0000-0000000003e9","color":"green"}]}],"italic":true,"color":"gray"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.427 | ROUTE | RIGHT [Server: Modified entity data of |||||||||||||||||||| [Lv 90]]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.427 | ROUTE | RIGHT [Server: Modified entity data of |||||||||||||||||||| [Lv 90]]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.553 | NAME | villager#94 d=5.4 | |||||||||||||||||||| [Lv 90] | {"text":"|||||||||||||||||||","extra":[{"text":"|","color":"gray"},{"text":" [Lv 90]","color":"white"}],"color":"green"}
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.553 | NAME | villager#94 d=5.4 | |||||||||||||||||||| [Lv 90] | {"text":"|||||||||||||||||||","extra":[{"text":"|","color":"gray"},{"text":" [Lv 90]","color":"white"}],"color":"green"}
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.824 | ROUTE | RIGHT                                 * CRIT *
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.824 | ROUTE | RIGHT                                 * CRIT *
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.825 | ROUTE | RIGHT                            * SHATTERED *
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.825 | ROUTE | RIGHT                            * SHATTERED *
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.825 | ROUTE | RIGHT 1105 DMG -> Fiendish Skeleton [6238 HP]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.825 | ROUTE | RIGHT 1105 DMG -> Fiendish Skeleton [6238 HP]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.826 | ROUTE | RIGHT 523 DMG -> Fiendish Skeleton [5715 HP]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.826 | ROUTE | RIGHT 523 DMG -> Fiendish Skeleton [5715 HP]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.826 | ROUTE | RIGHT 36 DMG (Thorns) -> Fiendish Skeleton [5679 HP]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.826 | ROUTE | RIGHT 36 DMG (Thorns) -> Fiendish Skeleton [5679 HP]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.826 | ROUTE | RIGHT +96 HP (Leeching Poison) [620 Overhealth]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.826 | ROUTE | RIGHT +96 HP (Leeching Poison) [620 Overhealth]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.827 | ROUTE | RIGHT +130 HP (Life Steal) [750 Overhealth]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.827 | ROUTE | RIGHT +130 HP (Life Steal) [750 Overhealth]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.827 | ROUTE | RIGHT +11 HP (Healing) [761 Overhealth]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.827 | ROUTE | RIGHT +11 HP (Healing) [761 Overhealth]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.828 | ROUTE | RIGHT -45 HP (Fiendish Skeleton's Thorns) [22937 HP]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.828 | ROUTE | RIGHT -45 HP (Fiendish Skeleton's Thorns) [22937 HP]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.828 | ROUTE | RIGHT    + 48 EXP (EXP BUFF) [1205/9000]
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.828 | ROUTE | RIGHT    + 48 EXP (EXP BUFF) [1205/9000]
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.828 | ROUTE | RIGHT                                    99G
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.828 | ROUTE | RIGHT                                    99G
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.828 | ROUTE | RIGHT ╶╶╶╶◃◃▭▭⭋♢▹▹╶╶╶╶
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.828 | ROUTE | RIGHT ╶╶╶╶◃◃▭▭⭋♢▹▹╶╶╶╶
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.828 | ROUTE | RIGHT Beacon Buff: +17% vs. MONSTERS (2m)
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.828 | ROUTE | RIGHT Beacon Buff: +17% vs. MONSTERS (2m)
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:46.829 | ROUTE | RIGHT Fire Imp dropped: SHOW
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:46.829 | ROUTE | RIGHT Fire Imp dropped: SHOW
+[10:30:57] [Render thread/INFO] (dr_improvement_mod) CAPTURE> 10:30:47.294 | MARK | selftest: holograms summoned
+[10:30:57] [Render thread/INFO] (Minecraft) [STDOUT]: CAPTURE> 10:30:47.294 | MARK | selftest: holograms summoned
+[10:30:58] [Render thread/INFO] (dr_improvement_mod) DRIM SELFTEST PASS
+[10:30:58] [Render thread/INFO] (Minecraft) [STDOUT]: DRIM SELFTEST PASS
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1792751420262.json
+
+BUILD SUCCESSFUL in 39s
+7 actionable tasks: 5 executed, 2 up-to-date

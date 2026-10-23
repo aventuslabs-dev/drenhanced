@@ -1,0 +1,41 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+> Configure project :
+Fabric Loom: 1.18.4
+
+Cannot remap lambda$updateBlockEntityTicker$7 because it does not exist in any of the targets [net/minecraft/class_2818]
+Cannot remap lambda$updateBlockEntityTicker$7 because it does not exist in any of the targets [net/minecraft/class_2818]
+Cannot remap lambda$addCloudsPass$6 because it does not exist in any of the targets [net/minecraft/class_761]
+Cannot remap lambda$init$2 because it does not exist in any of the targets [net/minecraft/class_429]
+Cannot remap lambda$addSkyPass$12 because it does not exist in any of the targets [net/minecraft/class_761]
+Cannot remap lambda$getTickets$5 because it does not exist in any of the targets [net/minecraft/class_3204]
+Cannot remap getRenderLayers because it does not exist in any of the targets [net/minecraft/class_4696]
+Cannot remap getHeldItem because it does not exist in any of the targets [net/minecraft/class_3727]
+Cannot remap lambda$create$5 because it does not exist in any of the targets [net/minecraft/class_4246]
+Cannot remap lambda$create$8 because it does not exist in any of the targets [net/minecraft/class_4246]
+Cannot remap iterateVisibleBlockEntities because it does not exist in any of the targets [net/minecraft/class_761]
+
+> Task :compileJava
+Note: /home/runner/work/drenhanced/drenhanced/src/main/java/com/twoandahalfdevs/dr_improvement_mod/mixin/PlayerMixin.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processResources
+> Task :classes
+> Task :jar
+> Task :processIncludeJars
+> Task :compileTestJava NO-SOURCE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+> Task :test NO-SOURCE
+> Task :validateAccessWidener NO-SOURCE
+> Task :check UP-TO-DATE
+> Task :remapJar
+> Task :remapSourcesJar SKIPPED
+> Task :assemble
+> Task :build
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1792751331850.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/drenhanced/drenhanced/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 23s
+5 actionable tasks: 5 executed

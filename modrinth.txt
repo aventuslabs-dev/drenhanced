@@ -1,0 +1,12 @@
+== immediatelyfast
+1.8.7+1.21.4-fabric  id=gF6yVXr9
+1.8.6+1.21.4-fabric  id=CFJfGS8F
+== entityculling
+1.11.3  id=U6ZIDmEu
+1.11.2  id=8BN4xxIy
+== lithium
+mc1.21.4-0.15.3-fabric  id=u8pHPXJl
+mc1.21.4-0.15.2-fabric  id=RuLfpULS
+== sodium
+mc1.21.4-0.6.13-fabric  id=c3YkZvne
+mc1.21.4-0.6.10-fabric  id=FRXt5xaI
