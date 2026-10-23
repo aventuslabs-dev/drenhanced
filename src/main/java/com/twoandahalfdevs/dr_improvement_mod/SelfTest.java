@@ -764,6 +764,24 @@ final class SelfTest {
                             && AutoClicker.shouldBlock(0.05f, 0.06f, 0f);
                         log("energy guard: " + guardOk + ", swing cost estimate " + AutoClicker.costEstimate());
                         if (!guardOk) fail("energy guard thresholds wrong");
+                        // gem pouch text in the shapes DR has used
+                        var p1 = GemPouch.parse("Small Gem Pouch 45g", "A small linen pouch that holds 100g");
+                        var p2 = GemPouch.parse("Large Gem Pouch", "Gems: 200 / 200");
+                        var p3 = GemPouch.parse("Medium Gem Pouch", "A medium wool sack that holds 150g");
+                        var p4 = GemPouch.parse("Gigantic Gem Pouch 1,000g", "Holds 1,000g");
+                        boolean pouchOk = p1 != null && p1.gems() == 45 && p1.max() == 100 && !p1.full()
+                            && p2 != null && p2.full() && p3 != null && p3.gems() == 0 && p3.max() == 150
+                            && p4 != null && p4.gems() == 1000 && p4.full();
+                        log("gem pouch: " + p1 + " " + p2 + " " + p3 + " " + p4);
+                        if (!pouchOk) fail("gem pouch fill not read");
+                        // drawn on a real slot: a pouch in the hotbar for the screenshot
+                        var pouch = new net.minecraft.world.item.ItemStack(net.minecraft.world.item.Items.INK_SAC);
+                        pouch.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal("Small Gem Pouch 100g"));
+                        pouch.set(net.minecraft.core.component.DataComponents.LORE, new net.minecraft.world.item.component.ItemLore(java.util.List.of(Component.literal("A small linen pouch that holds 100g"))));
+                        inv.setItem(8, pouch);
+                        var half = pouch.copy();
+                        half.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, Component.literal("Small Gem Pouch 40g"));
+                        inv.setItem(7, half);
                         // auto clicker: hold attack for 20 ticks (1 s) at 10 CPS
                         DrConfig.data.autoClicker = true;
                         DrConfig.data.autoCps = 10;

@@ -27,6 +27,7 @@ public final class DrConfig {
         public boolean legacyCombat = true;
         public boolean dualWield = false;
         public boolean autoClicker = false;
+        public boolean pouchIndicator = true;
         public int autoCps = 12;
         public boolean energyGuard = true;
         public int energyFloor = 10; // % of the energy bar to always keep

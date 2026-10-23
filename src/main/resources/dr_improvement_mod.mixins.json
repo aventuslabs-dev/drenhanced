@@ -16,6 +16,7 @@
     "EntityRendererMixin",
     "EntityRenderStateMixin",
     "GuiAccessor",
+    "GuiGraphicsMixin",
     "GuiMixin",
     "ItemInHandRendererMixin",
     "ItemModelResolverMixin",

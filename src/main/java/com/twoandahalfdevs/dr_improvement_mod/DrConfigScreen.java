@@ -85,6 +85,9 @@ public class DrConfigScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Auto clicker / energy..."), b -> this.minecraft.setScreen(new ClickerScreen(this)))
             .tooltip(Tooltip.create(Component.literal("Hold-to-click auto clicker (1-20 CPS) and an energy guard that never lets you swing yourself to 0 energy.")))
             .bounds(right, y, W, H).build());
+        y += GAP;
+        toggle(left, y, "Gem pouch fill", c.pouchIndicator, v -> c.pouchIndicator = v,
+            "A fill bar on every gem pouch in your inventory, and a gold frame + FULL when it's full, so you know when to bank. No hovering.");
 
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose())
             .bounds(this.width / 2 - 100, this.height - 30, 200, H).build());
